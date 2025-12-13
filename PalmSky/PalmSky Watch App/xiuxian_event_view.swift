@@ -7,79 +7,82 @@ struct EventView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
+      ScrollView {
         ZStack {
-            // Background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.1, blue: 0.25),
-                    Color(red: 0.25, green: 0.15, blue: 0.35)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+          // Background
+          LinearGradient(
+            gradient: Gradient(colors: [
+              Color(red: 0.15, green: 0.1, blue: 0.25),
+              Color(red: 0.25, green: 0.15, blue: 0.35)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          )
+          .ignoresSafeArea()
+          
+          VStack(spacing: 16) {
+            // Title
+            Text("奇遇")
+              .font(.system(size: 14, weight: .medium))
+              .foregroundColor(.white.opacity(0.6))
             
-            VStack(spacing: 16) {
-                // Title
-                Text("奇遇")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.6))
-                
-                // Event title
-                Text(event.title)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                
-                // Description
-                Text(event.desc)
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 8)
-                    .padding(.top, 4)
-                
-                Spacer()
-                
-                // Choices
-                VStack(spacing: 12) {
-                    ForEach(event.choices) { choice in
-                        Button(action: {
-                            gameManager.selectEventChoice(choice)
-                            dismiss()
-                        }) {
-                            VStack(spacing: 4) {
-                                Text(choice.text)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                // Show effect hint
-                                if let effectHint = getEffectHint(choice.effect) {
-                                    Text(effectHint)
-                                        .font(.system(size: 10))
-                                        .foregroundColor(.white.opacity(0.6))
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.15))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                                    )
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
+            // Event title
+            Text(event.title)
+              .font(.system(size: 18, weight: .bold))
+              .foregroundColor(.white)
+              .multilineTextAlignment(.center)
+            
+            // Description
+            Text(event.desc)
+              .font(.system(size: 14))
+              .foregroundColor(.white.opacity(0.9))
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 8)
+              .padding(.top, 4)
+            
+            Spacer()
+            
+            // Choices
+            VStack(spacing: 12) {
+              ForEach(event.choices) { choice in
+                Button(action: {
+                  gameManager.selectEventChoice(choice)
+                  dismiss()
+                }) {
+                  VStack(spacing: 4) {
+                    Text(choice.text)
+                      .font(.system(size: 14, weight: .semibold))
+                      .foregroundColor(.white)
+                    
+                    // Show effect hint
+                    if let effectHint = getEffectHint(choice.effect) {
+                      Text(effectHint)
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.6))
                     }
+                  }
+                  .frame(maxWidth: .infinity)
+                  .padding(.vertical, 12)
+                  .background(
+                    RoundedRectangle(cornerRadius: 12)
+                      .fill(Color.white.opacity(0.15))
+                      .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                          .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                      )
+                  )
                 }
-                .padding(.horizontal, 16)
-                
-                Spacer()
+                .buttonStyle(PlainButtonStyle())
+              }
             }
-            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            
+            Spacer()
+          }
+          .padding(.vertical, 16)
         }
+        .ignoresSafeArea()
+      }
     }
     
     private func getEffectHint(_ effect: EventEffect) -> String? {

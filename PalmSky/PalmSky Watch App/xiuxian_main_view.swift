@@ -103,6 +103,17 @@ struct MainView: View {
                         .rotationEffect(.degrees(90))
                         .frame(width: ringSize, height: ringSize)
                     
+                    if gameManager.getCurrentProgress() > 0 {
+                      Circle()
+                        .fill(Color.white)
+                        .frame(width: 6, height: 6)
+                        .shadow(color: .white, radius: 4)
+                      // 🔴 修改这里：从 y 改为 x，数值为正
+                      // 这样它的初始位置就是 3点钟方向 (0度)，与 SwiftUI 默认坐标系一致
+                        .offset(x: ringSize / 2)
+                        .rotationEffect(.degrees(90 + (360 * (0.16 + 0.68 * gameManager.getCurrentProgress()))))
+                    }
+                  
                     // 进度条 (亮色)
                     Circle()
                         .trim(from: 0.16, to: 0.16 + (0.68 * gameManager.getCurrentProgress()))
@@ -120,6 +131,7 @@ struct MainView: View {
                         .frame(width: ringSize, height: ringSize)
                         .animation(.spring(response: 0.5), value: gameManager.getCurrentProgress())
                 }
+                .offset(y: 20)
                 
                 // 3. 物理太极 (居中)
                 TaijiView(level: gameManager.player.level, onTap: {
@@ -134,32 +146,47 @@ struct MainView: View {
                 })
                 .frame(width: taijiSize, height: taijiSize)
                 .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
-                
+                .offset(y: 20)
+              
                 // 4. 信息层 (Text Overlay)
                 VStack {
               
-                    ZStack {
-                      // 这一层产生强烈的彩色光晕背景
+                  ZStack {
+                     
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                      // 境界名称
                       Text(gameManager.getRealmShort())
                         .font(.system(size: 30, weight: .black, design: .rounded))
-                        .foregroundColor(primaryColor) // 境界色
-                        .blur(radius:6) // 模糊化，变成光晕
-                        .opacity(0.6)
+                        .foregroundColor(.white)
+                        .shadow(color: primaryColor.opacity(0.8), radius: 8)
                       
-                      // 这一层是清晰的白色文字
-                      Text(gameManager.getRealmShort())
-                        .font(.system(size: 30, weight: .black, design: .rounded))
-                        .foregroundColor(.white) // 纯白，保证清晰
-                        .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
+                      // Lv 胶囊 (像徽章一样跟在后面)
+                      Text("\(gameManager.player.level % 9 == 0 ? 9 : gameManager.player.level % 9)层")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(primaryColor.opacity(0.25))
+                        .clipShape(Capsule())
+                      // 稍微往上提一点，视觉对齐
+                        .offset(y: -4)
                     }
-                    .padding(.top)
+                    
+                  }
+                 .padding(.top, 20)
                   
             
                     Spacer()
                     
                     // --- 底部：数据聚合 ---
                     // 放在圆环缺口处
-                    VStack(spacing: 2) {
+                    VStack(spacing: 4) {
+                      
+                      // 状态判断
+                      let progress = gameManager.getCurrentProgress()
+                      let isFull = progress >= 1.0
+                      let isApproaching = progress >= 0.85
+                      
                         if gameManager.showBreakButton {
                             // 突破模式：闪烁按钮
                           Button(action: {
@@ -171,48 +198,32 @@ struct MainView: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 8)
                                     .background(
-                                      LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
+                                      LinearGradient(colors: [primaryColor, primaryColor.opacity(0.6)], startPoint: .leading, endPoint: .trailing)
                                     )
                                     .clipShape(Capsule())
-                                    .shadow(color: .orange.opacity(0.6), radius: 8)
+                                    .shadow(color: primaryColor.opacity(0.5), radius: 8)
                             }
                             .buttonStyle(.plain)
-                            .padding(.bottom, 10)
+                            .padding(.bottom, 5)
                         } else {
+                        
+                           let isApproaching = gameManager.getCurrentProgress() >= 0.90
                             // 正常模式：数值 + 等级
                             HStack(alignment: .lastTextBaseline, spacing: 4) {
                                 // 灵力数值 (超大)
                                 Text("\(Int(gameManager.player.currentQi))")
                                     .font(.system(size: 26, weight: .bold, design: .rounded)) // 特大号数字
-                                    .foregroundColor(.white)
+                                    .foregroundColor(isApproaching ? primaryColor : .white)
                                     .contentTransition(.numericText())
                                     .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1) // 描边阴影
 
                                 // 单位
                                 Text("灵气")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(Color.white.opacity(0.8)) // 半透明白
-                                    .padding(.bottom, 6)
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .foregroundColor(Color.white.opacity(0.6)) // 半透明白
+                                    .padding(.bottom, 4)
                             }
-
-                            // 等级胶囊 (高亮显示，解决看不清的问题)
-                            HStack(spacing: 4) {
-                                Image(systemName: "bolt.fill") // 小图标增加精致感
-                                    .font(.system(size: 8))
-                                Text("Lv.\(gameManager.player.level % 9 == 0 ? 9 : gameManager.player.level % 9)")
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                            }
-                            .foregroundColor(primaryColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(
-                              Capsule()
-                                .fill(Color.white.opacity(0.15)) // 磨砂玻璃感背景
-                                .overlay(
-                                  Capsule().stroke(primaryColor.opacity(0.3), lineWidth: 1) // 细边框
-                                )
-                            )
-                            .padding(.bottom, 10) // 离底部边缘的距离
+                            .padding(.bottom, 8)
                         }
                     }
                 }
@@ -266,8 +277,6 @@ struct QiRippleEffect: View {
                     ),
                     style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [10, 20])
                 )
-                // 注意：这里我们不加旋转动画，因为旋转会由 TaijiView 的 updatePhysics 统一驱动
-                // 或者我们可以利用 scale 的变化产生视觉错觉
         }
     }
 }

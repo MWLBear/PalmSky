@@ -137,7 +137,8 @@ struct BreakthroughView: View {
                                 .opacity(shockwaveOpacity)
                             
                         }
-                        .frame(width: width, height: width) // 容器区
+                        .frame(width: width, height: width) // 容器区、
+                        .offset(y: 10)
                         .ignoresSafeArea()
                         
                         
@@ -165,7 +166,7 @@ struct BreakthroughView: View {
                                       LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
                                     )
                                     .clipShape(Capsule())
-                                    .shadow(color: .orange.opacity(0.6), radius: 8)
+                                    .shadow(color: primaryColor.opacity(0.5), radius: 8)
 
                                     .overlay(
                                         // 突破时按钮变成进度条既视感
@@ -180,7 +181,7 @@ struct BreakthroughView: View {
                             .buttonStyle(.plain)
                             .disabled(isAttempting)
                         }
-                        .offset(y: -75)
+                        .offset(y: -70)
                     
                     }
                     .ignoresSafeArea()
@@ -221,8 +222,8 @@ struct BreakthroughView: View {
                                 LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
                               )
                               .clipShape(Capsule())
-                              .shadow(color: .orange.opacity(0.6), radius: 8)
-                        
+                              .shadow(color: primaryColor.opacity(0.5), radius: 8)
+
                       }
                       .buttonStyle(.plain)
                       .padding(.bottom, 20)
