@@ -12,7 +12,9 @@ import SwiftUI
 struct XiuxianApp: App {
     var body: some Scene {
         WindowGroup {
-            MainView()
+            RootPagerView()
+            .environmentObject(GameManager.shared)
+
         }
     }
 }

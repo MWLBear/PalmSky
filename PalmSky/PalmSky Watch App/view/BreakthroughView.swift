@@ -12,8 +12,8 @@ struct QiParticle: Identifiable {
 
 struct BreakthroughView: View {
     @Binding var isPresented: Bool
-    @StateObject private var gameManager = GameManager.shared
-    
+    @EnvironmentObject var gameManager: GameManager
+
     // --- 动画状态 ---
     @State private var isAttempting = false
     // 1. 聚气粒子
@@ -193,8 +193,10 @@ struct BreakthroughView: View {
 
                       Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
                           .font(.system(size: 60))
-                          .foregroundColor(result == .success ? .green : .red)
+                          .foregroundColor(result == .success ? primaryColor : .red.opacity(0.5))
                           .symbolEffect(.bounce, value: showResultView)
+                          .padding(.bottom, 15)
+                    
                       
                       VStack(spacing: 4) {
                           Text(result == .success ? "突破成功" : "突破失败")
@@ -267,10 +269,9 @@ struct BreakthroughView: View {
         }
         
         // 震动反馈 (越来越快)
-        let device = WKInterfaceDevice.current()
         for i in 0..<10 {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.2) {
-                device.play(.click)
+               HapticManager.shared.playIfEnabled(.click)
             }
         }
         
@@ -292,8 +293,7 @@ struct BreakthroughView: View {
             // 结算
             let success = gameManager.attemptBreak()
             result = success ? .success : .failure
-            device.play(success ? .success : .failure)
-            
+            HapticManager.shared.playIfEnabled(success ? .success : .failure)
             withAnimation { showResultView = true }
             withAnimation(.easeOut(duration: 1.0).delay(0.1)) { flashOpacity = 0.0 }
         }

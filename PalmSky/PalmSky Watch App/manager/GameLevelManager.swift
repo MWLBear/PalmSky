@@ -53,11 +53,11 @@ class GameLevelManager {
     // Get full realm description
     func realmDescription(for level: Int) -> String {
         let name = stageName(for: level)
-        let floorNum = floor(for: level)
-        return "\(name) 第\(floorNum)层"
+//        let floorNum = floor(for: level)
+//        return "\(name) 第\(floorNum)层"
     
-//        let floorNum = layerName(for: level)
-//        return "\(name) 第\(floorNum)"
+        let floorNum = layerName(for: level)
+        return "\(name) 第\(floorNum)"
     }
     
   // MARK: - 核心产出公式 (修正版)

@@ -170,9 +170,8 @@ class GameManager: ObservableObject {
       
         player.currentQi += gain
         
-        if player.settings.hapticEnabled {
-            HapticManager.shared.play(.light)
-        }
+        HapticManager.shared.playIfEnabled(.click)
+
         
         checkBreakCondition()
     }
@@ -197,9 +196,8 @@ class GameManager: ObservableObject {
             player.currentQi = max(0, player.currentQi - cost)
             showBreakButton = false
             
-            if player.settings.hapticEnabled {
-                HapticManager.shared.play(.success)
-            }
+            HapticManager.shared.playIfEnabled(.success)
+
             
             savePlayer()
             return true
@@ -223,10 +221,8 @@ class GameManager: ObservableObject {
               }
             }
             
-            if player.settings.hapticEnabled {
-                HapticManager.shared.play(.error)
-            }
-            
+            HapticManager.shared.playIfEnabled(.failure)
+
             checkBreakCondition()
             savePlayer()
             return false
@@ -415,16 +411,11 @@ extension GameManager {
           player.level += 1
           player.currentQi = max(0, player.currentQi - cost)
 
-          if player.settings.hapticEnabled {
-              HapticManager.shared.play(.success)
-          }
+           HapticManager.shared.playIfEnabled(.success)
       } else {
           // 失败惩罚
           player.currentQi *= 0.9
-
-          if player.settings.hapticEnabled {
-              HapticManager.shared.play(.error)
-          }
+          HapticManager.shared.playIfEnabled(.failure)
       }
 
       checkBreakCondition()

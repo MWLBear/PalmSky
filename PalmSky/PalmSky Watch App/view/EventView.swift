@@ -2,7 +2,7 @@ import SwiftUI
 
 struct EventView: View {
     let event: GameEvent
-    @StateObject private var gameManager = GameManager.shared
+    @EnvironmentObject var gameManager: GameManager
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -87,13 +87,15 @@ struct EventView: View {
             }
         }
         .onAppear {
-            WKInterfaceDevice.current().play(.notification)
+          HapticManager.shared.playIfEnabled(.notification)
+
         }
     }
     
     // MARK: - 逻辑保持不变
     private func handleChoice(_ choice: EventChoice) {
-        WKInterfaceDevice.current().play(.click)
+      
+        HapticManager.shared.playIfEnabled(.click)
         dismiss()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             gameManager.selectEventChoice(choice)

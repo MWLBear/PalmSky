@@ -21,7 +21,7 @@ struct GameConstants {
     
     // Event / Frequency
     static let EVENT_CHECK_INTERVAL_SECONDS = 10.0
-    static let EVENT_PROBABILITY_PER_CHECK = 0.5   // 提高一点奇遇概率到 5%，增加乐趣
+    static let EVENT_PROBABILITY_PER_CHECK = 0.05   // 提高一点奇遇概率到 5%，增加乐趣
     
     // Complication
     static let COMPLICATION_REFRESH_MINUTES = 30

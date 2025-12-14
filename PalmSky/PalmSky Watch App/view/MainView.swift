@@ -1,5 +1,151 @@
 import SwiftUI
 
+struct RootPagerView: View {
+    @EnvironmentObject var gameManager: GameManager
+
+    @State private var page = 0
+    @State private var showBreakthrough = false
+  
+    var body: some View {
+        TabView(selection: $page) {
+            
+           MainView(showBreakthrough: $showBreakthrough)
+                .tag(0)
+
+            SettingsView()
+                .tag(1)
+        }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+      
+        .sheet(isPresented: $showBreakthrough) {
+          BreakthroughView(isPresented: $showBreakthrough)
+        }
+        .sheet(isPresented: $gameManager.showEventView) {
+            if let event = gameManager.currentEvent {
+                EventView(event: event)
+            }
+        }
+      
+    }
+}
+
+struct MainView: View {
+    @EnvironmentObject var gameManager: GameManager
+    @Binding var showBreakthrough: Bool
+    @Environment(\.scenePhase) var scenePhase
+
+    // 动画状态
+    @State private var pulse = false
+    
+    var body: some View {
+        GeometryReader { geo in
+            // 核心尺寸计算
+            let screenWidth = geo.size.width
+            let ringSize = screenWidth * 0.90 // 圆环撑满 90% 屏幕
+            let taijiSize = screenWidth * 0.58 // 太极占 58%
+            
+            let colors = RealmColor.gradient(for: gameManager.player.level)
+            let primaryColor = colors.last ?? .green
+            
+            ZStack {
+                // 1. 全局背景 (纯黑 + 底部微光)
+//                Color.black.ignoresSafeArea()
+//                
+//                // 底部氛围光 (让底部数据不那么单调)
+//                RadialGradient(
+//                    gradient: Gradient(colors: [primaryColor.opacity(0.2), .clear]),
+//                    center: UnitPoint(x: 0.5, y: 0.9), // 光源在底部
+//                    startRadius: 20,
+//                    endRadius: screenWidth * 0.6
+//                )
+//                .ignoresSafeArea()
+                
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                      primaryColor.opacity(0.2),  primaryColor.opacity(0.1)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+              
+                // 灵气粒子 (保留氛围)
+                ParticleView(color: primaryColor)
+                    .opacity(0.6) //稍微降低不抢视觉
+                
+                // 2. 核心圆环层 (已封装)
+                CultivationRingView(
+                  ringSize: ringSize,
+                  progress: gameManager.getCurrentProgress(),
+                  primaryColor: primaryColor,
+                  gradientColors: [colors.first ?? primaryColor, primaryColor]
+                )
+                .offset(y: 20) // 保持原有的偏移
+           
+                // 3. 物理太极 (居中)
+                TaijiView(level: gameManager.player.level, onTap: {
+                    gameManager.onTap()
+                    // 点击时的缩放反馈
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                        pulse = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        pulse = false
+                    }
+                })
+                .frame(width: taijiSize, height: taijiSize)
+                .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
+                .offset(y: 20)
+              
+                // 4. 信息层 (Text Overlay)
+                VStack {
+                  
+                  // ✅ 替换为封装好的组件
+                  RealmHeaderView(
+                    realmName: gameManager.getRealmShort(),
+                    layerName: gameManager.getLayerName(),
+                    primaryColor: primaryColor
+                  )
+                  
+                  Spacer()
+                  
+                  // --- 底部：数据聚合 ---
+                  VStack(spacing: 4) {
+                    // 1. Buff 状态栏
+                    BuffStatusBar()
+                    
+                    // 2. 核心操作区 (按钮 或 数值)
+                    BottomControlView(
+                      showBreakthrough: $showBreakthrough,
+                      primaryColor: primaryColor
+                    )
+                  }
+                }
+                .ignoresSafeArea() // 这一步很关键，允许文字推到最边缘
+            }
+        }
+        .ignoresSafeArea()
+        .navigationBarHidden(true)
+        .toast(message: $gameManager.offlineToastMessage)
+
+        .onAppear { gameManager.startGame() }
+      
+      // body 底部添加
+      .onChange(of: scenePhase) { newPhase in
+          if newPhase == .active {
+              // App 回到前台，计算离线收益
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+              gameManager.calculateOfflineGain()
+            }
+          } else if newPhase == .background {
+              // App 切后台，保存时间
+              gameManager.savePlayer()
+          }
+      }
+      
+    }
+}
+
 // MARK: - 1. 灵气粒子特效 (营造氛围)
 struct ParticleView: View {
     let color: Color
@@ -54,152 +200,35 @@ struct ParticleView: View {
     }
 }
 
-
-struct MainView: View {
-    @StateObject private var gameManager = GameManager.shared
-    @State private var showSettings = false
-    @State private var showBreakthrough = false
-    @Environment(\.scenePhase) var scenePhase
-
-  
-    // 动画状态
-    @State private var pulse = false
-    
-    var body: some View {
-        GeometryReader { geo in
-            // 核心尺寸计算
-            let screenWidth = geo.size.width
-            let ringSize = screenWidth * 0.90 // 圆环撑满 90% 屏幕
-            let taijiSize = screenWidth * 0.58 // 太极占 58%
-            
-            let colors = RealmColor.gradient(for: gameManager.player.level)
-            let primaryColor = colors.last ?? .green
-            
-            ZStack {
-                // 1. 全局背景 (纯黑 + 底部微光)
-                Color.black.ignoresSafeArea()
-                
-                // 底部氛围光 (让底部数据不那么单调)
-                RadialGradient(
-                    gradient: Gradient(colors: [primaryColor.opacity(0.2), .clear]),
-                    center: UnitPoint(x: 0.5, y: 0.9), // 光源在底部
-                    startRadius: 20,
-                    endRadius: screenWidth * 0.6
-                )
-                .ignoresSafeArea()
-                
-                // 灵气粒子 (保留氛围)
-                ParticleView(color: primaryColor)
-                    .opacity(0.6) //稍微降低不抢视觉
-                
-                // 2. 核心圆环层 (已封装)
-                CultivationRingView(
-                  ringSize: ringSize,
-                  progress: gameManager.getCurrentProgress(),
-                  primaryColor: primaryColor,
-                  gradientColors: [colors.first ?? primaryColor, primaryColor]
-                )
-                .offset(y: 20) // 保持原有的偏移
-           
-                // 3. 物理太极 (居中)
-                TaijiView(level: gameManager.player.level, onTap: {
-                    gameManager.onTap()
-                    // 点击时的缩放反馈
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                        pulse = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        pulse = false
-                    }
-                })
-                .frame(width: taijiSize, height: taijiSize)
-                .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
-                .offset(y: 20)
-              
-                // 4. 信息层 (Text Overlay)
-                VStack {
-                  
-                  // ✅ 替换为封装好的组件
-                  RealmHeaderView(
-                    realmName: gameManager.getRealmShort(),
-                    layerName: gameManager.getLayerName(),
-                    primaryColor: primaryColor
-                  )
-                  
-                  Spacer()
-                  
-                  // --- 底部：数据聚合 ---
-                  VStack(spacing: 4) {
-                    // 1. Buff 状态栏
-                    BuffStatusBar(gameManager: gameManager)
-                    
-                    // 2. 核心操作区 (按钮 或 数值)
-                    BottomControlView(
-                      gameManager: gameManager,
-                      showBreakthrough: $showBreakthrough,
-                      primaryColor: primaryColor
-                    )
-                  }
-                }
-                .ignoresSafeArea() // 这一步很关键，允许文字推到最边缘
-            }
-        }
-        .ignoresSafeArea()
-        .navigationBarHidden(true)
-        .toast(message: $gameManager.offlineToastMessage)
-
-        .onAppear { gameManager.startGame() }
-        .onLongPressGesture { showSettings = true }
-        .sheet(isPresented: $showBreakthrough) { BreakthroughView(isPresented: $showBreakthrough) }
-        .sheet(isPresented: $showSettings) { SettingsView() }
-        .sheet(isPresented: $gameManager.showEventView) {
-            if let event = gameManager.currentEvent { EventView(event: event) }
-        }
-      // body 底部添加
-      .onChange(of: scenePhase) { newPhase in
-          if newPhase == .active {
-              // App 回到前台，计算离线收益
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-              gameManager.calculateOfflineGain()
-            }
-          } else if newPhase == .background {
-              // App 切后台，保存时间
-              gameManager.savePlayer()
-          }
-      }
-      
-    }
-}
-
-  struct RealmHeaderView: View {
+struct RealmHeaderView: View {
     // MARK: - 参数
     let realmName: String   // 境界名 (如: 胎息)
     let layerName: String   // 层级名 (如: 五层)
     let primaryColor: Color // 主题色
     
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-          // 1. 境界名称 (大标题)
-          Text(realmName)
-            .font(.system(size: 30, weight: .black, design: .rounded))
-            .foregroundColor(.white)
-          // 文字发光效果
-            .shadow(color: primaryColor.opacity(0.8), radius: 8)
-          
-          // 2. Lv 胶囊 (徽章)
-          Text(layerName)
-            .font(.system(size: 14, weight: .bold, design: .rounded))
-            .foregroundColor(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(primaryColor.opacity(0.25)) // 半透明背景
-            .clipShape(Capsule())
-          // 稍微往上提一点，视觉上与大标题居中对齐
-            .offset(y: -4)
-        }
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        // 1. 境界名称 (大标题)
+        Text(realmName)
+          .font(.system(size: 30, weight: .black, design: .rounded))
+          .foregroundColor(.white)
+        // 文字发光效果
+          .shadow(color: primaryColor.opacity(0.8), radius: 8)
+        
+        // 2. Lv 胶囊 (徽章)
+        Text(layerName)
+          .font(.system(size: 14, weight: .bold, design: .rounded))
+          .foregroundColor(.white)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 2)
+          .background(primaryColor.opacity(0.25)) // 半透明背景
+          .clipShape(Capsule())
+        // 稍微往上提一点，视觉上与大标题居中对齐
+          .offset(y: -4)
+      }
       .padding(.top, 20) // 保持原有的顶部间距
     }
-  }
+}
 
 struct CultivationRingView: View {
     // MARK: - 参数
@@ -264,8 +293,8 @@ struct CultivationRingView: View {
 }
 
 struct BuffStatusBar: View {
-    @ObservedObject var gameManager: GameManager
-    
+    @EnvironmentObject var gameManager: GameManager
+
     var body: some View {
         HStack(spacing: 8) {
             
@@ -321,7 +350,8 @@ struct BuffStatusBar: View {
 }
 
 struct BottomControlView: View {
-    @ObservedObject var gameManager: GameManager
+    @EnvironmentObject var gameManager: GameManager
+
     @Binding var showBreakthrough: Bool
     let primaryColor: Color // 传入境界颜色
     

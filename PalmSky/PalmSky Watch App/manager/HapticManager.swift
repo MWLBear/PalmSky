@@ -12,23 +12,15 @@ import WatchKit
 class HapticManager {
     static let shared = HapticManager()
     private init() {}
+
     
-    enum HapticType {
-        case light
-        case success
-        case error
+    func playIfEnabled(_ type: WKHapticType) {
+      if GameManager.shared.player.settings.hapticEnabled {
+        play(type)
+      }
     }
-    
-    func play(_ type: HapticType) {
-        #if os(watchOS)
-        switch type {
-        case .light:
-            WKInterfaceDevice.current().play(.click)
-        case .success:
-            WKInterfaceDevice.current().play(.success)
-        case .error:
-            WKInterfaceDevice.current().play(.failure)
-        }
-        #endif
+
+    func play(_ type: WKHapticType) {
+        WKInterfaceDevice.current().play(type)
     }
 }
