@@ -161,7 +161,7 @@ struct MainView: View {
                         .shadow(color: primaryColor.opacity(0.8), radius: 8)
                       
                       // Lv 胶囊 (像徽章一样跟在后面)
-                      Text("\(gameManager.player.level % 9 == 0 ? 9 : gameManager.player.level % 9)层")
+                      Text(gameManager.getLayerName())
                         .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .padding(.horizontal, 6)
@@ -182,12 +182,7 @@ struct MainView: View {
                     // 放在圆环缺口处
                     VStack(spacing: 4) {
                       
-                      // 状态判断
-                      let progress = gameManager.getCurrentProgress()
-                      let isFull = progress >= 1.0
-                      let isApproaching = progress >= 0.85
-                      
-                        if gameManager.showBreakButton {
+                     if gameManager.showBreakButton {
                             // 突破模式：闪烁按钮
                           Button(action: {
                             showBreakthrough = true
@@ -196,7 +191,7 @@ struct MainView: View {
                                     .font(.system(size: 18, weight: .bold, design: .rounded))
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 20)
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, 6)
                                     .background(
                                       LinearGradient(colors: [primaryColor, primaryColor.opacity(0.6)], startPoint: .leading, endPoint: .trailing)
                                     )
@@ -211,11 +206,13 @@ struct MainView: View {
                             // 正常模式：数值 + 等级
                             HStack(alignment: .lastTextBaseline, spacing: 4) {
                                 // 灵力数值 (超大)
-                                Text("\(Int(gameManager.player.currentQi))")
+                                Text(gameManager.player.currentQi.xiuxianString)
                                     .font(.system(size: 26, weight: .bold, design: .rounded)) // 特大号数字
                                     .foregroundColor(isApproaching ? primaryColor : .white)
                                     .contentTransition(.numericText())
                                     .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1) // 描边阴影
+                                    .minimumScaleFactor(0.8)
+                                    .lineLimit(1)
 
                                 // 单位
                                 Text("灵气")
@@ -242,191 +239,173 @@ struct MainView: View {
     }
 }
 
-
-
 struct QiRippleEffect: View {
     let color: Color
     
-    // 动画状态由外部控制，这里只负责画图
-    // 但为了让每个粒子有独立生命周期，我们这里用 TimelineView 或者简单的 View
-    // 鉴于之前是在 TaijiView 里用数组管理的，我们这里只定义"样子"
-    
     var body: some View {
         ZStack {
-            // Layer 1: 核心能量爆发 (中心亮，边缘透明)
-            // 模拟灵气炸开的冲击波
-            RadialGradient(
-                gradient: Gradient(colors: [
-                    color.opacity(0.6), // 中心高亮
-                    color.opacity(0.1), // 中间淡
-                    .clear              // 边缘透明
-                ]),
-                center: .center,
-                startRadius: 0,
-                endRadius: 50 // 这个半径会被 scaleEffect 放大
-            )
-            .blur(radius: 5) // 模糊处理，让它看起来像气体而不是几何图形
+            // Layer 1: 内圈 - 高频灵力 (密集短点)
+            // 模拟核心能量的高频振动
+            Circle()
+                .strokeBorder(
+                    color.opacity(0.9),
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [2, 10])
+                )
+                .frame(width: 60, height: 60)
             
-            // Layer 2: 灵气湍流 (旋转的虚线环)
-            // 模拟灵力激荡产生的气旋
+            // Layer 2: 主阵法 - 符文轨迹 (长虚线 + 角度渐变)
+            // 模拟旋转时的拖尾光效
             Circle()
                 .strokeBorder(
                     AngularGradient(
-                        gradient: Gradient(colors: [color.opacity(0.8), color.opacity(0.0)]),
+                        gradient: Gradient(colors: [
+                            color,              // 头 (亮)
+                            color.opacity(0.5), // 身 (半透)
+                            color.opacity(0)    // 尾 (隐形)
+                        ]),
                         center: .center
                     ),
-                    style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [10, 20])
+                    style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [15, 25])
                 )
+                .frame(width: 100, height: 100)
+            
+            // Layer 3: 外圈 - 扩散余波 (细虚线)
+            // 增加层次感和范围感
+            Circle()
+                .strokeBorder(
+                    color.opacity(0.5),
+                    style: StrokeStyle(lineWidth: 1, lineCap: .butt, dash: [5, 5])
+                )
+                .frame(width: 90, height: 90)
         }
     }
 }
 
-
-
 struct TaijiView: View {
-    // MARK: - External Props
     let level: Int
     let onTap: () -> Void
     
     // MARK: - Physics State
     @State private var rotation: Double = 0
-    @State private var extraVelocity: Double = 0 // 额外的冲量速度
+    @State private var extraVelocity: Double = 0
     @State private var scale: CGFloat = 1.0
     @State private var lastTime: Date = Date()
     
-    // MARK: - Visual State
-    @State private var waves: [QiWave] = []
+    // MARK: - Wave Data (升级：增加旋转属性)
     struct QiWave: Identifiable {
         let id = UUID()
-        var scale: CGFloat = 0.5
+        var scale: CGFloat = 0.2
         var opacity: Double = 1.0
+        var rotation: Double = Double.random(in: 0...360) // 初始随机角度
+        // 🚀 修改：方向统一为正数 (顺时针)，与太极一致
+        // 速度设定在 90~180 之间，既有快慢变化，又保持同向流动
+        var rotationSpeed: Double = Double.random(in: 90...180)
     }
+    @State private var waves: [QiWave] = []
     
-    // MARK: - Constants & Config
-    // 基础速度公式: 30度/秒 + (大境界 * 5度)
-    // 境界越高，基础自转越快，显得修为深厚
+    // Constants
     private var baseVelocity: Double {
         let stage = Double((level - 1) / 9)
         return 30.0 + (stage * 5.0)
     }
-    
-    // 最大速度限制 (度/秒) - 约每秒 3 圈
     private let maxVelocity: Double = 1080.0
-    
-    // 每次点击增加的冲量 (度/秒)
-    private let tapImpulse: Double = 200.0
-    
-    // 衰减系数 (0.0 - 1.0)，越小衰减越快。
-    // 这里用时间指数衰减模拟阻尼
+    private let tapImpulse: Double = 250.0 // 稍微加大冲量
     private let decayFactor: Double = 2.0
     
     var body: some View {
         TimelineView(.animation) { timeline in
             let now = timeline.date
+            let colors = RealmColor.gradient(for: level)
+            let primaryColor = colors.last ?? .green
             
             ZStack {
-                // 1. 境界光晕 (呼吸 + 随速度变亮)
-                // 速度越快，光晕越强，模拟"灵力鼓动"
-                let colors = RealmColor.gradient(for: level)
-                let energyRatio = min(extraVelocity / 800.0, 1.0) // 0~1 based on speed
-                
+                // 1. 境界背景光 (呼吸)
+                let energyRatio = min(extraVelocity / 800.0, 1.0)
                 Circle()
                     .fill(
                         RadialGradient(
                             gradient: Gradient(colors: [
-                                colors[1].opacity(0.3 + energyRatio * 0.4), // 速度快时更亮
-                                colors[0].opacity(0.1),
+                                primaryColor.opacity(0.2 + energyRatio * 0.3),
+                                primaryColor.opacity(0.05),
                                 Color.clear
                             ]),
                             center: .center,
-                            startRadius: 45,
-                            endRadius: 90 + (energyRatio * 20) // 速度快时光圈变大
+                            startRadius: 40,
+                            endRadius: 100 + (energyRatio * 40)
                         )
                     )
-                    .scaleEffect(1.0 + sin(now.timeIntervalSince1970 * 2) * 0.05)
+                    .scaleEffect(1.0 + sin(now.timeIntervalSince1970 * 2.5) * 0.03)
                 
-                // 2. 气波扩散 (点击反馈)
+                // 2. ✨✨✨ 灵力涟漪 (使用新组件) ✨✨✨
                 ForEach(waves) { wave in
-                    Circle()
-                        .stroke(colors.last ?? .white, lineWidth: 2)
-                        .scaleEffect(wave.scale)
-                        .opacity(wave.opacity)
+                    QiRippleEffect(color: primaryColor)
+                        .rotationEffect(.degrees(wave.rotation)) // 气旋自转
+                        .scaleEffect(wave.scale)                 // 扩散
+                        .opacity(wave.opacity)                   // 渐隐
+                        // 🔥 关键：滤色模式，让光效叠加变亮，更有能量感
+                        .blendMode(.screen)
                 }
                 
                 // 3. 太极主体
-                Image("TaiChi") // 务必在 Assets 中放入透明背景的太极图
+                Image("TaiChi")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 110, height: 110)
                     .rotationEffect(.degrees(rotation))
                     .scaleEffect(scale)
-                    // 速度越快，阴影越深，浮空感越强
                     .shadow(
-                        color: colors[0].opacity(0.5 + energyRatio * 0.5),
-                        radius: 10 + (energyRatio * 10),
-                        x: 0,
-                        y: 0
+                        color: primaryColor.opacity(0.5 + energyRatio * 0.5),
+                        radius: 10 + (energyRatio * 15)
                     )
             }
-            .contentShape(Circle()) // 扩大点击热区
-            .onTapGesture {
-                handleTap()
-            }
-            .onChange(of: now) { newDate in
-                updatePhysics(currentTime: newDate)
-            }
+            .contentShape(Circle())
+            .onTapGesture { handleTap() }
+            .onChange(of: now) { newDate in updatePhysics(currentTime: newDate) }
         }
     }
     
-    // MARK: - 核心物理逻辑
+    // MARK: - Physics Logic
     private func updatePhysics(currentTime: Date) {
         let deltaTime = currentTime.timeIntervalSince(lastTime)
         lastTime = currentTime
         
-        // 1. 计算当前总速度 (基础 + 额外)
+        // 旋转与阻尼
         let currentVelocity = baseVelocity + extraVelocity
-        
-        // 2. 更新角度
         rotation += currentVelocity * deltaTime
         
-        // 3. 物理衰减 (阻尼)
-        // 只有 extraVelocity 需要衰减，baseVelocity 是恒定的
         if extraVelocity > 0 {
-            // 使用指数衰减公式，保证帧率无关性
-            // 每一秒减少 velocity = velocity - (velocity * decay * dt)
             extraVelocity -= extraVelocity * decayFactor * deltaTime
-            
-            // 阈值归零
             if extraVelocity < 1.0 { extraVelocity = 0 }
         }
         
-        // 4. 更新波纹动画
+        // 更新波纹状态
         for i in waves.indices.reversed() {
-            waves[i].scale += 3.0 * deltaTime
-            waves[i].opacity -= 2.0 * deltaTime
+            // 扩散速度 (稍微快一点，爆发感)
+            waves[i].scale += 3.5 * deltaTime
+            // 消失速度
+            waves[i].opacity -= 1.5 * deltaTime
+            // 气旋旋转
+            waves[i].rotation += waves[i].rotationSpeed * deltaTime
+            
             if waves[i].opacity <= 0 {
                 waves.remove(at: i)
             }
         }
         
-        // 5. 缩放回弹 (点击时的Q弹感)
+        // 按压回弹
         if scale > 1.0 {
-            scale -= 2.0 * deltaTime
+            scale -= 3.0 * deltaTime
             if scale < 1.0 { scale = 1.0 }
         }
     }
     
     private func handleTap() {
-        // 1. 增加冲量 (限制最大速度)
         if (baseVelocity + extraVelocity + tapImpulse) < maxVelocity {
             extraVelocity += tapImpulse
         }
-        
-        // 2. 视觉反馈
-        scale = 1.15 // 瞬间变大
-        waves.append(QiWave()) // 产生气波
-        
-        // 3. 业务回调
+        scale = 1.15 // 按压幅度大一点，手感好
+        waves.append(QiWave())
         onTap()
     }
 }
+

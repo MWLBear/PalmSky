@@ -184,15 +184,15 @@ struct SettingsView: View {
 //                }
 //            }
           
-            .toolbar {
-                ToolbarItem {
-                  Button("完成") {
-                      dismiss()
-                  }
-                  .foregroundColor(.white)
-                }
-            }
-          
+//            .toolbar {
+//                ToolbarItem {
+//                  Button("完成") {
+//                      dismiss()
+//                  }
+//                  .foregroundColor(.white)
+//                }
+//            }
+//          
             .alert("重置数据", isPresented: $showResetAlert) {
                 Button("取消", role: .cancel) { }
                 Button("确认重置", role: .destructive) {

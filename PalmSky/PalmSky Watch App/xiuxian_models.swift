@@ -32,6 +32,9 @@ struct GameConstants {
         "合体", "大乘", "渡劫", "地仙", "天仙", "金仙", "大罗金仙", "九天玄仙"
     ]
     
+  // 中文数字映射 (用于层级显示)
+    static let cnNumbers = ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
+  
     static let MAX_LEVEL = 144
 }
 
@@ -125,6 +128,17 @@ class GameLevelManager {
         return GameConstants.stageNames[idx]
     }
     
+    // 获取中文层级 (例如: "五层")
+    func layerName(for level: Int) -> String {
+        if level == 0 { return "" }
+        let layerIndex = (level - 1) % 9
+        let cnNumbers = GameConstants.cnNumbers
+        if layerIndex < cnNumbers.count {
+            return "\(cnNumbers[layerIndex])层"
+        }
+        return "\(layerIndex + 1)层"
+    }
+  
     // Get full realm description
     func realmDescription(for level: Int) -> String {
         let name = stageName(for: level)

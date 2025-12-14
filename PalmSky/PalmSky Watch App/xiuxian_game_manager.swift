@@ -219,6 +219,11 @@ class GameManager: ObservableObject {
     func getRealmShort() -> String {
         return levelManager.stageName(for: player.level)
     }
+  
+    func getLayerName() -> String {
+        return levelManager.layerName(for: player.level)
+    }
+  
 }
 
 // MARK: - Haptic Manager

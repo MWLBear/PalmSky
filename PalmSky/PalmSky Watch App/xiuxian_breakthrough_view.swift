@@ -84,9 +84,9 @@ struct BreakthroughView: View {
                                         .foregroundColor(.white)
                                         .shadow(color: primaryColor, radius: 10)
                                     
-                                    Text("Lv.\(gameManager.player.level % 9 == 0 ? 9 : gameManager.player.level % 9)")
+                                    Text(gameManager.getLayerName())
                                         .font(.system(size: 14, weight: .bold, design: .rounded))
-                                        .foregroundColor(primaryColor)
+                                        .foregroundColor(.white)
                                         .padding(.horizontal, 6)
                                         .padding(.vertical, 2)
                                         .background(primaryColor.opacity(0.15))
