@@ -60,6 +60,8 @@ struct MainView: View {
     @StateObject private var gameManager = GameManager.shared
     @State private var showSettings = false
     @State private var showBreakthrough = false
+    @Environment(\.scenePhase) var scenePhase
+
   
     // 动画状态
     @State private var pulse = false
@@ -229,6 +231,8 @@ struct MainView: View {
         }
         .ignoresSafeArea()
         .navigationBarHidden(true)
+        .toast(message: $gameManager.offlineToastMessage)
+
         .onAppear { gameManager.startGame() }
         .onLongPressGesture { showSettings = true }
         .sheet(isPresented: $showBreakthrough) { BreakthroughView(isPresented: $showBreakthrough) }
@@ -236,6 +240,19 @@ struct MainView: View {
         .sheet(isPresented: $gameManager.showEventView) {
             if let event = gameManager.currentEvent { EventView(event: event) }
         }
+      // body 底部添加
+      .onChange(of: scenePhase) { newPhase in
+          if newPhase == .active {
+              // App 回到前台，计算离线收益
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+              gameManager.calculateOfflineGain()
+            }
+          } else if newPhase == .background {
+              // App 切后台，保存时间
+              gameManager.savePlayer()
+          }
+      }
+      
     }
 }
 

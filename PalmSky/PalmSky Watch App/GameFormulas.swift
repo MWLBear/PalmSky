@@ -35,14 +35,13 @@ extension Double {
     }
 }
 
-extension Double {
-    var gameCurrencyString: String {
-        let num = self
-        if num < 1000 { return String(format: "%.0f", num) }
-        if num < 1_000_000 { return String(format: "%.2fK", num / 1000) }
-        if num < 1_000_000_000 { return String(format: "%.2fM", num / 1_000_000) }
-        if num < 1_000_000_000_000 { return String(format: "%.2fB", num / 1_000_000_000) }
-        return String(format: "%.2fT", num / 1_000_000_000_000)
+  extension TimeInterval {
+    
+    func formatTime() -> String {
+      let h = Int(self) / 3600
+      let m = (Int(self) % 3600) / 60
+      if h > 0 { return "\(h)小时" }
+      return "\(m)分钟"
     }
-}
-
+    
+  }

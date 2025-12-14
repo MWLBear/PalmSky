@@ -206,7 +206,8 @@ struct BreakthroughView: View {
                                   .font(.system(size: 18, weight: .medium))
                                   .foregroundColor(primaryColor)
                           } else {
-                              Text("道心受损 -10%")
+                             
+                              Text("道心受损 -\(gameManager.currentPenaltyPercentage)%")
                                   .font(.system(size: 14))
                                   .foregroundColor(.gray)
                           }

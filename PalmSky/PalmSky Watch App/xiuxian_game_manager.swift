@@ -12,6 +12,9 @@ class GameManager: ObservableObject {
     @Published var currentEvent: GameEvent?
     @Published var showEventView: Bool = false
     
+    @Published var offlineToastMessage: String? = nil
+
+  
     private var timer: Timer?
     private var eventCheckTimer: Timer?
     private var lastEventCheck: Date = Date()
@@ -33,6 +36,62 @@ class GameManager: ObservableObject {
         setupAutoSave()
     }
     
+  // 在 init() 或者应用启动时调用
+
+  // MARK: - 离线收益结算
+      func calculateOfflineGain() {
+          let now = Date()
+          let lastTime = player.lastLogout
+          
+          // 计算物理离线时间
+          let rawTimeDiff = now.timeIntervalSince(lastTime)
+          
+          // 1. 阈值检查：少于 5 分钟不算，避免切屏频繁弹窗
+          if rawTimeDiff < 300 {
+              // 虽然不结算收益，但要更新时间，防止玩家通过"频繁杀后台"来卡时间bug
+              player.lastLogout = now
+              savePlayer()
+              return
+          }
+          
+          // 2. ⚠️ 修正点：增加 12小时 (43200秒) 上限
+          // 鼓励玩家每天早晚各看一次，增加粘性
+          let maxOfflineSeconds: TimeInterval = 12 * 60 * 60
+          let effectiveTime = min(rawTimeDiff, maxOfflineSeconds)
+          
+          // 3. 计算收益
+          // 这里的 level 应该是当前 level。
+          // (进阶逻辑：其实如果跨越了很久，应该模拟每秒增长，但为了性能，按当前等级算即可，算作一种"福利")
+          let gainPerSec = levelManager.autoGain(level: player.level)
+          
+          // 4. 离线打折 (0.8)
+          let offlineTotal = gainPerSec * effectiveTime * 0.8
+          
+          if offlineTotal > 0 {
+              player.currentQi += offlineTotal
+              
+              // 记录日志或准备弹窗内容 (可选)
+              print("=== 离线结算 ===")
+              print("离线时长: \(Int(rawTimeDiff))秒")
+              print("有效时长: \(Int(effectiveTime))秒")
+              print("获得灵气: \(offlineTotal.xiuxianString)")
+              
+              let timeStr = effectiveTime.formatTime()
+
+              DispatchQueue.main.async {
+                self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
+              }
+            
+              // 触发 UI 提示 (如果你做了弹窗的话)
+              // showOfflineAlert(amount: offlineTotal)
+          }
+          
+          // 5. 更新时间并保存
+          player.lastLogout = now
+          savePlayer()
+      }
+  
+  
     // MARK: - Lifecycle
     func startGame() {
         startAutoGain()
@@ -43,6 +102,27 @@ class GameManager: ObservableObject {
         timer?.invalidate()
         eventCheckTimer?.invalidate()
         savePlayer()
+    }
+    
+  
+    // MARK: - Auto Gain
+    // 🔴 新增：计算当前的每秒收益 (带 Debuff 检查)
+    func getCurrentAutoGain() -> Double {
+      var gain = levelManager.autoGain(level: player.level)
+      
+      // 检查 Debuff
+      if let debuff = player.debuff {
+        if Date() < debuff.expireAt {
+          // Debuff 生效中，收益打折
+          gain *= debuff.multiplier
+        } else {
+          // Debuff 已过期，清理掉
+          // 注意：这里不会立即保存，会在下一次 tick 或退出时保存
+          player.debuff = nil
+        }
+      }
+      
+      return gain
     }
     
     // MARK: - Auto Gain
@@ -57,7 +137,8 @@ class GameManager: ObservableObject {
     }
     
     private func tick(deltaSeconds: Double) {
-        let gain = levelManager.autoGain(level: player.level) * deltaSeconds
+//        let gain = levelManager.autoGain(level: player.level) * deltaSeconds
+        let gain = getCurrentAutoGain() * deltaSeconds
         player.currentQi += gain
         checkBreakCondition()
     }
@@ -102,7 +183,23 @@ class GameManager: ObservableObject {
             return true
         } else {
             // Failure: lose 10% qi
-            player.currentQi *= 0.9
+            let penaltyRate = levelManager.breakFailPenalty(level: player.level)
+            
+            // 2. 执行扣除
+            // 比如 penaltyRate 是 0.2 (20%)，那么剩余就是 0.8
+            player.currentQi *= (1.0 - penaltyRate)
+
+          
+            if player.level >= 90 {
+              // 1小时内，自动收益降为 70%
+              let expireDate = Date().addingTimeInterval(3600)
+              player.debuff = DebuffStatus(type: .unstableDao, multiplier: 0.7, expireAt: expireDate)
+              
+              // 弹窗提示 (用 Toast)
+              DispatchQueue.main.async {
+                self.offlineToastMessage = "道心受损，吸纳效率降低 (持续1小时)"
+              }
+            }
             
             if player.settings.hapticEnabled {
                 HapticManager.shared.play(.error)
@@ -278,4 +375,14 @@ extension GameManager {
   }
 
   
+}
+
+extension GameManager {
+    
+    /// 获取当前等级失败时的惩罚百分比（整数）
+    /// 例如：返回 20 代表 20%
+    var currentPenaltyPercentage: Int {
+        let rawRate = levelManager.breakFailPenalty(level: player.level)
+        return Int(rawRate * 100)
+    }
 }
