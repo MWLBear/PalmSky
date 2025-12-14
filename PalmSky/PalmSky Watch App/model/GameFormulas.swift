@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 extension Double {
     // 修仙专用数值格式化 (万进法)
     var xiuxianString: String {

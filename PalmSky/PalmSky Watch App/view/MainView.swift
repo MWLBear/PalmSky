@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 // MARK: - 1. 灵气粒子特效 (营造氛围)
@@ -93,48 +92,15 @@ struct MainView: View {
                 ParticleView(color: primaryColor)
                     .opacity(0.6) //稍微降低不抢视觉
                 
-                // 2. 核心圆环层 (撑满屏幕)
-                ZStack {
-                    // 轨道 (暗色背景)
-                    Circle()
-                        .trim(from: 0.16, to: 0.84) // 底部留开口 (开口大小调整为合适放置数字)
-                        .stroke(
-                            Color.white.opacity(0.12),
-                            style: StrokeStyle(lineWidth: 16, lineCap: .round) // 加粗线条
-                        )
-                        .rotationEffect(.degrees(90))
-                        .frame(width: ringSize, height: ringSize)
-                    
-                    if gameManager.getCurrentProgress() > 0 {
-                      Circle()
-                        .fill(Color.white)
-                        .frame(width: 6, height: 6)
-                        .shadow(color: .white, radius: 4)
-                      // 🔴 修改这里：从 y 改为 x，数值为正
-                      // 这样它的初始位置就是 3点钟方向 (0度)，与 SwiftUI 默认坐标系一致
-                        .offset(x: ringSize / 2)
-                        .rotationEffect(.degrees(90 + (360 * (0.16 + 0.68 * gameManager.getCurrentProgress()))))
-                    }
-                  
-                    // 进度条 (亮色)
-                    Circle()
-                        .trim(from: 0.16, to: 0.16 + (0.68 * gameManager.getCurrentProgress()))
-                        .stroke(
-                            AngularGradient(
-                                gradient: Gradient(colors: [colors.first!, primaryColor]),
-                                center: .center,
-                                startAngle: .degrees(90),
-                                endAngle: .degrees(360)
-                            ),
-                            style: StrokeStyle(lineWidth: 16, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(90))
-                        .shadow(color: primaryColor.opacity(0.6), radius: 8) // 发光效果增强
-                        .frame(width: ringSize, height: ringSize)
-                        .animation(.spring(response: 0.5), value: gameManager.getCurrentProgress())
-                }
-                .offset(y: 20)
-                
+                // 2. 核心圆环层 (已封装)
+                CultivationRingView(
+                  ringSize: ringSize,
+                  progress: gameManager.getCurrentProgress(),
+                  primaryColor: primaryColor,
+                  gradientColors: [colors.first ?? primaryColor, primaryColor]
+                )
+                .offset(y: 20) // 保持原有的偏移
+           
                 // 3. 物理太极 (居中)
                 TaijiView(level: gameManager.player.level, onTap: {
                     gameManager.onTap()
@@ -152,79 +118,28 @@ struct MainView: View {
               
                 // 4. 信息层 (Text Overlay)
                 VStack {
-              
-                  ZStack {
-                     
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                      // 境界名称
-                      Text(gameManager.getRealmShort())
-                        .font(.system(size: 30, weight: .black, design: .rounded))
-                        .foregroundColor(.white)
-                        .shadow(color: primaryColor.opacity(0.8), radius: 8)
-                      
-                      // Lv 胶囊 (像徽章一样跟在后面)
-                      Text(gameManager.getLayerName())
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(primaryColor.opacity(0.25))
-                        .clipShape(Capsule())
-                      // 稍微往上提一点，视觉对齐
-                        .offset(y: -4)
-                    }
-                    
-                  }
-                 .padding(.top, 20)
                   
-            
-                    Spacer()
+                  // ✅ 替换为封装好的组件
+                  RealmHeaderView(
+                    realmName: gameManager.getRealmShort(),
+                    layerName: gameManager.getLayerName(),
+                    primaryColor: primaryColor
+                  )
+                  
+                  Spacer()
+                  
+                  // --- 底部：数据聚合 ---
+                  VStack(spacing: 4) {
+                    // 1. Buff 状态栏
+                    BuffStatusBar(gameManager: gameManager)
                     
-                    // --- 底部：数据聚合 ---
-                    // 放在圆环缺口处
-                    VStack(spacing: 4) {
-                      
-                     if gameManager.showBreakButton {
-                            // 突破模式：闪烁按钮
-                          Button(action: {
-                            showBreakthrough = true
-                          }) {
-                                Text("立即突破")
-                                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                      LinearGradient(colors: [primaryColor, primaryColor.opacity(0.6)], startPoint: .leading, endPoint: .trailing)
-                                    )
-                                    .clipShape(Capsule())
-                                    .shadow(color: primaryColor.opacity(0.5), radius: 8)
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.bottom, 5)
-                        } else {
-                        
-                           let isApproaching = gameManager.getCurrentProgress() >= 0.90
-                            // 正常模式：数值 + 等级
-                            HStack(alignment: .lastTextBaseline, spacing: 4) {
-                                // 灵力数值 (超大)
-                                Text(gameManager.player.currentQi.xiuxianString)
-                                    .font(.system(size: 26, weight: .bold, design: .rounded)) // 特大号数字
-                                    .foregroundColor(isApproaching ? primaryColor : .white)
-                                    .contentTransition(.numericText())
-                                    .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1) // 描边阴影
-                                    .minimumScaleFactor(0.8)
-                                    .lineLimit(1)
-
-                                // 单位
-                                Text("灵气")
-                                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color.white.opacity(0.6)) // 半透明白
-                                    .padding(.bottom, 4)
-                            }
-                            .padding(.bottom, 8)
-                        }
-                    }
+                    // 2. 核心操作区 (按钮 或 数值)
+                    BottomControlView(
+                      gameManager: gameManager,
+                      showBreakthrough: $showBreakthrough,
+                      primaryColor: primaryColor
+                    )
+                  }
                 }
                 .ignoresSafeArea() // 这一步很关键，允许文字推到最边缘
             }
@@ -255,6 +170,216 @@ struct MainView: View {
       
     }
 }
+
+  struct RealmHeaderView: View {
+    // MARK: - 参数
+    let realmName: String   // 境界名 (如: 胎息)
+    let layerName: String   // 层级名 (如: 五层)
+    let primaryColor: Color // 主题色
+    
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+          // 1. 境界名称 (大标题)
+          Text(realmName)
+            .font(.system(size: 30, weight: .black, design: .rounded))
+            .foregroundColor(.white)
+          // 文字发光效果
+            .shadow(color: primaryColor.opacity(0.8), radius: 8)
+          
+          // 2. Lv 胶囊 (徽章)
+          Text(layerName)
+            .font(.system(size: 14, weight: .bold, design: .rounded))
+            .foregroundColor(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(primaryColor.opacity(0.25)) // 半透明背景
+            .clipShape(Capsule())
+          // 稍微往上提一点，视觉上与大标题居中对齐
+            .offset(y: -4)
+        }
+      .padding(.top, 20) // 保持原有的顶部间距
+    }
+  }
+
+struct CultivationRingView: View {
+    // MARK: - 参数
+    let ringSize: CGFloat
+    let progress: Double        // 保持 Double
+    let primaryColor: Color
+    let gradientColors: [Color]
+    
+    // 常量配置 (全部改为 Double，避免计算时的类型转换麻烦)
+    private let trackWidth: CGFloat = 16
+    private let startTrim: Double = 0.16
+    private let endTrim: Double = 0.84
+    
+    // 计算有效弧度长度
+    private var arcLength: Double { endTrim - startTrim }
+    
+    var body: some View {
+        ZStack {
+            // 1. 轨道 (暗色背景)
+            Circle()
+                // trim 接受 CGFloat，所以这里转一下
+                .trim(from: CGFloat(startTrim), to: CGFloat(endTrim))
+                .stroke(
+                    Color.white.opacity(0.12),
+                    style: StrokeStyle(lineWidth: trackWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(90))
+                .frame(width: ringSize, height: ringSize)
+            
+            // 2. 进度光点 (流星头)
+            if progress > 0 {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: .white, radius: 4)
+                    // 位置：圆的右侧 (3点钟方向)
+                    .offset(x: ringSize / 2)
+                    // 旋转：90度(到底部) + 360 * (起始位置 + 弧长 * 进度)
+                    // ✅ 修复点：这里全都是 Double，不会报错了
+                    .rotationEffect(.degrees(90.0 + (360.0 * (startTrim + arcLength * progress))))
+            }
+            
+            // 3. 进度条 (亮色填充)
+            Circle()
+                // trim 需要 CGFloat
+                .trim(from: CGFloat(startTrim), to: CGFloat(startTrim + (arcLength * progress)))
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: gradientColors),
+                        center: .center,
+                        startAngle: .degrees(90),
+                        endAngle: .degrees(360)
+                    ),
+                    style: StrokeStyle(lineWidth: trackWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(90))
+                .shadow(color: primaryColor.opacity(0.6), radius: 8)
+                .frame(width: ringSize, height: ringSize)
+                .animation(.spring(response: 0.5), value: progress)
+        }
+    }
+}
+
+struct BuffStatusBar: View {
+    @ObservedObject var gameManager: GameManager
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            
+            // 1. 点击增益 (Tap Buff)
+            if let buff = gameManager.player.tapBuff, Date() < buff.expireAt {
+                HStack(spacing: 2) {
+                    Image(systemName: "hand.tap.fill")
+                    Text("+\(Int(buff.bonusRatio * 100))%")
+                }
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.black)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.orange)
+                .clipShape(Capsule())
+                .transition(.scale)
+            }
+            
+            // 2. 自动增益 (Auto Buff)
+            if let buff = gameManager.player.autoBuff, Date() < buff.expireAt {
+                HStack(spacing: 2) {
+                    Image(systemName: "leaf.fill")
+                    Text("+\(Int(buff.bonusRatio * 100))%")
+                }
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.black)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.green)
+                .clipShape(Capsule())
+                .transition(.scale)
+            }
+            
+            // 3. 负面状态 (Debuff)
+            if let debuff = gameManager.player.debuff, Date() < debuff.expireAt {
+                HStack(spacing: 2) {
+                    Image(systemName: "heart.slash.fill")
+                    Text("道心不稳")
+                }
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.red.opacity(0.8))
+                .clipShape(Capsule())
+                .transition(.scale)
+            }
+        }
+        // 当状态变化时，添加平滑动画
+        .animation(.spring(), value: gameManager.player.tapBuff?.expireAt)
+        .animation(.spring(), value: gameManager.player.autoBuff?.expireAt)
+    }
+}
+
+struct BottomControlView: View {
+    @ObservedObject var gameManager: GameManager
+    @Binding var showBreakthrough: Bool
+    let primaryColor: Color // 传入境界颜色
+    
+    var body: some View {
+        Group {
+            if gameManager.showBreakButton {
+                // --- 模式 A: 突破按钮 ---
+                Button(action: {
+                    showBreakthrough = true
+                }) {
+                    Text("立即突破")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 6) // 微调高度
+                        .background(
+                            LinearGradient(
+                                colors: [primaryColor, primaryColor.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(Capsule())
+                        .shadow(color: primaryColor.opacity(0.5), radius: 8)
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, 5)
+                .transition(.opacity) // 切换时的淡入淡出
+                
+            } else {
+                // --- 模式 B: 灵气数值 ---
+                let isApproaching = gameManager.getCurrentProgress() >= 0.90
+                
+                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                    // 灵力数值
+                    Text(gameManager.player.currentQi.xiuxianString)
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundColor(isApproaching ? primaryColor : .white)
+                        .contentTransition(.numericText())
+                        .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                    
+                    // 单位
+                    Text("灵气")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.white.opacity(0.6))
+                        .padding(.bottom, 4)
+                }
+                .padding(.bottom, 8)
+                .transition(.opacity)
+            }
+        }
+        // 整个区域的切换动画
+        .animation(.easeInOut(duration: 0.3), value: gameManager.showBreakButton)
+    }
+}
+
 
 struct QiRippleEffect: View {
     let color: Color

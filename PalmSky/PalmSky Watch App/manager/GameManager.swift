@@ -110,6 +110,18 @@ class GameManager: ObservableObject {
     func getCurrentAutoGain() -> Double {
       var gain = levelManager.autoGain(level: player.level)
       
+      
+      // 1. 检查 Auto Buff (增益)
+      if let buff = player.autoBuff {
+        if Date() < buff.expireAt {
+          // 公式：基础值 * (1 + 增益比例)
+          // 例如 value=0.5, 则乘 1.5
+          gain *= (1.0 + buff.bonusRatio)
+        } else {
+          player.autoBuff = nil // 过期清理
+        }
+      }
+      
       // 检查 Debuff
       if let debuff = player.debuff {
         if Date() < debuff.expireAt {
@@ -145,7 +157,17 @@ class GameManager: ObservableObject {
     
     // MARK: - Tap Action
     func onTap() {
-        let gain = levelManager.tapGain(level: player.level)
+        var gain = levelManager.tapGain(level: player.level)
+      
+        // ✨ 新增：检查 Tap Buff
+        if let buff = player.tapBuff {
+          if Date() < buff.expireAt {
+            gain *= (1.0 + buff.bonusRatio)
+          } else {
+            player.tapBuff = nil // 过期清理
+          }
+        }
+      
         player.currentQi += gain
         
         if player.settings.hapticEnabled {
@@ -234,8 +256,20 @@ class GameManager: ObservableObject {
     
     private func triggerRandomEvent() {
         // Get random event from pool
-        if let event = EventPool.shared.randomEvent() {
-            currentEvent = event
+        if let event = EventPool.shared.randomEvent(playerLevel: player.level) {
+          
+            // ✅ 打乱 choices 顺序（只影响当前展示）
+            let shuffledEvent = GameEvent(
+              id: event.id,
+              title: event.title,
+              desc: event.desc,
+              choices: event.choices.shuffled(),
+              rarity: event.rarity,
+              minStage: event.minStage,
+              maxStage: event.maxStage
+            )
+            
+            currentEvent = shuffledEvent
             showEventView = true
         }
     }
@@ -245,27 +279,75 @@ class GameManager: ObservableObject {
         showEventView = false
         currentEvent = nil
     }
-    
+
     private func applyEventEffect(_ effect: EventEffect) {
-        switch effect.type {
-        case .gainQi:
-            if let value = effect.value {
-                player.currentQi += value
-            }
-        case .loseQi:
-            if let value = effect.value {
-                player.currentQi = max(0, player.currentQi - value)
-            }
-        case .grantItem:
-            player.items.protectCharm += 1
-        case .gainTapRatioTemp, .gainAutoTemp, .nothing:
-            break
+      switch effect.type {
+      case .gainQi:
+        if let value = effect.value {
+          player.currentQi += value
+          // ✨ 新增：设置 Toast 消息，回到主页时自动弹出
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "奇遇收获 灵气 +\(Int(value))"
+          }
+        }
+      case .loseQi:
+        if let value = effect.value {
+          player.currentQi = max(0, player.currentQi - value)
+          // ✨ 新增：扣除提示
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "遭遇意外 灵气 -\(Int(value))"
+          }
+        }
+      case .grantItem:
+        player.items.protectCharm += 1
+        // ✨ 新增：获得道具提示
+        DispatchQueue.main.async {
+          self.offlineToastMessage = "获得宝物 [护身符]"
+        }
+      case .gainTapRatioTemp:
+        // 逻辑处理：点击增益
+        // value 例如 0.5 (代表+50%), duration 例如 60 (代表60秒)
+        if let val = effect.value, let duration = effect.duration {
+          let expireDate = Date().addingTimeInterval(duration)
+          
+          // 更新 Player 状态
+          player.tapBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          
+          // 格式化时间字符串 (如 "60秒" 或 "2分钟")
+          let timeStr = Int(duration) < 60 ? "\(Int(duration))秒" : "\(Int(duration)/60)分钟"
+          let percent = Int(val * 100)
+          
+          // 弹窗提示
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "感悟提升 点击效果 +\(percent)% (\(timeStr))"
+          }
         }
         
-        checkBreakCondition()
-        savePlayer()
+      case .gainAutoTemp:
+        // 逻辑处理：自动增益
+        if let val = effect.value, let duration = effect.duration {
+          let expireDate = Date().addingTimeInterval(duration)
+          
+          // 更新 Player 状态
+          player.autoBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          
+          // 格式化提示
+          let timeStr = Int(duration) < 60 ? "\(Int(duration))秒" : "\(Int(duration)/60)分钟"
+          let percent = Int(val * 100)
+          
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "道心稳固 自动修炼 +\(percent)% (\(timeStr))"
+          }
+        }
+        
+      case .nothing:
+        break
+      }
+      
+      checkBreakCondition()
+      savePlayer()
     }
-    
+  
     // MARK: - Settings
     func toggleHaptic() {
         player.settings.hapticEnabled.toggle()
@@ -321,31 +403,6 @@ class GameManager: ObservableObject {
         return levelManager.layerName(for: player.level)
     }
   
-}
-
-// MARK: - Haptic Manager
-class HapticManager {
-    static let shared = HapticManager()
-    private init() {}
-    
-    enum HapticType {
-        case light
-        case success
-        case error
-    }
-    
-    func play(_ type: HapticType) {
-        #if os(watchOS)
-        switch type {
-        case .light:
-            WKInterfaceDevice.current().play(.click)
-        case .success:
-            WKInterfaceDevice.current().play(.success)
-        case .error:
-            WKInterfaceDevice.current().play(.failure)
-        }
-        #endif
-    }
 }
 
 extension GameManager {
