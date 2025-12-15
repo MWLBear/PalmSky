@@ -193,7 +193,7 @@ struct BreakthroughView: View {
 
                       Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
                           .font(.system(size: 60))
-                          .foregroundColor(result == .success ? primaryColor : .red.opacity(0.5))
+                          .foregroundColor(result == .success ? primaryColor : .red)
                           .symbolEffect(.bounce, value: showResultView)
                           .padding(.bottom, 15)
                     

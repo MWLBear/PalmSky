@@ -10,8 +10,12 @@ struct EventView: View {
             ZStack {
                 // 背景：保持神秘紫
                 Color.black.ignoresSafeArea()
+              
+                let colors = RealmColor.gradient(for: gameManager.player.level)
+                let primaryColor = colors.last ?? .green
+              
                 RadialGradient(
-                    gradient: Gradient(colors: [Color(hex: "5D3FD3").opacity(0.3), Color.black]),
+                    gradient: Gradient(colors: [primaryColor.opacity(0.2), .clear]),
                     center: .top, startRadius: 10, endRadius: geo.size.height * 0.8
                 ).ignoresSafeArea()
                 

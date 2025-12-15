@@ -86,6 +86,18 @@ struct Settings: Codable {
     var autoGainEnabled: Bool = true
 }
 
+//护身符（你已有）
+//
+//减少突破失败惩罚 / 抵消一次失败
+//
+//静心符（未来）
+//
+//离线收益 +10%（但上限不变）
+//
+//悟道符（后期）
+//
+//提高极小量成功率（+1~2%）
+
 struct Items: Codable {
     var protectCharm: Int = 0
 }

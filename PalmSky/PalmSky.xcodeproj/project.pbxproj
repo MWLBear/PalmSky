@@ -345,7 +345,7 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PalmSky;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.PalmSky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
@@ -380,7 +380,7 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PalmSky;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.PalmSky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
@@ -416,7 +416,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PalmSky;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -452,7 +452,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PalmSky;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

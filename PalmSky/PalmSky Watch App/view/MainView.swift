@@ -522,7 +522,7 @@ struct TaijiView: View {
                 Image("TaiChi")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 110, height: 110)
+                    .frame(width: 125, height: 125)
                     .rotationEffect(.degrees(rotation))
                     .scaleEffect(scale)
                     .shadow(

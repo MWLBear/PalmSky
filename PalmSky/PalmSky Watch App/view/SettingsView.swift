@@ -125,15 +125,18 @@ struct SettingsView: View {
                         Label("散尽修为 (删档)", systemImage: "trash.fill")
                             .foregroundColor(.red)
                     }
-                }
-                
-                // 版本号
-                Section {
-                    Text("掌上修仙 v1.0")
-                        .font(.footnote)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .listRowBackground(Color.clear)
-                        .foregroundColor(.gray.opacity(0.5))
+                } footer: {
+                  VStack(spacing: 5) {
+                         Text("掌上修仙 \(appVersion)")
+                             .font(.footnote)
+                             .foregroundColor(.gray.opacity(0.5))
+
+                         Text("此道漫长，不必急行。")
+                             .font(.footnote)
+                             .foregroundColor(.white.opacity(0.35))
+                     }
+                     .frame(maxWidth: .infinity)
+                     .padding(.top, 6)
                 }
             }
             .navigationTitle("设置")
@@ -151,6 +154,14 @@ struct SettingsView: View {
             }
         }
     }
+  
+  
+  private var appVersion: String {
+    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    let _ = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    return " v\(version)"
+  }
+  
 }
 
 // MARK: - Preview
