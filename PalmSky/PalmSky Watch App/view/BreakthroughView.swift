@@ -78,16 +78,21 @@ struct BreakthroughView: View {
                             
                             // B. 境界文字 (平时显示，突破时隐去)
                             if !isAttempting {
-                                VStack(spacing: 4) {
+                                VStack(spacing: 5) {
                                     Text(gameManager.getRealmShort())
-                                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                                        .font(.system(size: 26, weight: .bold, design: .rounded))
                                         .foregroundColor(.white)
                                         .shadow(color: primaryColor, radius: 10)
+                                      // ⬇️ 修改2：核心适配逻辑
+                                        .lineLimit(1)            // 强制不换行
+                                        .minimumScaleFactor(0.5) // 空间不够时，允许缩小到 13pt
+                                        .layoutPriority(1)       // 如果空间挤，优先压缩这个 Text
+                                  
                                     
                                     Text(gameManager.getLayerName())
-                                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                                        .font(.system(size: 13, weight: .bold, design: .rounded))
                                         .foregroundColor(.white)
-                                        .padding(.horizontal, 6)
+                                        .padding(.horizontal, 5)
                                         .padding(.vertical, 2)
                                         .background(primaryColor.opacity(0.15))
                                         .clipShape(Capsule())
@@ -193,12 +198,12 @@ struct BreakthroughView: View {
 
                       Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
                           .font(.system(size: 60))
-                          .foregroundColor(result == .success ? primaryColor : .red)
+                          .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
                           .symbolEffect(.bounce, value: showResultView)
                           .padding(.bottom, 15)
                     
                       
-                      VStack(spacing: 4) {
+                      VStack(spacing: 6) {
                           Text(result == .success ? "突破成功" : "突破失败")
                               .font(.system(size: 24, weight: .bold, design: .rounded))
                               .foregroundColor(.white)
@@ -213,24 +218,36 @@ struct BreakthroughView: View {
                                   .font(.system(size: 14))
                                   .foregroundColor(.gray)
                           }
+                        
+                      
+                        Button(action: {
+                          
+                          isPresented = false
+                        
+                          // 2. 只有在成功时，才去检查飞升
+                          if result == .success {
+                            gameManager.checkFeiSheng()
+                          }
+                          
+                        }) {
+                            Text("完成")
+                                .font(.system(size: 16, weight: .medium))
+                                .padding(.horizontal, 50)
+                                .padding(.vertical, 8)
+                                .background(
+                                  LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .clipShape(Capsule())
+                                .shadow(color: primaryColor.opacity(0.5), radius: 8)
+
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 10)
+                        .padding(.bottom, 20)
+                        
                       }
                       
-                      Spacer()
-                      Button(action: { isPresented = false }) {
-                          Text("完成")
-                              .font(.system(size: 16, weight: .medium))
-                              .padding(.horizontal, 50)
-                              .padding(.vertical, 8)
-                              .background(
-                                LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
-                              )
-                              .clipShape(Capsule())
-                              .shadow(color: primaryColor.opacity(0.5), radius: 8)
 
-                      }
-                      .buttonStyle(.plain)
-                      .padding(.bottom, 20)
-                    
                     Spacer()
 
                   }

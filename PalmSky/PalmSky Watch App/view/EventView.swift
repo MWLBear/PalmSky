@@ -106,15 +106,22 @@ struct EventView: View {
         }
     }
     
-    private func getEffectHint(_ effect: EventEffect) -> String? {
-        switch effect.type {
-        case .gainQi: return "机缘"
-        case .loseQi: return "风险"
-        case .grantItem: return "宝物"
-        case .gainTapRatioTemp, .gainAutoTemp: return "增益"
-        case .nothing: return "无事"
-        }
-    }
+  private func getEffectHint(_ effect: EventEffect) -> String? {
+          switch effect.type {
+          case .gainQi:
+              return "机缘" // 或者 "灵气"
+          case .loseQi:
+              return "风险" // 或者 "折损"
+          case .grantItem:
+              return "宝物"
+          case .gainTapRatioTemp, .gainAutoTemp:
+              return "增益"
+          case .gamble, .gambleTap, .gambleAuto:
+              return "博弈" // 统一处理，干净利落
+          case .nothing:
+              return "无事"
+          }
+      }
 }
 
 #Preview {

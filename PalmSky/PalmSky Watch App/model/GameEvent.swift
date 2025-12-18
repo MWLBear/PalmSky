@@ -21,8 +21,12 @@ struct GameConstants {
     
     // Event / Frequency
     static let EVENT_CHECK_INTERVAL_SECONDS = 10.0
-    static let EVENT_PROBABILITY_PER_CHECK = 0.05   // 提高一点奇遇概率到 5%，增加乐趣
+  //  static let EVENT_PROBABILITY_PER_CHECK = 0.05   // 提高一点奇遇概率到 5%，增加乐趣
     
+    // ✅ 新增：基础概率与成长系数
+    static let EVENT_PROB_BASE = 0.05       // 基础 5%
+    static let EVENT_PROB_MAX = 0.10        // 上限 10% (太高会很烦)
+  
     // Complication
     static let COMPLICATION_REFRESH_MINUTES = 30
     static let COMPLICATION_ALERT_THRESHOLD_PCT = 0.90
@@ -32,7 +36,21 @@ struct GameConstants {
         "筑基", "开光", "胎息", "辟谷", "金丹", "元婴", "出窍", "分神",
         "合体", "大乘", "渡劫", "地仙", "天仙", "金仙", "大罗金仙", "九天玄仙"
     ]
-    
+  
+    // 轮回前缀 (0-9世)
+    static let zhuanNames = [
+      "",       // 第1世 (reincarnation = 0)
+      "真",     // 第2世 (reincarnation = 1)
+      "玄",     // 第3世
+      "灵",     // 第4世
+      "妙",     // 第5世
+      "元",     // 第6世
+      "太",     // 第7世
+      "上",     // 第8世
+      "至",     // 第9世
+      "道"      // 第10世+
+    ]
+        
   // 中文数字映射 (用于层级显示)
     static let cnNumbers = ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
   
@@ -52,6 +70,9 @@ struct Player: Codable {
     // ✨ 新增：增益状态
     var tapBuff: BuffStatus?  // 点击增益
     var autoBuff: BuffStatus? // 自动修炼增益
+  
+   // ✨ 新增：轮回次数 (第1世是0，转世后变成1)
+    var reincarnationCount: Int = 0
   
     init(id: String = "default_player") {
         self.id = id
@@ -129,10 +150,18 @@ struct EventEffect: Codable {
 
     enum EffectType: String, Codable {
         case gainQi = "gain_qi"
+        case loseQi = "lose_qi"
+
         case gainTapRatioTemp = "gain_tap_ratio_temp"
         case gainAutoTemp = "gain_auto_temp"
-        case loseQi = "lose_qi"
+      
         case grantItem = "grant_item"
         case nothing = "nothing"
+      
+        // ✨ 新增：博弈 Buff (赌药效)
+        case gambleTap = "gamble_tap"   // 赌点击倍率
+        case gambleAuto = "gamble_auto" // 赌自动修炼
+        case gamble = "gamble"       //赌灵气
+      
     }
 }

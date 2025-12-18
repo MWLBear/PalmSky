@@ -5,38 +5,123 @@ struct RootPagerView: View {
 
     @State private var page = 0
     @State private var showBreakthrough = false
-  
-    var body: some View {
-        TabView(selection: $page) {
-            
-           MainView(showBreakthrough: $showBreakthrough)
-                .tag(0)
+    @State private var showCelebration = false
+    @State private var showReview = false
+    @ObservedObject var recordManager = RecordManager.shared
 
-            SettingsView()
-                .tag(1)
+    @Environment(\.scenePhase) var scenePhase
+
+  
+    // 提取跳转逻辑，避免重复代码
+    private func proceedToReview() {
+        // 防止重复触发
+        guard showCelebration else { return }
+        
+        withAnimation(.easeIn(duration: 0.5)) {
+            showCelebration = false
+            showReview = true
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-      
-        .sheet(isPresented: $showBreakthrough) {
-          BreakthroughView(isPresented: $showBreakthrough)
+    }
+
+    var body: some View {
+        ZStack {
+            TabView(selection: $page) {
+                MainView(showBreakthrough: $showBreakthrough).tag(0)
+                SettingsView(currentTab: $page).tag(1)
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .sheet(isPresented: $showBreakthrough) {
+              NavigationView {
+                BreakthroughView(isPresented: $showBreakthrough)
+              }
+              .toolbar(.hidden, for: .navigationBar)
+
+            }
+            .sheet(isPresented: $gameManager.showEventView) {
+                if let event = gameManager.currentEvent {
+                  NavigationView {
+                    EventView(event: event)
+                  }
+                  .toolbar(.hidden, for: .navigationBar)
+                }
+            }
+
+            // 庆祝界面 (ZIndex 2)
+            if showCelebration {
+                CelebrationView()
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 100)),
+                        removal: .opacity // 消失时淡出即可，不要乱飞
+                    ))
+                    .zIndex(2)
+                    // 🔥 优化1：允许玩家点击屏幕立即进入下一步
+                    .onTapGesture {
+                        proceedToReview()
+                    }
+            }
+
+            // 回顾界面 (ZIndex 1)
+            // 注意：showReview 出现时，Celebration 消失，所以 ZIndex 没冲突
+            if showReview {
+                LifeReviewView {
+                    // 关闭回顾的逻辑：回到主页观想模式
+                    withAnimation {
+                        showReview = false
+                        // 确保庆祝也没了
+                        showCelebration = false
+                        // 确保 GameManager 状态正确 (它应该已经是满级状态了)
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(3) // 设高一点，盖住一切
+            }
         }
-        .sheet(isPresented: $gameManager.showEventView) {
-            if let event = gameManager.currentEvent {
-                EventView(event: event)
+        // body 底部添加
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+              print("scenePhase Active")
+                // App 回到前台，计算离线收益
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                gameManager.calculateOfflineGain()
+              }
+            } else if newPhase == .background {
+                // App 切后台，保存时间
+                gameManager.savePlayer()
             }
         }
       
+        // 监听满级标记
+        .onChange(of: gameManager.showEndgame) {oldValue, newValue in
+            if newValue {
+                // 1. 显示庆祝
+                withAnimation(.spring()) {
+                    showCelebration = true
+                }
+
+                // 2. 🔥 优化2：缩短自动跳转时间 (3.0s -> 2.0s)
+                // 2秒足够看清"飞升成功"四个大字了
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    // 只有当还在显示庆祝时才自动跳转
+                    // (如果玩家已经手动点了，这里就不执行)
+                    if showCelebration {
+                        proceedToReview()
+                    }
+                }
+            }
+        }
     }
 }
+
 
 struct MainView: View {
     @EnvironmentObject var gameManager: GameManager
     @Binding var showBreakthrough: Bool
-    @Environment(\.scenePhase) var scenePhase
-
     // 动画状态
     @State private var pulse = false
     
+   //✨ 新增：专门控制圆环闭合的视觉状态
+    @State private var visualIsAscended = false
+  
     var body: some View {
         GeometryReader { geo in
             // 核心尺寸计算
@@ -48,18 +133,6 @@ struct MainView: View {
             let primaryColor = colors.last ?? .green
             
             ZStack {
-                // 1. 全局背景 (纯黑 + 底部微光)
-//                Color.black.ignoresSafeArea()
-//                
-//                // 底部氛围光 (让底部数据不那么单调)
-//                RadialGradient(
-//                    gradient: Gradient(colors: [primaryColor.opacity(0.2), .clear]),
-//                    center: UnitPoint(x: 0.5, y: 0.9), // 光源在底部
-//                    startRadius: 20,
-//                    endRadius: screenWidth * 0.6
-//                )
-//                .ignoresSafeArea()
-                
                 LinearGradient(
                     gradient: Gradient(colors: [
                       primaryColor.opacity(0.2),  primaryColor.opacity(0.1)
@@ -78,13 +151,20 @@ struct MainView: View {
                   ringSize: ringSize,
                   progress: gameManager.getCurrentProgress(),
                   primaryColor: primaryColor,
-                  gradientColors: [colors.first ?? primaryColor, primaryColor]
+                  gradientColors: [colors.first ?? primaryColor, primaryColor],
+                  isAscended: visualIsAscended
                 )
-                .offset(y: 20) // 保持原有的偏移
+                .offset(y: visualIsAscended ? 0 : 20)
            
                 // 3. 物理太极 (居中)
                 TaijiView(level: gameManager.player.level, onTap: {
-                    gameManager.onTap()
+                  if !gameManager.isAscended {
+                      gameManager.onTap()
+                    } else {
+                      // 满级仅播放震动和动画
+                      HapticManager.shared.playIfEnabled(.click)
+
+                    }
                     // 点击时的缩放反馈
                     withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
                         pulse = true
@@ -95,30 +175,35 @@ struct MainView: View {
                 })
                 .frame(width: taijiSize, height: taijiSize)
                 .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
-                .offset(y: 20)
-              
+                .offset(y: visualIsAscended ? 0 : 20)
+
                 // 4. 信息层 (Text Overlay)
                 VStack {
                   
-                  // ✅ 替换为封装好的组件
-                  RealmHeaderView(
-                    realmName: gameManager.getRealmShort(),
-                    layerName: gameManager.getLayerName(),
-                    primaryColor: primaryColor
-                  )
-                  
-                  Spacer()
-                  
-                  // --- 底部：数据聚合 ---
-                  VStack(spacing: 4) {
-                    // 1. Buff 状态栏
-                    BuffStatusBar()
+                  if gameManager.isAscended {
+                     EmptyView()
+                  } else {
                     
-                    // 2. 核心操作区 (按钮 或 数值)
-                    BottomControlView(
-                      showBreakthrough: $showBreakthrough,
+                    // ✅ 替换为封装好的组件
+                    RealmHeaderView(
+                      realmName: gameManager.getRealmShort(),
+                      layerName: gameManager.getLayerName(),
                       primaryColor: primaryColor
                     )
+                    
+                    Spacer()
+                    
+                    // --- 底部：数据聚合 ---
+                    VStack(spacing: 4) {
+                      // 1. Buff 状态栏
+                      BuffStatusBar()
+                      
+                      // 2. 核心操作区 (按钮 或 数值)
+                      BottomControlView(
+                        showBreakthrough: $showBreakthrough,
+                        primaryColor: primaryColor
+                      )
+                    }
                   }
                 }
                 .ignoresSafeArea() // 这一步很关键，允许文字推到最边缘
@@ -130,18 +215,31 @@ struct MainView: View {
 
         .onAppear { gameManager.startGame() }
       
-      // body 底部添加
-      .onChange(of: scenePhase) { newPhase in
-          if newPhase == .active {
-              // App 回到前台，计算离线收益
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-              gameManager.calculateOfflineGain()
+   
+      
+        .onChange(of: showBreakthrough) {oldShowing, isShowing in
+          
+          if !isShowing {
+            if gameManager.isAscended {
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.easeInOut(duration: 3.0)) {
+                  visualIsAscended = true
+                }
+              }
             }
-          } else if newPhase == .background {
-              // App 切后台，保存时间
-              gameManager.savePlayer()
           }
-      }
+        }
+        // ✨ 修复转世重修后圆环不打开的 Bug
+        .onChange(of: gameManager.player.level) { oldLevel, newLevel in
+          // 如果等级变回了非满级 (即转世了)，且当前视觉上还是闭合的
+          if newLevel < GameConstants.MAX_LEVEL && visualIsAscended {
+            // 播放一个“圆环重新开启”的动画，象征新轮回开始
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+              visualIsAscended = false
+            }
+          }
+        }
+      
       
     }
 }
@@ -169,7 +267,7 @@ struct ParticleView: View {
                     context.fill(Path(ellipseIn: rect), with: .color(color))
                 }
             }
-            .onChange(of: timeline.date) { _ in updateParticles() }
+            .onChange(of: timeline.date) { _, _ in updateParticles() }
         }
         .onAppear {
             // 初始生成一些粒子
@@ -207,24 +305,28 @@ struct RealmHeaderView: View {
     let primaryColor: Color // 主题色
     
     var body: some View {
-      HStack(alignment: .firstTextBaseline, spacing: 6) {
+      HStack(alignment: .firstTextBaseline, spacing: 4) {
         // 1. 境界名称 (大标题)
         Text(realmName)
-          .font(.system(size: 30, weight: .black, design: .rounded))
+          .font(.system(size: 26, weight: .black, design: .rounded))
           .foregroundColor(.white)
         // 文字发光效果
           .shadow(color: primaryColor.opacity(0.8), radius: 8)
+        // ⬇️ 修改2：核心适配逻辑
+          .lineLimit(1)            // 强制不换行
+          .minimumScaleFactor(0.5) // 空间不够时，允许缩小到 13pt
+          .layoutPriority(1)       // 如果空间挤，优先压缩这个 Text
         
         // 2. Lv 胶囊 (徽章)
         Text(layerName)
-          .font(.system(size: 14, weight: .bold, design: .rounded))
+          .font(.system(size: 13, weight: .bold, design: .rounded))
           .foregroundColor(.white)
-          .padding(.horizontal, 6)
+          .padding(.horizontal, 5)
           .padding(.vertical, 2)
           .background(primaryColor.opacity(0.25)) // 半透明背景
           .clipShape(Capsule())
         // 稍微往上提一点，视觉上与大标题居中对齐
-          .offset(y: -4)
+          .offset(y: -2)
       }
       .padding(.top, 20) // 保持原有的顶部间距
     }
@@ -233,64 +335,91 @@ struct RealmHeaderView: View {
 struct CultivationRingView: View {
     // MARK: - 参数
     let ringSize: CGFloat
-    let progress: Double        // 保持 Double
+    let progress: Double
     let primaryColor: Color
     let gradientColors: [Color]
+    let isAscended: Bool // 满级状态
     
-    // 常量配置 (全部改为 Double，避免计算时的类型转换麻烦)
-    private let trackWidth: CGFloat = 16
-    private let startTrim: Double = 0.16
-    private let endTrim: Double = 0.84
+    // MARK: - 动态配置 (核心修改)
+    // 满级时：0.0 ~ 1.0 (全圆)
+    // 未满级：0.16 ~ 0.84 (底部缺口)
+    private var startTrim: Double { isAscended ? 0.0 : 0.16 }
+    private var endTrim: Double   { isAscended ? 1.0 : 0.84 }
     
-    // 计算有效弧度长度
+    // 有效弧度长度
     private var arcLength: Double { endTrim - startTrim }
     
+    // 动画配置：慢速、庄重
+    private let closeAnimation = Animation.easeInOut(duration: 3.0)
+    
+ 
     var body: some View {
         ZStack {
             // 1. 轨道 (暗色背景)
             Circle()
-                // trim 接受 CGFloat，所以这里转一下
                 .trim(from: CGFloat(startTrim), to: CGFloat(endTrim))
                 .stroke(
                     Color.white.opacity(0.12),
-                    style: StrokeStyle(lineWidth: trackWidth, lineCap: .round)
+                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
                 )
                 .rotationEffect(.degrees(90))
                 .frame(width: ringSize, height: ringSize)
+                // ✨ 动画：轨道缓慢合拢
+                .animation(closeAnimation, value: isAscended)
             
-            // 2. 进度光点 (流星头)
-            if progress > 0 {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 6, height: 6)
-                    .shadow(color: .white, radius: 4)
-                    // 位置：圆的右侧 (3点钟方向)
-                    .offset(x: ringSize / 2)
-                    // 旋转：90度(到底部) + 360 * (起始位置 + 弧长 * 进度)
-                    // ✅ 修复点：这里全都是 Double，不会报错了
-                    .rotationEffect(.degrees(90.0 + (360.0 * (startTrim + arcLength * progress))))
-            }
-            
+           
+            let ringGradient = AngularGradient(
+                gradient: Gradient(
+                    colors: isAscended
+                        // 满级：同色渐变（看起来就是纯色，但类型没变）
+                        ? [primaryColor, primaryColor]
+                        // 未满级：灵气流转
+                        : gradientColors
+                ),
+                center: .center,
+                startAngle: .degrees(90),
+                endAngle: .degrees(360)
+            )
+          
             // 3. 进度条 (亮色填充)
             Circle()
-                // trim 需要 CGFloat
                 .trim(from: CGFloat(startTrim), to: CGFloat(startTrim + (arcLength * progress)))
                 .stroke(
-                    AngularGradient(
-                        gradient: Gradient(colors: gradientColors),
-                        center: .center,
-                        startAngle: .degrees(90),
-                        endAngle: .degrees(360)
-                    ),
-                    style: StrokeStyle(lineWidth: trackWidth, lineCap: .round)
+                
+                  ringGradient,
+                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
                 )
                 .rotationEffect(.degrees(90))
-                .shadow(color: primaryColor.opacity(0.6), radius: 8)
+                // 满级时增加发光强度
+                .shadow(color: primaryColor.opacity(isAscended ? 0.8 : 0.6), radius: isAscended ? 15 : 8)
                 .frame(width: ringSize, height: ringSize)
+                // ✨ 动画：进度条缓慢合拢
+                .animation(closeAnimation, value: isAscended)
+                // 进度本身的动画
                 .animation(.spring(response: 0.5), value: progress)
+          
+          
+            // 3. 进度光点 (流星头)
+//            if progress > 0 && !isAscended {
+//                Circle()
+//                    .fill(Color.white)
+//                    .frame(width: 6, height: 6)
+//                    .shadow(color: .white, radius: 4)
+//                    .offset(x: ringSize / 2)
+//                    // ⚠️ 注意：这里的 startTrim 和 arcLength 会随动画动态变化，
+//                    // 从而保证光点在圆环合拢时也能平滑移动到正确位置
+//                    .rotationEffect(.degrees(92.0 + (360.0 * (startTrim + arcLength * progress))))
+//                    // ✨ 动画：光点位置跟随圆环变化
+//                    .animation(closeAnimation, value: isAscended)
+//                    // 进度本身的动画保持原样
+//                    .animation(.spring(response: 0.5), value: progress)
+//                   
+//            }
+            
         }
     }
 }
+
 
 struct BuffStatusBar: View {
     @EnvironmentObject var gameManager: GameManager
@@ -300,22 +429,32 @@ struct BuffStatusBar: View {
             
             // 1. 点击增益 (Tap Buff)
             if let buff = gameManager.player.tapBuff, Date() < buff.expireAt {
-                HStack(spacing: 2) {
-                    Image(systemName: "hand.tap.fill")
-                    Text("+\(Int(buff.bonusRatio * 100))%")
+              
+                let isPositive = buff.bonusRatio >= 0
+                let percent = Int(abs(buff.bonusRatio) * 100)
+              
+                HStack(spacing: 4) {
+                  Image(systemName: isPositive
+                        ? "hand.tap.fill"
+                        : "bolt.slash.fill")
+                  Text(isPositive ? "+\(percent)%" : "-\(percent)%")
                 }
                 .font(.system(size: 10, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.orange)
+                .background(
+                  isPositive
+                  ? Color.orange
+                  : Color.black.opacity(0.7)
+                )
                 .clipShape(Capsule())
                 .transition(.scale)
             }
             
             // 2. 自动增益 (Auto Buff)
             if let buff = gameManager.player.autoBuff, Date() < buff.expireAt {
-                HStack(spacing: 2) {
+                HStack(spacing: 4) {
                     Image(systemName: "leaf.fill")
                     Text("+\(Int(buff.bonusRatio * 100))%")
                 }
@@ -323,7 +462,7 @@ struct BuffStatusBar: View {
                 .foregroundColor(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.green)
+                .background(Color.green.opacity(0.8))
                 .clipShape(Capsule())
                 .transition(.scale)
             }
@@ -388,7 +527,7 @@ struct BottomControlView: View {
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     // 灵力数值
                     Text(gameManager.player.currentQi.xiuxianString)
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(isApproaching ? primaryColor : .white)
                         .contentTransition(.numericText())
                         .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1)
@@ -532,7 +671,7 @@ struct TaijiView: View {
             }
             .contentShape(Circle())
             .onTapGesture { handleTap() }
-            .onChange(of: now) { newDate in updatePhysics(currentTime: newDate) }
+            .onChange(of: now) {oldDate, newDate in updatePhysics(currentTime: newDate) }
         }
     }
     

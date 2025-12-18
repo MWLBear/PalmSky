@@ -4,7 +4,9 @@ struct SettingsView: View {
     @EnvironmentObject var gameManager: GameManager
     @Environment(\.dismiss) var dismiss
     @State private var showResetAlert = false
-    
+  // ✨ 新增：接收父视图传来的页码绑定
+    @Binding var currentTab: Int
+  
     // 动态获取主题色 (跟随境界变化)
     var themeColor: Color {
         let colors = RealmColor.gradient(for: gameManager.player.level)
@@ -58,7 +60,7 @@ struct SettingsView: View {
                     HStack {
                         Text("点击收益")
                         Spacer()
-                        Text("+\(GameLevelManager.shared.tapGain(level: gameManager.player.level).xiuxianString)")
+                        Text("+\(gameManager.getCurrentTapGain().xiuxianString)")
                             .foregroundColor(themeColor) // 跟随主题色
                     }
                     
@@ -67,7 +69,7 @@ struct SettingsView: View {
                         Text("自动收益/秒")
                         Spacer()
                         // 使用带Buff计算的真实数值
-                        Text("+\(GameManager.shared.getCurrentAutoGain().xiuxianString)")
+                        Text("+\(gameManager.getCurrentAutoGain().xiuxianString)")
                             .foregroundColor(themeColor)
                     }
                     
@@ -119,12 +121,29 @@ struct SettingsView: View {
                 
                 // MARK: - Section 4: 危险操作
                 Section {
-                    Button(role: .destructive) {
+                  if gameManager.player.level >= GameConstants.MAX_LEVEL {
+                      // 🌟 满级状态：显示“转世重修” (保留历史)
+                      Button {
                         showResetAlert = true
-                    } label: {
+                      } label: {
+                        HStack {
+                          Spacer()
+                          Label("转世重修", systemImage: "arrow.triangle.2.circlepath")
+                            .foregroundColor(.yellow) // 金色，代表神圣
+                            .bold()
+                          Spacer()
+                        }
+                      }
+                  } else {
+                    
+                      Button(role: .destructive) {
+                        showResetAlert = true
+                      } label: {
                         Label("散尽修为 (删档)", systemImage: "trash.fill")
-                            .foregroundColor(.red)
-                    }
+                          .foregroundColor(.red)
+                      }
+                    
+                  }
                 } footer: {
                   VStack(spacing: 5) {
                          Text("掌上修仙 \(appVersion)")
@@ -143,16 +162,47 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden) // 移除默认背景
             .background(Color.black)      // 使用纯黑背景
-            .alert("确定重修？", isPresented: $showResetAlert) {
-                Button("取消", role: .cancel) { }
-                Button("确认重置", role: .destructive) {
-                    gameManager.resetGame()
-                    dismiss()
+              .alert(isPresented: $showResetAlert) {
+                if gameManager.isAscended {
+                  // 满级转世
+                  return Alert(
+                    title: Text("开启新轮回？"),
+                    message: Text("你将保留此生记录，回到凡人境界重新修行。"),
+                    primaryButton: .destructive(Text("转世重修")) {
+                
+                      // 直接调用轮回逻辑
+                      gameManager.reincarnate()
+                      // 弹个震动反馈
+                      HapticManager.shared.playIfEnabled(.success)
+
+                      // 关闭设置页，回到主页
+                      withAnimation {
+                        currentTab = 0
+                      }
+                      
+                    },
+                    secondaryButton: .cancel(Text("取消"))
+                  )
+                } else {
+                  // 未满级重置
+                  return Alert(
+                    title: Text("确定删档重来？"),
+                    message: Text("当前所有修为将化为乌有，此操作不可撤销！"),
+                    primaryButton: .destructive(Text("确认重置")) {
+                      gameManager.resetGame()
+                      WKInterfaceDevice.current().play(.directionUp)
+                      
+                      // 🚀 核心修改：切回第 0 页 (主页)
+                      withAnimation {
+                        currentTab = 0
+                      }
+                    },
+                    secondaryButton: .default(Text("取消"))
+                  )
                 }
-            } message: {
-                Text("当前所有修为将化为乌有，此操作不可撤销。")
-            }
-        }
+              }
+          }
+      
     }
   
   
@@ -167,6 +217,6 @@ struct SettingsView: View {
 // MARK: - Preview
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView()
+      SettingsView(currentTab: .constant(1))
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import WatchKit
 
+let debugAscended = false // 九天玄仙8层-测试开关
 
 // MARK: - Game Manager
 class GameManager: ObservableObject {
@@ -14,6 +15,13 @@ class GameManager: ObservableObject {
     
     @Published var offlineToastMessage: String? = nil
 
+   // 新增：控制是否显示大结局视图
+    @Published var showEndgame: Bool = false
+  
+   // 新增计算属性
+    var isAscended: Bool {
+      player.level >= GameConstants.MAX_LEVEL
+    }
   
     private var timer: Timer?
     private var eventCheckTimer: Timer?
@@ -31,7 +39,15 @@ class GameManager: ObservableObject {
         } else {
             self.player = Player()
         }
-        
+      
+      // 👇👇👇【测试代码】开启上帝模式 👇👇👇
+        // 这一段在测试完后记得删除或注释掉
+        if debugAscended {
+            self.player.level = 143 // 设定为满级前一级
+            self.player.currentQi = 999_999_999_999_999 // 给无限灵气
+            // 👆👆👆【测试代码】结束 👆👆👆
+        }
+      
         checkBreakCondition()
         setupAutoSave()
     }
@@ -40,6 +56,12 @@ class GameManager: ObservableObject {
 
   // MARK: - 离线收益结算
       func calculateOfflineGain() {
+        
+          // ✅ 修正：满级后不再结算离线收益
+          if player.level >= GameConstants.MAX_LEVEL {
+            return
+          }
+          
           let now = Date()
           let lastTime = player.lastLogout
           
@@ -62,7 +84,7 @@ class GameManager: ObservableObject {
           // 3. 计算收益
           // 这里的 level 应该是当前 level。
           // (进阶逻辑：其实如果跨越了很久，应该模拟每秒增长，但为了性能，按当前等级算即可，算作一种"福利")
-          let gainPerSec = levelManager.autoGain(level: player.level)
+          let gainPerSec = levelManager.autoGain(level: player.level,reincarnation: player.reincarnationCount)
           
           // 4. 离线打折 (0.8)
           let offlineTotal = gainPerSec * effectiveTime * 0.8
@@ -86,9 +108,18 @@ class GameManager: ObservableObject {
               // showOfflineAlert(amount: offlineTotal)
           }
           
-          // 5. 更新时间并保存
+          // 5. 清理过期状态 (简单的懒人清理法)
+          // 上线了，发现 Buff 时间过了，就直接删掉
+          if let buff = player.autoBuff, buff.expireAt < now { player.autoBuff = nil }
+          if let buff = player.tapBuff, buff.expireAt < now { player.tapBuff = nil }
+          if let debuff = player.debuff, debuff.expireAt < now { player.debuff = nil }
+          
+          // 6. 更新时间并保存
           player.lastLogout = now
           savePlayer()
+        
+          // ✨ 埋点：记录由于上线产生的活跃
+          RecordManager.shared.trackLogin(currentRealmName: getRealmShort())
       }
   
   
@@ -106,9 +137,29 @@ class GameManager: ObservableObject {
     
   
     // MARK: - Auto Gain
+  
+  // MARK: - 核心收益计算 (新增方法)
+      
+      /// 获取当前单次点击的真实收益 (包含 Buff 加成)
+    func getCurrentTapGain() -> Double {
+      var gain = levelManager.tapGain(level: player.level, reincarnation: player.reincarnationCount)
+      
+      // 检查 Tap Buff (点击增益)
+      if let buff = player.tapBuff {
+        if Date() < buff.expireAt {
+          // 乘法加成
+          gain *= (1.0 + buff.bonusRatio)
+        } else {
+          player.tapBuff = nil
+        }
+      }
+      
+      return gain
+    }
+    
     // 🔴 新增：计算当前的每秒收益 (带 Debuff 检查)
     func getCurrentAutoGain() -> Double {
-      var gain = levelManager.autoGain(level: player.level)
+      var gain = levelManager.autoGain(level: player.level, reincarnation: player.reincarnationCount)
       
       
       // 1. 检查 Auto Buff (增益)
@@ -149,7 +200,12 @@ class GameManager: ObservableObject {
     }
     
     private func tick(deltaSeconds: Double) {
-//        let gain = levelManager.autoGain(level: player.level) * deltaSeconds
+      // ✅ 修正：满级后停止数值计算 (已超脱)
+      guard player.level < GameConstants.MAX_LEVEL else { return }
+      
+      // 如果在大结局回顾页面，也暂停计算
+      guard !showEndgame else { return }
+      
         let gain = getCurrentAutoGain() * deltaSeconds
         player.currentQi += gain
         checkBreakCondition()
@@ -157,17 +213,12 @@ class GameManager: ObservableObject {
     
     // MARK: - Tap Action
     func onTap() {
-        var gain = levelManager.tapGain(level: player.level)
       
-        // ✨ 新增：检查 Tap Buff
-        if let buff = player.tapBuff {
-          if Date() < buff.expireAt {
-            gain *= (1.0 + buff.bonusRatio)
-          } else {
-            player.tapBuff = nil // 过期清理
-          }
-        }
+        // ✅ 修正：满级后点击不再增加灵气
+        guard player.level < GameConstants.MAX_LEVEL else { return }
       
+        let gain = getCurrentTapGain()
+  
         player.currentQi += gain
         
         HapticManager.shared.playIfEnabled(.click)
@@ -191,26 +242,53 @@ class GameManager: ObservableObject {
         let cost = levelManager.breakCost(level: previousLevel)
         
         if roll <= successRate {
+          
+            // ✨ 埋点：记录突破行为
+            RecordManager.shared.trackBreak(success: true, successRate: successRate, currentRealmName: getRealmShort())
+        
             // Success
             player.level += 1
             player.currentQi = max(0, player.currentQi - cost)
-            showBreakButton = false
             
+            // 成功消除所有 Debuff
+            showBreakButton = false
+            player.debuff = nil
+          
             HapticManager.shared.playIfEnabled(.success)
 
-            
             savePlayer()
             return true
         } else {
+          
+          RecordManager.shared.trackBreak(success: false, successRate: successRate, currentRealmName: getRealmShort())
+          
+          
+          if player.items.protectCharm > 0 {
+            // --- 消耗护身符抵消惩罚 ---
+            player.items.protectCharm -= 1
+            
+            // 提示用户
+            DispatchQueue.main.async {
+              self.offlineToastMessage = "护身符破碎，免除灵力折损"
+            }
+            
+            // 必须在此处执行保存并返回 false
+            HapticManager.shared.playIfEnabled(.failure) // 依然是失败震动
+            checkBreakCondition()
+            savePlayer()
+            return false // 👈 关键：界面会显示“突破失败”，但数值没掉
+            
+          } else {
+            
             // Failure: lose 10% qi
             let penaltyRate = levelManager.breakFailPenalty(level: player.level)
             
             // 2. 执行扣除
             // 比如 penaltyRate 是 0.2 (20%)，那么剩余就是 0.8
             player.currentQi *= (1.0 - penaltyRate)
-
-          
-            if player.level >= 90 {
+            
+            
+            if player.level >= 90 && player.debuff == nil {
               // 1小时内，自动收益降为 70%
               let expireDate = Date().addingTimeInterval(3600)
               player.debuff = DebuffStatus(type: .unstableDao, multiplier: 0.7, expireAt: expireDate)
@@ -222,11 +300,26 @@ class GameManager: ObservableObject {
             }
             
             HapticManager.shared.playIfEnabled(.failure)
-
+            
             checkBreakCondition()
             savePlayer()
             return false
+          }
+          
         }
+    }
+  
+    func checkFeiSheng() {
+      // ✨ 埋点：检查是否满级飞升
+      if self.isAscended {
+        RecordManager.shared.trackAscension()
+        // 触发满级视图逻辑 (Show LifeReviewView)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+          self.showEndgame = true
+          self.showEventView = false
+        }
+        
+      }
     }
     
     // MARK: - Event System
@@ -242,10 +335,19 @@ class GameManager: ObservableObject {
     }
     
     private func checkForEvent() {
-        guard !showEventView else { return }
+       // ✅ 修正：如果已经在大结局，或者当前正在显示事件，都不要触发
+        guard !showEventView, !showEndgame else { return }
         
+        // 也可以加一个双重保险：如果已经满级了，也不触发
+        guard player.level < GameConstants.MAX_LEVEL else { return }
+      
         let roll = Double.random(in: 0...1)
-        if roll <= GameConstants.EVENT_PROBABILITY_PER_CHECK {
+      
+        // ✅ 修改这里：获取动态概率
+        let currentProb = levelManager.getEventProbability(level: player.level,
+                                                           reincarnation: player.reincarnationCount)
+              
+        if roll <= currentProb {
             triggerRandomEvent()
         }
     }
@@ -271,6 +373,16 @@ class GameManager: ObservableObject {
     }
     
     func selectEventChoice(_ choice: EventChoice) {
+      
+        // 判断是否是“接受/积极”的选项
+        // 简单判断：如果 effect 是 nothing，通常是拒绝/离开
+        // 或者在 JSON 里加个字段标记。
+        // 这里用简单逻辑：只要不是 .nothing 就算接受
+        let isAccepted = choice.effect.type != .nothing
+        
+        // ✨ 埋点：记录奇遇
+        RecordManager.shared.trackEvent(accepted: isAccepted)
+      
         applyEventEffect(choice.effect)
         showEventView = false
         currentEvent = nil
@@ -278,12 +390,103 @@ class GameManager: ObservableObject {
 
     private func applyEventEffect(_ effect: EventEffect) {
       switch effect.type {
+        
+      case .gamble:
+        // 博弈逻辑：
+        // value 是基准值。
+        // 赢了：获得 value * 1.5 ~ 2.0
+        // 输了：扣除 value * 0.5 ~ 1.0
+        
+        guard let baseValue = effect.value else { return }
+        
+        // 1. 判定概率 (基础胜率 50%)
+        // 进阶：境界越高，对低级事件的胜率越高
+        let isWin = Double.random(in: 0...1) < 0.5
+        
+        if isWin {
+          // 🎉 赌赢了！(暴击 1.5倍)
+          let gain = baseValue * 1.5
+          player.currentQi += gain
+          
+          // 成功震动
+          HapticManager.shared.playIfEnabled(.success)
+
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "险中求胜！灵气 +\(Double(gain).xiuxianString)"
+          }
+        } else {
+          // 💀 赌输了！(扣除 50%)
+            let loss = baseValue * 0.5
+            player.currentQi = max(0, player.currentQi - loss)
+            
+            // 失败震动
+            HapticManager.shared.playIfEnabled(.failure)
+            
+            DispatchQueue.main.async {
+              self.offlineToastMessage = "灵气流失! 灵气 -\(Double(loss).xiuxianString)"
+            }
+          
+        }
+        
+      case .gambleTap:
+        guard let val = effect.value, let duration = effect.duration else { return }
+        
+        // 判定概率
+        let isWin = Double.random(in: 0...1) < 0.5
+        let expireDate = Date().addingTimeInterval(duration)
+        
+        if isWin {
+          // 🎉 药效吸收成功：获得双倍效果 (或者按配置)
+          // 比如配置是 1.0 (翻倍)，这里直接给
+          player.tapBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          
+          HapticManager.shared.playIfEnabled(.success)
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "点击暴涨 (持续\(Int(duration))秒)"
+          }
+        } else {
+          // 💀 药力反噬：获得负面效果
+          // 变成 -50% (减半)
+          player.tapBuff = BuffStatus(bonusRatio: -0.5, expireAt: expireDate)
+          
+          HapticManager.shared.playIfEnabled(.failure)
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "经脉受损 点击效果减半"
+          }
+        }
+        
+        // MARK: - ✨ 赌自动修炼 (顿悟/走火入魔)
+      case .gambleAuto:
+        guard let val = effect.value, let duration = effect.duration else { return }
+        
+        let isWin = Double.random(in: 0...1) < 0.5
+        let expireDate = Date().addingTimeInterval(duration)
+        
+        if isWin {
+          // 🎉 顿悟成功
+          player.autoBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          
+          HapticManager.shared.playIfEnabled(.success)
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "修炼加速 (持续\(Int(duration))秒)"
+          }
+        } else {
+          // 💀 走火入魔 (直接上 Debuff)
+          // 这里我们复用已有的 debuff 系统，或者给 autoBuff 一个负值
+          player.debuff = DebuffStatus(type: .unstableDao, multiplier: 0.5, expireAt: expireDate)
+          
+          HapticManager.shared.playIfEnabled(.failure)
+          DispatchQueue.main.async {
+            self.offlineToastMessage = "走火入魔 修炼停滞"
+          }
+        }
+        
       case .gainQi:
         if let value = effect.value {
           player.currentQi += value
           // ✨ 新增：设置 Toast 消息，回到主页时自动弹出
           DispatchQueue.main.async {
-            self.offlineToastMessage = "奇遇收获 灵气 +\(Int(value))"
+            self.offlineToastMessage = "奇遇收获 灵气 +\(Double(value).xiuxianString)"
           }
         }
       case .loseQi:
@@ -291,7 +494,7 @@ class GameManager: ObservableObject {
           player.currentQi = max(0, player.currentQi - value)
           // ✨ 新增：扣除提示
           DispatchQueue.main.async {
-            self.offlineToastMessage = "遭遇意外 灵气 -\(Int(value))"
+            self.offlineToastMessage = "遭遇意外 灵气 -\(Double(value).xiuxianString)"
           }
         }
       case .grantItem:
@@ -301,38 +504,60 @@ class GameManager: ObservableObject {
           self.offlineToastMessage = "获得宝物 [护身符]"
         }
       case .gainTapRatioTemp:
-        // 逻辑处理：点击增益
-        // value 例如 0.5 (代表+50%), duration 例如 60 (代表60秒)
+        // 逻辑处理：点击增益 (智能叠加)
         if let val = effect.value, let duration = effect.duration {
-          let expireDate = Date().addingTimeInterval(duration)
+          var newExpireDate = Date().addingTimeInterval(duration)
+          var newBonus = val
           
-          // 更新 Player 状态
-          player.tapBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          // 🔥 检查是否已有生效的 Buff
+          if let oldBuff = player.tapBuff, Date() < oldBuff.expireAt {
+            // 1. 时间叠加：剩余时间 + 新时间
+            let remainingTime = oldBuff.expireAt.timeIntervalSinceNow
+            newExpireDate = Date().addingTimeInterval(remainingTime + duration)
+            
+            // 2. 数值取优：保留倍率更高的那个 (防止高级Buff被低级顶替)
+            newBonus = max(oldBuff.bonusRatio, val)
+          }
           
-          // 格式化时间字符串 (如 "60秒" 或 "2分钟")
-          let timeStr = Int(duration) < 60 ? "\(Int(duration))秒" : "\(Int(duration)/60)分钟"
-          let percent = Int(val * 100)
+          // 应用更新
+          player.tapBuff = BuffStatus(bonusRatio: newBonus, expireAt: newExpireDate)
           
-          // 弹窗提示
+          // 提示文案
+          let totalDuration = newExpireDate.timeIntervalSinceNow
+          let timeStr = formatDuration(totalDuration)
+          let percent = Int(newBonus * 100)
+          
           DispatchQueue.main.async {
-            self.offlineToastMessage = "感悟提升 点击效果 +\(percent)% (\(timeStr))"
+            self.offlineToastMessage = "感悟延续 点击效果 +\(percent)% (剩余\(timeStr))"
           }
         }
         
       case .gainAutoTemp:
-        // 逻辑处理：自动增益
+        // 逻辑处理：自动增益 (智能叠加)
         if let val = effect.value, let duration = effect.duration {
-          let expireDate = Date().addingTimeInterval(duration)
+          var newExpireDate = Date().addingTimeInterval(duration)
+          var newBonus = val
           
-          // 更新 Player 状态
-          player.autoBuff = BuffStatus(bonusRatio: val, expireAt: expireDate)
+          // 🔥 检查是否已有生效的 Buff
+          if let oldBuff = player.autoBuff, Date() < oldBuff.expireAt {
+            // 1. 时间叠加
+            let remainingTime = oldBuff.expireAt.timeIntervalSinceNow
+            newExpireDate = Date().addingTimeInterval(remainingTime + duration)
+            
+            // 2. 数值取优
+            newBonus = max(oldBuff.bonusRatio, val)
+          }
           
-          // 格式化提示
-          let timeStr = Int(duration) < 60 ? "\(Int(duration))秒" : "\(Int(duration)/60)分钟"
-          let percent = Int(val * 100)
+          // 应用更新
+          player.autoBuff = BuffStatus(bonusRatio: newBonus, expireAt: newExpireDate)
+          
+          // 提示文案
+          let totalDuration = newExpireDate.timeIntervalSinceNow
+          let timeStr = formatDuration(totalDuration)
+          let percent = Int(newBonus * 100)
           
           DispatchQueue.main.async {
-            self.offlineToastMessage = "道心稳固 自动修炼 +\(percent)% (\(timeStr))"
+            self.offlineToastMessage = "道心稳固 自动修炼 +\(percent)% (剩余\(timeStr))"
           }
         }
         
@@ -343,6 +568,16 @@ class GameManager: ObservableObject {
       checkBreakCondition()
       savePlayer()
     }
+  
+    // 辅助方法：格式化时间显示
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+          if seconds < 60 {
+              return "\(Int(seconds))秒"
+          } else {
+              return String(format: "%.1f分", seconds / 60)
+          }
+      }
+  
   
     // MARK: - Settings
     func toggleHaptic() {
@@ -360,13 +595,35 @@ class GameManager: ObservableObject {
         savePlayer()
     }
     
+    // MARK: - 删档重置 (Hard Reset)
     func resetGame() {
-        player = Player()
-        showBreakButton = false
-        currentEvent = nil
-        showEventView = false
-        savePlayer()
+      // 1. 停止当前的所有计时器 (防止旧逻辑干扰)
+      timer?.invalidate()
+      eventCheckTimer?.invalidate()
+      
+      // 2. 重置玩家数据 (回到 0 世，Lv 1)
+      // Player 的 init() 默认 reincarnationCount = 0
+      self.player = Player()
+      
+      // 3. 🚨 关键：重置所有 UI 状态标志位
+      self.showBreakButton = false
+      self.currentEvent = nil
+      self.showEventView = false
+      self.showEndgame = false // 👈 必须设为 false，否则会卡在大结局界面
+      self.offlineToastMessage = nil
+      
+      // 4. 🚨 关键：通知史官重置当前记录
+      // 删档意味着“这一世白活了”，所以要清空当前的 Record
+      RecordManager.shared.resetCurrentRecord()
+      
+      // 5. 重新启动游戏循环
+      startGame()
+      savePlayer()
+      
+      // 6. 震动反馈 (像是系统重启的感觉)
+      HapticManager.shared.playIfEnabled(.directionDown)
     }
+  
     
     // MARK: - Persistence
     private func setupAutoSave() {
@@ -386,15 +643,17 @@ class GameManager: ObservableObject {
     func getCurrentProgress() -> Double {
         return levelManager.progress(currentQi: player.currentQi, level: player.level)
     }
-    
+  
+    // 获取完整描述 (用于设置页等)
     func getCurrentRealm() -> String {
-        return levelManager.realmDescription(for: player.level)
+       return levelManager.realmDescription(for: player.level,reincarnation: player.reincarnationCount)
     }
-    
+    // 获取短描述 (用于主页大标题)
     func getRealmShort() -> String {
-        return levelManager.stageName(for: player.level)
+       return levelManager.stageName(for: player.level,reincarnation: player.reincarnationCount)
     }
   
+    // 获取层级 (用于主页胶囊)
     func getLayerName() -> String {
         return levelManager.layerName(for: player.level)
     }
@@ -433,4 +692,49 @@ extension GameManager {
         let rawRate = levelManager.breakFailPenalty(level: player.level)
         return Int(rawRate * 100)
     }
+}
+
+extension GameManager {
+  
+  /// 方案 A: 合上札记 (进入观想模式)
+     func enterZenMode() {
+         // 只需要关闭大结局视图，回到主页
+         // 因为等级已经是 MAX，MainView 会自动变为观想形态 (稍后适配)
+         self.showEndgame = false
+         // 可以在这里做一些清理，比如停止自动增长计时器，省电
+         self.timer?.invalidate()
+     }
+     
+     /// 方案 B: 转世重修 (删号重练)
+     func reincarnate() {
+         // 1. 史官封存记录
+         RecordManager.shared.reincarnate()
+         
+         // 2. 重置玩家数值 (保留 ID 和 设置)
+         let oldSettings = player.settings
+         let oldId = player.id
+         let nextCount = player.reincarnationCount + 1
+
+       
+         self.player = Player() // 重新初始化
+         self.player.id = oldId
+         self.player.settings = oldSettings // 继承设置
+         // ✨ 继承轮回次数
+         self.player.reincarnationCount = nextCount
+       
+         // 3. 状态重置
+         self.showEndgame = false
+         self.currentEvent = nil
+         self.showEventView = false
+         self.showBreakButton = false
+      
+       
+         // 4. 重新启动循环
+         startGame()
+         savePlayer()
+         
+         // 5. 反馈
+         HapticManager.shared.playIfEnabled(.success)
+     }
+  
 }
