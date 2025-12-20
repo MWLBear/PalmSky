@@ -61,6 +61,7 @@ struct GameConstants {
 struct Player: Codable {
     var id: String
     var level: Int
+    var click: Int
     var currentQi: Double
     var lastLogout: Date
     var settings: Settings
@@ -77,6 +78,7 @@ struct Player: Codable {
     init(id: String = "default_player") {
         self.id = id
         self.level = 1
+        self.click = 0
         self.currentQi = 0.0
         self.lastLogout = Date()
         self.settings = Settings()

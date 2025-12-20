@@ -7,7 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		041B3B052EF509F200102458 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 041B3B032EF509F200102458 /* Localizable.strings */; };
 		04A830DE2EEC094A00DDEDDC /* PalmSky Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 04A830DD2EEC094A00DDEDDC /* PalmSky Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		04DAB5A62EF4313300AF7427 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04DAB5A52EF4313300AF7427 /* WidgetKit.framework */; };
+		04DAB5A82EF4313300AF7427 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04DAB5A72EF4313300AF7427 /* SwiftUI.framework */; };
+		04DAB5B12EF4313400AF7427 /* SkyExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 04DAB5A32EF4313300AF7427 /* SkyExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -17,6 +21,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 04A830DC2EEC094A00DDEDDC;
 			remoteInfo = "PalmSky Watch App";
+		};
+		04DAB5AF2EF4313400AF7427 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 04A830C52EEC094900DDEDDC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 04DAB5A22EF4313300AF7427;
+			remoteInfo = SkyExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -32,22 +43,110 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		04DAB5B22EF4313400AF7427 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				04DAB5B12EF4313400AF7427 /* SkyExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		041B3B042EF509F200102458 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		04A830CD2EEC094900DDEDDC /* PalmSky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PalmSky.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04A830DD2EEC094A00DDEDDC /* PalmSky Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PalmSky Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		04DAB5A32EF4313300AF7427 /* SkyExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SkyExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		04DAB5A52EF4313300AF7427 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		04DAB5A72EF4313300AF7427 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		04DAB5C12EF4384400AF7427 /* SkyExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SkyExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		041B3ADC2EF4E18D00102458 /* Exceptions for "Sky" folder in "PalmSky" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedDataManager.swift,
+			);
+			target = 04A830CC2EEC094900DDEDDC /* PalmSky */;
+		};
+		041B3AF42EF5037900102458 /* Exceptions for "PalmSky" folder in "PalmSky Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				manager/GameCenterManager.swift,
+			);
+			target = 04A830DC2EEC094A00DDEDDC /* PalmSky Watch App */;
+		};
+		04DAB5B52EF4313400AF7427 /* Exceptions for "Sky" folder in "SkyExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 04DAB5A22EF4313300AF7427 /* SkyExtension */;
+		};
+		04DAB5BC2EF4352D00AF7427 /* Exceptions for "PalmSky Watch App" folder in "PalmSky" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				manager/GameLevelManager.swift,
+				manager/SkySyncManager.swift,
+				model/GameEvent.swift,
+				model/GameFormulas.swift,
+				model/RealmColor.swift,
+				model/SkyConstants.swift,
+				model/TaijiSkin.swift,
+			);
+			target = 04A830CC2EEC094900DDEDDC /* PalmSky */;
+		};
+		04DAB5BD2EF4352D00AF7427 /* Exceptions for "PalmSky Watch App" folder in "SkyExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				manager/GameLevelManager.swift,
+				model/GameEvent.swift,
+				model/RealmColor.swift,
+				model/SkyConstants.swift,
+				model/TaijiSkin.swift,
+			);
+			target = 04DAB5A22EF4313300AF7427 /* SkyExtension */;
+		};
+		04DAB5C02EF4355800AF7427 /* Exceptions for "Sky" folder in "PalmSky Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedDataManager.swift,
+			);
+			target = 04A830DC2EEC094A00DDEDDC /* PalmSky Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		04A830CF2EEC094900DDEDDC /* PalmSky */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				041B3AF42EF5037900102458 /* Exceptions for "PalmSky" folder in "PalmSky Watch App" target */,
+			);
 			path = PalmSky;
 			sourceTree = "<group>";
 		};
 		04A830E12EEC094A00DDEDDC /* PalmSky Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				04DAB5BC2EF4352D00AF7427 /* Exceptions for "PalmSky Watch App" folder in "PalmSky" target */,
+				04DAB5BD2EF4352D00AF7427 /* Exceptions for "PalmSky Watch App" folder in "SkyExtension" target */,
+			);
 			path = "PalmSky Watch App";
+			sourceTree = "<group>";
+		};
+		04DAB5A92EF4313300AF7427 /* Sky */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				041B3ADC2EF4E18D00102458 /* Exceptions for "Sky" folder in "PalmSky" target */,
+				04DAB5C02EF4355800AF7427 /* Exceptions for "Sky" folder in "PalmSky Watch App" target */,
+				04DAB5B52EF4313400AF7427 /* Exceptions for "Sky" folder in "SkyExtension" target */,
+			);
+			path = Sky;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -67,14 +166,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		04DAB5A02EF4313300AF7427 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04DAB5A82EF4313300AF7427 /* SwiftUI.framework in Frameworks */,
+				04DAB5A62EF4313300AF7427 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		04A830C42EEC094900DDEDDC = {
 			isa = PBXGroup;
 			children = (
+				041B3B032EF509F200102458 /* Localizable.strings */,
+				04DAB5C12EF4384400AF7427 /* SkyExtension.entitlements */,
 				04A830CF2EEC094900DDEDDC /* PalmSky */,
 				04A830E12EEC094A00DDEDDC /* PalmSky Watch App */,
+				04DAB5A92EF4313300AF7427 /* Sky */,
+				04DAB5A42EF4313300AF7427 /* Frameworks */,
 				04A830CE2EEC094900DDEDDC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,8 +196,18 @@
 			children = (
 				04A830CD2EEC094900DDEDDC /* PalmSky.app */,
 				04A830DD2EEC094A00DDEDDC /* PalmSky Watch App.app */,
+				04DAB5A32EF4313300AF7427 /* SkyExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		04DAB5A42EF4313300AF7427 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				04DAB5A52EF4313300AF7427 /* WidgetKit.framework */,
+				04DAB5A72EF4313300AF7427 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -122,10 +244,12 @@
 				04A830D92EEC094A00DDEDDC /* Sources */,
 				04A830DA2EEC094A00DDEDDC /* Frameworks */,
 				04A830DB2EEC094A00DDEDDC /* Resources */,
+				04DAB5B22EF4313400AF7427 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				04DAB5B02EF4313400AF7427 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				04A830E12EEC094A00DDEDDC /* PalmSky Watch App */,
@@ -136,6 +260,28 @@
 			productName = "PalmSky Watch App";
 			productReference = 04A830DD2EEC094A00DDEDDC /* PalmSky Watch App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		04DAB5A22EF4313300AF7427 /* SkyExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 04DAB5B62EF4313400AF7427 /* Build configuration list for PBXNativeTarget "SkyExtension" */;
+			buildPhases = (
+				04DAB59F2EF4313300AF7427 /* Sources */,
+				04DAB5A02EF4313300AF7427 /* Frameworks */,
+				04DAB5A12EF4313300AF7427 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				04DAB5A92EF4313300AF7427 /* Sky */,
+			);
+			name = SkyExtension;
+			packageProductDependencies = (
+			);
+			productName = SkyExtension;
+			productReference = 04DAB5A32EF4313300AF7427 /* SkyExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -153,6 +299,9 @@
 					04A830DC2EEC094A00DDEDDC = {
 						CreatedOnToolsVersion = 16.1;
 					};
+					04DAB5A22EF4313300AF7427 = {
+						CreatedOnToolsVersion = 16.1;
+					};
 				};
 			};
 			buildConfigurationList = 04A830C82EEC094900DDEDDC /* Build configuration list for PBXProject "PalmSky" */;
@@ -161,6 +310,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 04A830C42EEC094900DDEDDC;
 			minimizedProjectReferenceProxies = 1;
@@ -171,6 +321,7 @@
 			targets = (
 				04A830CC2EEC094900DDEDDC /* PalmSky */,
 				04A830DC2EEC094A00DDEDDC /* PalmSky Watch App */,
+				04DAB5A22EF4313300AF7427 /* SkyExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -180,10 +331,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				041B3B052EF509F200102458 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		04A830DB2EEC094A00DDEDDC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		04DAB5A12EF4313300AF7427 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -207,6 +366,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		04DAB59F2EF4313300AF7427 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -215,7 +381,23 @@
 			target = 04A830DC2EEC094A00DDEDDC /* PalmSky Watch App */;
 			targetProxy = 04A830DF2EEC094A00DDEDDC /* PBXContainerItemProxy */;
 		};
+		04DAB5B02EF4313400AF7427 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 04DAB5A22EF4313300AF7427 /* SkyExtension */;
+			targetProxy = 04DAB5AF2EF4313400AF7427 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		041B3B032EF509F200102458 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				041B3B042EF509F200102458 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		04A830EB2EEC094A00DDEDDC /* Debug */ = {
@@ -338,6 +520,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -348,14 +531,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.PalmSky;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.PalmSky.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]" = newmtest;
@@ -374,6 +557,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -384,14 +568,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.PalmSky;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.PalmSky.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]" = newmtest;
@@ -411,6 +595,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -426,13 +611,14 @@
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.PalmSky;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = newmtest;
@@ -451,6 +637,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -466,13 +653,14 @@
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.PalmSky;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = newmtest;
@@ -483,6 +671,77 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		04DAB5B32EF4313400AF7427 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sky/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]" = newmtest;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		04DAB5B42EF4313400AF7427 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sky/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]" = newmtest;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -512,6 +771,15 @@
 			buildConfigurations = (
 				04A830F22EEC094A00DDEDDC /* Debug */,
 				04A830F32EEC094A00DDEDDC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		04DAB5B62EF4313400AF7427 /* Build configuration list for PBXNativeTarget "SkyExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				04DAB5B32EF4313400AF7427 /* Debug */,
+				04DAB5B42EF4313400AF7427 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

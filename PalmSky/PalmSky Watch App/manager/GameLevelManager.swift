@@ -177,3 +177,36 @@ class GameLevelManager {
       }
   
 }
+
+extension GameLevelManager {
+  // MARK: - 排行榜积分转换逻辑
+      
+      /// 1. 计算总分 (用于上传 Game Center)
+      /// 算法：(轮回次数 * 满级上限) + 当前等级
+      /// 例：0世100级 = 100; 1世1级 = 145 (假设满级144)
+      func calculateTotalScore(level: Int, reincarnation: Int) -> Int64 {
+          let maxLevel = Int64(GameConstants.MAX_LEVEL)
+          return (Int64(reincarnation) * maxLevel) + Int64(level)
+      }
+      
+      /// 2. 从总分反解出文字描述 (用于自定义排行榜显示)
+      /// 输入: 1588 -> 输出: "道·九天玄仙 九层"
+      func getRankDescription(totalScore: Int64) -> String {
+          let maxLevel = Int64(GameConstants.MAX_LEVEL)
+          
+          // 核心数学反解：
+          // 轮回数 = (总分 - 1) / 144
+          // 当前级 = ((总分 - 1) % 144) + 1
+          // 为什么要 -1？因为等级是从 1 开始的，不是 0。
+          // 比如 144分 是 0世144级，而不是 1世0级。
+          
+          if totalScore <= 0 { return "筑基" }
+          
+          let reincarnation = Int((totalScore - 1) / maxLevel)
+          let currentLevel = Int((totalScore - 1) % maxLevel) + 1
+          
+          // 复用已有的描述逻辑
+          return realmDescription(for: currentLevel, reincarnation: reincarnation)
+      }
+  
+}

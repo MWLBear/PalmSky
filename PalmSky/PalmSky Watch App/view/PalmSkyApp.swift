@@ -10,6 +10,13 @@ import SwiftUI
 // MARK: - App Entry Point
 @main
 struct XiuxianApp: App {
+  
+    init() {
+      _ = EventPool.shared
+      let _ = GameCenterManager.shared
+      SkySyncManager.shared.activate()
+      
+    }
     var body: some Scene {
         WindowGroup {
             RootPagerView()

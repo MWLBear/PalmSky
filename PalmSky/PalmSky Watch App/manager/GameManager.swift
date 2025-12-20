@@ -29,11 +29,13 @@ class GameManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     private let levelManager = GameLevelManager.shared
-    private let userDefaultsKey = "savedPlayer"
     
+  // 记录上次同步给手机的时间
+    private var lastPhoneSyncTime: Date = .distantPast
+  
     private init() {
         // Load saved player or create new
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+      if let data = UserDefaults.standard.data(forKey: SkyConstants.UserDefaults.userDefaultsKey),
            let decoded = try? JSONDecoder().decode(Player.self, from: data) {
             self.player = decoded
         } else {
@@ -43,13 +45,16 @@ class GameManager: ObservableObject {
       // 👇👇👇【测试代码】开启上帝模式 👇👇👇
         // 这一段在测试完后记得删除或注释掉
         if debugAscended {
-            self.player.level = 143 // 设定为满级前一级
-            self.player.currentQi = 999_999_999_999_999 // 给无限灵气
+            self.player.level = 43 // 设定为满级前一级
+            self.player.currentQi = 199_999 // 给无限灵气
             // 👆👆👆【测试代码】结束 👆👆👆
         }
       
         checkBreakCondition()
         setupAutoSave()
+      
+        // ✨ 新增：请求通知权限
+        NotificationManager.shared.requestPermission()
     }
     
   // 在 init() 或者应用启动时调用
@@ -65,9 +70,13 @@ class GameManager: ObservableObject {
           let now = Date()
           let lastTime = player.lastLogout
           
+          print("calculateOfflineGain - now ",now)
+
           // 计算物理离线时间
           let rawTimeDiff = now.timeIntervalSince(lastTime)
           
+          print("calculateOfflineGain - rawTimeDiff ",rawTimeDiff)
+
           // 1. 阈值检查：少于 5 分钟不算，避免切屏频繁弹窗
           if rawTimeDiff < 300 {
               // 虽然不结算收益，但要更新时间，防止玩家通过"频繁杀后台"来卡时间bug
@@ -75,7 +84,7 @@ class GameManager: ObservableObject {
               savePlayer()
               return
           }
-          
+          print("calculateOfflineGain - rawTimeDiff",rawTimeDiff)
           // 2. ⚠️ 修正点：增加 12小时 (43200秒) 上限
           // 鼓励玩家每天早晚各看一次，增加粘性
           let maxOfflineSeconds: TimeInterval = 12 * 60 * 60
@@ -220,7 +229,7 @@ class GameManager: ObservableObject {
         let gain = getCurrentTapGain()
   
         player.currentQi += gain
-        
+        player.click += 1
         HapticManager.shared.playIfEnabled(.click)
 
         
@@ -255,7 +264,7 @@ class GameManager: ObservableObject {
             player.debuff = nil
           
             HapticManager.shared.playIfEnabled(.success)
-
+            player.lastLogout = Date()
             savePlayer()
             return true
         } else {
@@ -275,6 +284,7 @@ class GameManager: ObservableObject {
             // 必须在此处执行保存并返回 false
             HapticManager.shared.playIfEnabled(.failure) // 依然是失败震动
             checkBreakCondition()
+            player.lastLogout = Date()
             savePlayer()
             return false // 👈 关键：界面会显示“突破失败”，但数值没掉
             
@@ -628,14 +638,27 @@ class GameManager: ObservableObject {
     // MARK: - Persistence
     private func setupAutoSave() {
         Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-            self?.savePlayer()
+            print("setupAutoSave",Date(),self?.player.currentQi ?? 0)
+            self?.savePlayer(forceSyncToPhone: false)
         }
     }
     
-    func savePlayer() {
-        player.lastLogout = Date()
+    func savePlayer(forceSyncToPhone: Bool = true) {
         if let encoded = try? JSONEncoder().encode(player) {
-            UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            UserDefaults.standard.set(encoded, forKey: SkyConstants.UserDefaults.userDefaultsKey)
+        }
+      
+        // 2. ✨ 保存 Widget 快照 (App Group)
+        let progress = getCurrentProgress()
+        SharedDataManager.saveSnapshot(player: player, progress: progress)
+      
+        // 3. ✨ 发送数据到手机 (智能节流)
+        let now = Date()
+        // 判定条件：强制发送 OR 距离上次发送超过 5 分钟 (300秒)
+        if forceSyncToPhone || now.timeIntervalSince(lastPhoneSyncTime) > 300 {
+          SkySyncManager.shared.sendDataToPhone(player: self.player)
+          lastPhoneSyncTime = now
+          print("📡 同步手机成功 (强制: \(forceSyncToPhone))")
         }
     }
     

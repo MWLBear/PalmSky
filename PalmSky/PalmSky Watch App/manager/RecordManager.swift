@@ -14,12 +14,11 @@ class RecordManager: ObservableObject {
     @Published var pastLives: [CultivationRecord] = []
   
     @Published var record: CultivationRecord
-    private let key = "cultivation_life_record_v1"
-    private let historyKey = "cultivation_history_v1" // 新的 Key
+ 
 
     private init() {
         // 加载记录
-        if let data = UserDefaults.standard.data(forKey: key),
+      if let data = UserDefaults.standard.data(forKey: SkyConstants.UserDefaults.recordKey),
            let decoded = try? JSONDecoder().decode(CultivationRecord.self, from: data) {
             self.record = decoded
         } else {
@@ -28,7 +27,7 @@ class RecordManager: ObservableObject {
         }
       
       // 2. ✨ 加载前世记录
-      if let historyData = UserDefaults.standard.data(forKey: historyKey),
+      if let historyData = UserDefaults.standard.data(forKey: SkyConstants.UserDefaults.recordHistoryKey),
          let history = try? JSONDecoder().decode([CultivationRecord].self, from: historyData) {
          self.pastLives = history
       }
@@ -37,14 +36,14 @@ class RecordManager: ObservableObject {
     
     func save() {
         if let data = try? JSONEncoder().encode(record) {
-            UserDefaults.standard.set(data, forKey: key)
+          UserDefaults.standard.set(data, forKey: SkyConstants.UserDefaults.recordKey)
         }
     }
   
     // ✨ 保存历史记录 (私有方法)
     private func saveHistory() {
       if let data = try? JSONEncoder().encode(pastLives) {
-        UserDefaults.standard.set(data, forKey: historyKey)
+        UserDefaults.standard.set(data, forKey: SkyConstants.UserDefaults.recordHistoryKey)
       }
     }
     

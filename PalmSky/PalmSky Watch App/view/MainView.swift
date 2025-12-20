@@ -79,15 +79,35 @@ struct RootPagerView: View {
         // body 底部添加
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
-              print("scenePhase Active")
+                print("🌙 Background: 彻底闭关")
                 // App 回到前台，计算离线收益
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                gameManager.calculateOfflineGain()
-              }
+              
+                // 1. 回到前台，取消之前的通知 (因为我已经上线了，不用再提醒我了)
+                NotificationManager.shared.cancelNotifications()
+              
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    gameManager.calculateOfflineGain()
+                }
             } else if newPhase == .background {
                 // App 切后台，保存时间
+                print("🌙 Background: 彻底闭关")
+                gameManager.player.lastLogout = Date() // 更新时间
                 gameManager.savePlayer()
+              
+              // 2. ✨ 切后台，埋下一颗 12小时后的"闹钟"
+              // 只有未满级才需要提醒
+              if gameManager.player.level < GameConstants.MAX_LEVEL {
+                NotificationManager.shared.scheduleFullGainNotification()
+              }
+              
             }
+//            else if newPhase == .inactive {
+//                print("💤 Inactive: 视为暂停/准备离线")
+//                
+//                gameManager.player.lastLogout = Date()
+//                gameManager.savePlayer()
+//            }
+          
         }
       
         // 监听满级标记
@@ -127,7 +147,7 @@ struct MainView: View {
             // 核心尺寸计算
             let screenWidth = geo.size.width
             let ringSize = screenWidth * 0.90 // 圆环撑满 90% 屏幕
-            let taijiSize = screenWidth * 0.58 // 太极占 58%
+            let taijiSize = screenWidth * 0.65 // 太极占 65%
             
             let colors = RealmColor.gradient(for: gameManager.player.level)
             let primaryColor = colors.last ?? .green
@@ -596,6 +616,9 @@ struct TaijiView: View {
     let level: Int
     let onTap: () -> Void
     
+  // 监听皮肤变化
+     @ObservedObject var skinManager = SkinManager.shared
+  
     // MARK: - Physics State
     @State private var rotation: Double = 0
     @State private var extraVelocity: Double = 0
@@ -624,55 +647,79 @@ struct TaijiView: View {
     private let decayFactor: Double = 2.0
     
     var body: some View {
-        TimelineView(.animation) { timeline in
-            let now = timeline.date
-            let colors = RealmColor.gradient(for: level)
-            let primaryColor = colors.last ?? .green
             
-            ZStack {
-                // 1. 境界背景光 (呼吸)
-                let energyRatio = min(extraVelocity / 800.0, 1.0)
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                primaryColor.opacity(0.2 + energyRatio * 0.3),
-                                primaryColor.opacity(0.05),
-                                Color.clear
-                            ]),
-                            center: .center,
-                            startRadius: 40,
-                            endRadius: 100 + (energyRatio * 40)
-                        )
-                    )
-                    .scaleEffect(1.0 + sin(now.timeIntervalSince1970 * 2.5) * 0.03)
-                
-                // 2. ✨✨✨ 灵力涟漪 (使用新组件) ✨✨✨
-                ForEach(waves) { wave in
-                    QiRippleEffect(color: primaryColor)
-                        .rotationEffect(.degrees(wave.rotation)) // 气旋自转
-                        .scaleEffect(wave.scale)                 // 扩散
-                        .opacity(wave.opacity)                   // 渐隐
-                        // 🔥 关键：滤色模式，让光效叠加变亮，更有能量感
-                        .blendMode(.screen)
-                }
-                
-                // 3. 太极主体
-                Image("TaiChi")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 125, height: 125)
-                    .rotationEffect(.degrees(rotation))
-                    .scaleEffect(scale)
-                    .shadow(
-                        color: primaryColor.opacity(0.5 + energyRatio * 0.5),
-                        radius: 10 + (energyRatio * 15)
-                    )
+      GeometryReader { geo in
+        let size = min(geo.size.width, geo.size.height)
+        // 🔴 核心：太极实体的直径，只占容器的 68% (留出 32% 给光晕)
+        let shapeSize = size * 0.68
+        
+        TimelineView(.animation) { timeline in
+          let now = timeline.date
+          let colors = RealmColor.gradient(for: level)
+          let primaryColor = colors.last ?? .green
+          
+          ZStack {
+            // 1. 境界背景光 (呼吸)
+            let energyRatio = min(extraVelocity / 800.0, 1.0)
+            Circle()
+              .fill(
+                RadialGradient(
+                  gradient: Gradient(colors: [
+                    primaryColor.opacity(0.2 + energyRatio * 0.3),
+                    primaryColor.opacity(0.05),
+                    Color.clear
+                  ]),
+                  center: .center,
+                  startRadius: shapeSize * 0.35,
+                  endRadius: size * 0.6 + (energyRatio * 40)
+                )
+              )
+              .scaleEffect(1.0 + sin(now.timeIntervalSince1970 * 2.5) * 0.03)
+            
+            // 2. ✨✨✨ 灵力涟漪 (使用新组件) ✨✨✨
+            ForEach(waves) { wave in
+              QiRippleEffect(color: primaryColor)
+                .rotationEffect(.degrees(wave.rotation)) // 气旋自转
+                .scaleEffect(wave.scale)                 // 扩散
+                .opacity(wave.opacity)                   // 渐隐
+              // 🔥 关键：滤色模式，让光效叠加变亮，更有能量感
+                .blendMode(.screen)
             }
-            .contentShape(Circle())
-            .onTapGesture { handleTap() }
-            .onChange(of: now) {oldDate, newDate in updatePhysics(currentTime: newDate) }
+            
+            // 3. 太极主体
+//                            Image("TaiChi")
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fit)
+//                                .frame(width: 125, height: 125)
+//                                .rotationEffect(.degrees(rotation))
+//                                .scaleEffect(scale)
+//                                .shadow(
+//                                    color: primaryColor.opacity(0.5 + energyRatio * 0.5),
+//                                    radius: 10 + (energyRatio * 15)
+//                                )
+            
+            TaijiShapeView(skin: skinManager.currentSkin)
+              .frame(width: shapeSize, height: shapeSize)
+              .rotationEffect(.degrees(rotation))
+              .scaleEffect(scale)
+//              .shadow(
+//                color: primaryColor.opacity(0.4 + energyRatio * 0.4),
+//                radius: 12 + (energyRatio * 10),
+//                x: 0, y: 0
+//              )
+            
+            // 阴影：增加扩散，减少不透明度，增加悬浮感
+              .shadow(
+                color: primaryColor.opacity(0.5),
+                radius: 15,
+                x: 0, y: 0
+              )
+          }
+          .contentShape(Circle())
+          .onTapGesture { handleTap() }
+          .onChange(of: now) {oldDate, newDate in updatePhysics(currentTime: newDate) }
         }
+      }
     }
     
     // MARK: - Physics Logic

@@ -9,9 +9,21 @@ import SwiftUI
 
 @main
 struct PalmSkyApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-    }
+   
+  @AppStorage("app_theme_preference") private var selectedTheme: AppTheme = .dark
+
+  init() {
+     let _ = GameCenterManager.shared
+     SkySyncManager.shared.activate()
+  
+  }
+
+  var body: some Scene {
+      WindowGroup {
+        PhoneMianView()
+          .preferredColorScheme(selectedTheme.colorScheme)
+
+      }
+  }
+  
 }

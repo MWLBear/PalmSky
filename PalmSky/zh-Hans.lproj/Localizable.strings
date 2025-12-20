@@ -1,0 +1,106 @@
+"游戏说明" = "游戏说明";
+"游戏失败" = "游戏失败";
+"胜利" = "胜利";
+
+"排行榜" = "排行榜";
+"日榜" = "日榜";
+"周榜" = "周榜";
+"总榜" = "总榜";
+"暂无排名" = "暂无排名";
+
+"career_title" = "生涯统计";
+"career_section_core" = "核心数据";
+"career_wins" = "胜利局数";
+"career_games_played" = "总局数";
+"career_win_rate" = "胜率";
+"career_coins" = "欢乐豆";
+
+"career_game_data_source" = "🎯 游戏数据来源于 Apple Watch 端";
+"career_play_on_watch" = "请在手表上游玩以更新统计数据。";
+
+"career_nav_title" = "掌上斗地主";
+"leaderboard_nav_title" = "排行榜";
+"settings_nav_title" = "设置";
+
+"settings_section_appearance" = "外观";
+"theme_auto" = "自动";
+"theme_dark" = "深色";
+"theme_light" = "浅色";
+
+"tab_career" = "生涯";
+"tab_leaderboard" = "排行";
+"tab_settings" = "设置";
+
+"settings_section_connection" = "连接状态";
+"settings_section_faq" = "常见问题";
+"settings_section_about" = "关于";
+
+"settings_section_other" = "其他";
+"settings_section_supportus" = "支持我们";
+"settings_section_apps" = "我们的产品";
+"rateus" = "给我们评分";
+"shareus" = "分享给朋友";
+
+"phone_service" = "手机连接服务";
+"watch_app_status" = "手表 App 安装状态";
+"reachability_status" = "后台通信状态";
+
+"status_on" = "已开启";
+"status_inactive" = "未激活";
+"status_not_started" = "未启动";
+"status_unknown" = "未知";
+"installed" = "已安装";
+"not_installed" = "未安装";
+"online" = "在线";
+"offline" = "离线";
+
+"app_version" = "版本号";
+"privacy_policy" = "隐私政策";
+"terms_of_service" = "服务条款";
+"contact_us" = "联系我们";
+
+"faq_missing_app_q" = "手表上没有显示应用";
+"faq_missing_app_a" = "如果没有应用，以下两种方法解决：\n1. 在 iPhone 上打开 Watch 应用，滚动到可用应用并点击安装。\n2. 直接在 Apple Watch 的 App Store 搜索下载。";
+
+"faq_missing_sounds_q" = "如何关闭手表的声音";
+"faq_missing_sounds_a" = "1. 打开『设置』App，进入『声音与触感』，将『提示音』调到最小，或开启『静音模式』。\n2. 按下侧边按钮打开 Apple Watch 上的『控制中心』，点击铃铛图标以快速静音，也可以在控制中心找到声音开关进行关闭。";
+
+"faq_missing_data_q" = "手表的数据没有同步到手机";
+"faq_missing_data_a" = "1. 确保手表和 iPhone 通过蓝牙或同一 Wi-Fi 网络连接。\n2. 确认两台设备都安装了最新版本的应用。\n3. 如果问题仍然存在，请尝试重启手表和手机后再次打开应用。";
+
+"faq_missing_center_q" = "手表的排行榜没有数据";
+"faq_missing_center_a" = "1.在你的 iPhone 上进入“设置>Game Center”，确认你已登录。\n2. 确保手表和 iPhone 通过蓝牙或同一 Wi-Fi 网络连接。\n3. 重新打开应用并等待几秒钟。";
+
+/* 产品名称 */
+"product_6755140397_name" = "掌上台球 - 手表游戏";
+"product_6755930349_name" = "掌上斗地主 - 手表游戏";
+"product_6743487416_name" = "黄金矿工 for Watch";
+"product_6742131931_name" = "手表游戏 - 游戏合集";
+"product_6744266001_name" = "召唤神龙 for Watch";
+"product_6744744278_name" = "抓娃娃手表版";
+"product_6749309578_name" = "HexaCombo";
+"product_6752029081_name" = "手表游戏 - 颜色连线";
+
+/* 产品副标题 */
+"product_6755140397_subtitle" = "在手表上打台球";
+"product_6755930349_subtitle" = "在手表上斗地主";
+"product_6743487416_subtitle" = "儿时经典";
+"product_6742131931_subtitle" = "30+ Watch Games";
+"product_6744266001_subtitle" = "从小蝌蚪合成神龙";
+"product_6744744278_subtitle" = "随时随地都能抓";
+"product_6749309578_subtitle" = "六边形消除小游戏";
+"product_6752029081_subtitle" = "趣味益智小游戏";
+
+"声音" = "声音";
+"震动" = "震动";
+"GameCenterTip"="请先登录 Game Center";
+
+"leaderboard.rank" = "排名";
+"leaderboard.player" = "玩家";
+"leaderboard.wins" = "胜利次数";
+"leaderboard.no.data" = "暂无数据";
+"leaderboard.daily" = "日榜";
+"leaderboard.weekly" = "周榜";
+"leaderboard.alltime" = "总榜";
+"leaderboard.no.rank" = "暂无排名";
+

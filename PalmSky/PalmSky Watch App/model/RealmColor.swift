@@ -45,6 +45,15 @@ struct RealmColor {
         return colors(for: stage)
     }
     
+  /// 前缀 / 文本用的主色（取渐变第一色）
+    static func primaryLastColor(for level: Int) -> Color {
+      gradient(for: level).last ?? .primary
+    }
+    
+    static func primaryFirstColor(for level: Int) -> Color {
+      gradient(for: level).first ?? .primary
+    }
+  
     private static func colors(for stage: Int) -> [Color] {
         switch stage {
         case 1: return [Color(hex: "506042"), Color(hex: "89A37B")] // 筑基
