@@ -26,7 +26,7 @@ struct SkyConstants {
     
     enum Leaderboard: String {
       case playerLevel = "sky_player_level"
-      case playerClick = "sky_player_click"
+      case playerClick = "sky_player_clicks"
     }
     
   }

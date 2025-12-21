@@ -31,15 +31,17 @@ struct XiuxianEntranceView: View {
     var body: some View {
         ZStack {
           
-          AccessoryWidgetBackground()
+         // AccessoryWidgetBackground()
           
-          Image("TaiChi2")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .unredacted()
-            .widgetAccentable()
-            .padding()
-         
+//          Image("TaiChi2")
+//            .resizable()
+//            .aspectRatio(contentMode: .fit)
+//            .unredacted()
+//            .widgetAccentable()
+//            .padding()
+          
+          TaijiShapeView(skin: .default)
+            
         }
     }
 }

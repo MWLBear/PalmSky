@@ -328,7 +328,7 @@ struct RealmHeaderView: View {
       HStack(alignment: .firstTextBaseline, spacing: 4) {
         // 1. 境界名称 (大标题)
         Text(realmName)
-          .font(.system(size: 26, weight: .black, design: .rounded))
+          .font(XiuxianFont.realmTitle)
           .foregroundColor(.white)
         // 文字发光效果
           .shadow(color: primaryColor.opacity(0.8), radius: 8)
@@ -339,7 +339,7 @@ struct RealmHeaderView: View {
         
         // 2. Lv 胶囊 (徽章)
         Text(layerName)
-          .font(.system(size: 13, weight: .bold, design: .rounded))
+          .font(XiuxianFont.badge)
           .foregroundColor(.white)
           .padding(.horizontal, 5)
           .padding(.vertical, 2)
@@ -459,7 +459,8 @@ struct BuffStatusBar: View {
                         : "bolt.slash.fill")
                   Text(isPositive ? "+\(percent)%" : "-\(percent)%")
                 }
-                .font(.system(size: 10, weight: .bold))
+                .font(XiuxianFont.buffTag)
+
                 .foregroundColor(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -478,7 +479,7 @@ struct BuffStatusBar: View {
                     Image(systemName: "leaf.fill")
                     Text("+\(Int(buff.bonusRatio * 100))%")
                 }
-                .font(.system(size: 10, weight: .bold))
+                .font(XiuxianFont.buffTag)
                 .foregroundColor(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -493,7 +494,7 @@ struct BuffStatusBar: View {
                     Image(systemName: "heart.slash.fill")
                     Text("道心不稳")
                 }
-                .font(.system(size: 10, weight: .bold))
+                .font(XiuxianFont.buffTag)
                 .foregroundColor(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -518,26 +519,11 @@ struct BottomControlView: View {
         Group {
             if gameManager.showBreakButton {
                 // --- 模式 A: 突破按钮 ---
-                Button(action: {
-                    showBreakthrough = true
-                }) {
-                    Text("立即突破")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 6) // 微调高度
-                        .background(
-                            LinearGradient(
-                                colors: [primaryColor, primaryColor.opacity(0.6)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .clipShape(Capsule())
-                        .shadow(color: primaryColor.opacity(0.5), radius: 8)
+                BottomActionButton(title:"立即突破" ,
+                                   primaryColor: primaryColor) {
+                  showBreakthrough = true
                 }
-                .buttonStyle(.plain)
-                .padding(.bottom, 5)
+                .padding(.bottom, 8)
                 .transition(.opacity) // 切换时的淡入淡出
                 
             } else {
@@ -547,7 +533,7 @@ struct BottomControlView: View {
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     // 灵力数值
                     Text(gameManager.player.currentQi.xiuxianString)
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(XiuxianFont.coreValue)
                         .foregroundColor(isApproaching ? primaryColor : .white)
                         .contentTransition(.numericText())
                         .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1)
@@ -556,7 +542,7 @@ struct BottomControlView: View {
                     
                     // 单位
                     Text("灵气")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(XiuxianFont.hudValue)
                         .foregroundColor(Color.white.opacity(0.6))
                         .padding(.bottom, 4)
                 }

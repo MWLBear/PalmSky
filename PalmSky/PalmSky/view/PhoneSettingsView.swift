@@ -33,7 +33,7 @@ struct PhoneSettingsView: View {
     @Environment(\.openURL) private var openURL
     
     // 支持我们 App Store ID
-    private let appStoreID =  "-------"
+    private let appStoreID =  "6756813357"
   
     // 我们的产品数组
     private let products: [SkyProductItem] = [

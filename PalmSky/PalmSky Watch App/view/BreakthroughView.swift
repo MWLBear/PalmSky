@@ -45,7 +45,8 @@ struct BreakthroughView: View {
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
-            
+            let height = geo.size.height
+
             let colors = RealmColor.gradient(for: gameManager.player.level)
             let primaryColor = colors.last ?? .green
             
@@ -71,7 +72,7 @@ struct BreakthroughView: View {
                         ZStack {
                             // A. 静态底轨 (极简)
                             Circle()
-                                .trim(from: 0.15, to: 0.85)
+                                .trim(from: 0.16, to: 0.84)
                                 .stroke(primaryColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
                                 .rotationEffect(.degrees(90))
                                 .frame(width: width * 0.75, height: width * 0.75)
@@ -80,7 +81,7 @@ struct BreakthroughView: View {
                             if !isAttempting {
                                 VStack(spacing: 5) {
                                     Text(gameManager.getRealmShort())
-                                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                                        .font(XiuxianFont.realmTitle)
                                         .foregroundColor(.white)
                                         .shadow(color: primaryColor, radius: 10)
                                       // ⬇️ 修改2：核心适配逻辑
@@ -90,7 +91,7 @@ struct BreakthroughView: View {
                                   
                                     
                                     Text(gameManager.getLayerName())
-                                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                                        .font(XiuxianFont.badge)
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 5)
                                         .padding(.vertical, 2)
@@ -99,6 +100,7 @@ struct BreakthroughView: View {
                                 }
                                 .transition(.opacity)
                             }
+                          
                             
                             // C. ✨ 灵气汇聚粒子 (只在突破时出现)
                             ForEach(particles) { p in
@@ -151,105 +153,81 @@ struct BreakthroughView: View {
                         VStack(spacing: 0) {
                             if !isAttempting {
                                 Text("共鸣率 \(Int(GameLevelManager.shared.breakSuccess(level: gameManager.player.level) * 100))%")
-                                    .font(.system(size: 14))
+                                    .font(XiuxianFont.body)
                                     .foregroundColor(.gray)
                                     .padding(.bottom, 12)
                             } else {
                                 Text("天地灵气汇聚中...")
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(XiuxianFont.body)
                                     .foregroundColor(primaryColor)
                                     .padding(.bottom, 12)
                             }
                             
-                            Button(action: startBreakthrough) {
-                                Text(isAttempting ? "突破中..." : "逆天改命")
-                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 40)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                      LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
-                                    )
-                                    .clipShape(Capsule())
-                                    .shadow(color: primaryColor.opacity(0.5), radius: 8)
-
-                                    .overlay(
-                                        // 突破时按钮变成进度条既视感
-                                        Group {
-                                            if isAttempting {
-                                                Capsule()
-                                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                            }
-                                        }
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(isAttempting)
+                          BottomActionButton(title:isAttempting ? "突破中..." : "逆天改命" ,
+                                             primaryColor: primaryColor) {
+                            startBreakthrough()
+                          }
+                           .disabled(isAttempting)
+                            .overlay(
+                              Group {
+                                if isAttempting {
+                                  Capsule()
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                }
+                              }
+                            )
                         }
-                        .offset(y: -70)
+                        .offset(y: -65)
                     
                     }
                     .ignoresSafeArea()
                     
                 } else {
     
-                  VStack(spacing: 0) {
-                    Spacer().frame(height: 30)
+                  VStack {
 
-                      Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                          .font(.system(size: 60))
-                          .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
-                          .symbolEffect(.bounce, value: showResultView)
-                          .padding(.bottom, 15)
-                    
-                      
-                      VStack(spacing: 6) {
-                          Text(result == .success ? "突破成功" : "突破失败")
-                              .font(.system(size: 24, weight: .bold, design: .rounded))
+                    VStack(spacing: 5) {
+                            Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                              .font(.system(size: height * 0.35))
+                              .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
+                              .symbolEffect(.bounce, value: showResultView)
+                            
+                            Text(result == .success ? "突破成功" : "突破失败")
+                              .font(XiuxianFont.realmResultTitle)
+
                               .foregroundColor(.white)
-                          
-                          if result == .success {
-                              Text(gameManager.getCurrentRealm())
-                                  .font(.system(size: 18, weight: .medium))
-                                  .foregroundColor(primaryColor)
-                          } else {
+                              .minimumScaleFactor(0.8) // 允许缩小
                              
+                            
+                            if result == .success {
+                              Text(gameManager.getCurrentRealm())
+                                  .font(XiuxianFont.realmSubtitle)
+
+                                .foregroundColor(primaryColor)
+                            } else {
+                              
                               Text("道心受损 -\(gameManager.currentPenaltyPercentage)%")
-                                  .font(.system(size: 14))
-                                  .foregroundColor(.gray)
-                          }
-                        
-                      
-                        Button(action: {
+                                .font(XiuxianFont.body)
+                                .foregroundColor(.gray)
+                            }
                           
-                          isPresented = false
-                        
-                          // 2. 只有在成功时，才去检查飞升
-                          if result == .success {
-                            gameManager.checkFeiSheng()
-                          }
-                          
-                        }) {
-                            Text("完成")
-                                .font(.system(size: 16, weight: .medium))
-                                .padding(.horizontal, 50)
-                                .padding(.vertical, 8)
-                                .background(
-                                  LinearGradient(colors: [primaryColor, primaryColor.opacity(0.5)], startPoint: .leading, endPoint: .trailing)
-                                )
-                                .clipShape(Capsule())
-                                .shadow(color: primaryColor.opacity(0.5), radius: 8)
-
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 10)
-                        .padding(.bottom, 20)
-                        
                       }
-                      
-
-                    Spacer()
-
+                      .padding(.top, 25)
+                     
+                      Spacer()
+                        
+                      BottomActionButton(
+                        title: "完成",
+                        primaryColor: primaryColor
+                      ) {
+                        isPresented = false
+                        // 2. 只有在成功时，才去检查飞升
+                        if result == .success {
+                          gameManager.checkFeiSheng()
+                        }
+                      }
+                      .padding(.bottom, 15)
+                    
                   }
                   .ignoresSafeArea()
                 }
@@ -257,6 +235,7 @@ struct BreakthroughView: View {
                 // 闪光层
                 Color.white.ignoresSafeArea().opacity(flashOpacity).allowsHitTesting(false)
             }
+            .ignoresSafeArea()
             .onReceive(timer) { _ in
                 updateParticles()
             }

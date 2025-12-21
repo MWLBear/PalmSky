@@ -98,6 +98,7 @@
 				model/RealmColor.swift,
 				model/SkyConstants.swift,
 				model/TaijiSkin.swift,
+				model/XiuxianFont.swift,
 			);
 			target = 04A830CC2EEC094900DDEDDC /* PalmSky */;
 		};
@@ -109,6 +110,8 @@
 				model/RealmColor.swift,
 				model/SkyConstants.swift,
 				model/TaijiSkin.swift,
+				model/XiuxianFont.swift,
+				view/TaijiShapeView.swift,
 			);
 			target = 04DAB5A22EF4313300AF7427 /* SkyExtension */;
 		};

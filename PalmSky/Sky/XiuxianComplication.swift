@@ -59,12 +59,14 @@ struct XiuxianComplicationEntryView : View {
           
             Gauge(value: entry.snapshot.progress, in: 0...1) {
               Text(entry.snapshot.realmName)
-                .font(.system(size: 10, weight: .bold)) // 基础字号
-                .minimumScaleFactor(0.4) // 允许缩小到 40% 以塞进更多字
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .minimumScaleFactor(0.5) // 允许缩小到 40% 以塞进更多字
                 .lineLimit(1) // 强制一行
             } currentValueLabel: {
               Text("\(Int(entry.snapshot.progress * 100))%")
-                                 .font(.system(size: 12, weight: .bold, design: .rounded))
+                                 .font(.system(size: 22, weight: .bold, design: .rounded))
+                                 .monospacedDigit()
+
             }
             .gaugeStyle(.circular)
             .tint(stageColor) // 动态变色
@@ -72,7 +74,7 @@ struct XiuxianComplicationEntryView : View {
         case .accessoryCorner:
             // ❌ 修正点 2: .widgetLabel 仅在此处使用
             Text(entry.snapshot.realmName)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: .medium,design: .rounded))
                 .widgetLabel {
                     Gauge(value: entry.snapshot.progress, in: 0...1) {
                         Text("\(Int(entry.snapshot.progress * 100))%")
