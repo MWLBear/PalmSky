@@ -142,6 +142,8 @@ struct MainView: View {
    //✨ 新增：专门控制圆环闭合的视觉状态
     @State private var visualIsAscended = false
   
+    let offsetY = 15.0
+  
     var body: some View {
         GeometryReader { geo in
             // 核心尺寸计算
@@ -174,7 +176,7 @@ struct MainView: View {
                   gradientColors: [colors.first ?? primaryColor, primaryColor],
                   isAscended: visualIsAscended
                 )
-                .offset(y: visualIsAscended ? 0 : 20)
+                .offset(y: visualIsAscended ? 0 : offsetY)
            
                 // 3. 物理太极 (居中)
                 TaijiView(level: gameManager.player.level, onTap: {
@@ -195,7 +197,7 @@ struct MainView: View {
                 })
                 .frame(width: taijiSize, height: taijiSize)
                 .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
-                .offset(y: visualIsAscended ? 0 : 20)
+                .offset(y: visualIsAscended ? 0 : offsetY)
 
                 // 4. 信息层 (Text Overlay)
                 VStack {

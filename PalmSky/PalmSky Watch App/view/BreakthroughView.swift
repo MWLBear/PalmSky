@@ -34,7 +34,9 @@ struct BreakthroughView: View {
     // 结果
     @State private var result: BreakthroughResult?
     @State private var showResultView = false
-    
+  
+   let offsetY = 15.0
+
     enum BreakthroughResult {
         case success
         case failure
@@ -64,171 +66,53 @@ struct BreakthroughView: View {
               .ignoresSafeArea()
               
                 if !showResultView {
-                    VStack(spacing: 0) {
-                        
-                        // MARK: - 视觉核心区域 (法阵 + 粒子)
-                        Spacer().frame(height: 40)
-                        
-                        ZStack {
-                            // A. 静态底轨 (极简)
-                            Circle()
-                                .trim(from: 0.16, to: 0.84)
-                                .stroke(primaryColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                                .rotationEffect(.degrees(90))
-                                .frame(width: width * 0.75, height: width * 0.75)
-                            
-                            // B. 境界文字 (平时显示，突破时隐去)
-                            if !isAttempting {
-                                VStack(spacing: 5) {
-                                    Text(gameManager.getRealmShort())
-                                        .font(XiuxianFont.realmTitle)
-                                        .foregroundColor(.white)
-                                        .shadow(color: primaryColor, radius: 10)
-                                      // ⬇️ 修改2：核心适配逻辑
-                                        .lineLimit(1)            // 强制不换行
-                                        .minimumScaleFactor(0.5) // 空间不够时，允许缩小到 13pt
-                                        .layoutPriority(1)       // 如果空间挤，优先压缩这个 Text
-                                  
-                                    
-                                    Text(gameManager.getLayerName())
-                                        .font(XiuxianFont.badge)
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
-                                        .background(primaryColor.opacity(0.15))
-                                        .clipShape(Capsule())
-                                }
-                                .transition(.opacity)
-                            }
-                          
-                            
-                            // C. ✨ 灵气汇聚粒子 (只在突破时出现)
-                            ForEach(particles) { p in
-                                Circle()
-                                    .fill(primaryColor)
-                                    .frame(width: p.size, height: p.size)
-                                    .opacity(p.opacity)
-                                    // 极坐标转换：根据角度和距离算出位置
-                                    .offset(
-                                        x: cos(p.angle) * p.distance,
-                                        y: sin(p.angle) * p.distance
-                                    )
-                            }
-                            
-                            // D. ✨ 核心丹田 (聚气时出现)
-                            if isAttempting {
-                                ZStack {
-                                    // 外层光晕 (高速旋转)
-                                    Circle()
-                                        .fill(
-                                            AngularGradient(colors: [primaryColor.opacity(0), primaryColor], center: .center)
-                                        )
-                                        .frame(width: 80, height: 80)
-                                        .rotationEffect(.degrees(coreRotation))
-                                        .blur(radius: 5)
-                                    
-                                    // 内核 (高亮压缩)
-                                    Circle()
-                                        .fill(.white)
-                                        .frame(width: 40, height: 40)
-                                        .shadow(color: primaryColor, radius: 10 + coreBrightness * 20) // 越压缩越亮
-                                        .scaleEffect(coreScale)
-                                }
-                            }
-                            
-                            // E. ✨ 冲击波 (爆发时出现)
-                            Circle()
-                                .stroke(Color.white, lineWidth: 20) // 也是光圈
-                                .frame(width: 50, height: 50)
-                                .scaleEffect(shockwaveScale)
-                                .opacity(shockwaveOpacity)
-                            
-                        }
-                        .frame(width: width, height: width) // 容器区、
-                        .offset(y: 10)
-                        .ignoresSafeArea()
-                        
-                        
-                        // MARK: - 底部操作
-                        VStack(spacing: 0) {
-                            if !isAttempting {
-                                Text("共鸣率 \(Int(GameLevelManager.shared.breakSuccess(level: gameManager.player.level) * 100))%")
-                                    .font(XiuxianFont.body)
-                                    .foregroundColor(.gray)
-                                    .padding(.bottom, 12)
-                            } else {
-                                Text("天地灵气汇聚中...")
-                                    .font(XiuxianFont.body)
-                                    .foregroundColor(primaryColor)
-                                    .padding(.bottom, 12)
-                            }
-                            
-                          BottomActionButton(title:isAttempting ? "突破中..." : "逆天改命" ,
-                                             primaryColor: primaryColor) {
-                            startBreakthrough()
-                          }
-                           .disabled(isAttempting)
-                            .overlay(
-                              Group {
-                                if isAttempting {
-                                  Capsule()
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                }
-                              }
-                            )
-                        }
-                        .offset(y: -65)
+                  ZStack {
                     
+                    // 视觉核心
+                    BreakthroughVisualsView(
+                      width: width,
+                      primaryColor: primaryColor,
+                      colors: colors,
+                      isAttempting: isAttempting,
+                      particles: particles,
+                      coreRotation: coreRotation,
+                      coreBrightness: coreBrightness,
+                      coreScale: coreScale,
+                      shockwaveScale: shockwaveScale,
+                      shockwaveOpacity: shockwaveOpacity,
+                      // ✨ 传入成功率
+                      successRate: GameLevelManager.shared.breakSuccess(level: gameManager.player.level)
+                    )
+                    .offset(y: offsetY)
+                    
+                    VStack {
+                      Spacer() // 这是一个强力弹簧，把下面的内容死死压在底部
+                      
+                      BreakthroughControlsView(
+                        primaryColor: primaryColor,
+                        isAttempting: isAttempting,
+                        action: startBreakthrough
+                      )
+                      // 🚀 核心修改：这里控制距离底部的距离
+                      .padding(.bottom, offsetY)
                     }
-                    .ignoresSafeArea()
+                    
+                    // 确保 Layer B 能利用到底部安全区空间
+                    .ignoresSafeArea(edges: .bottom)
+                    
+  
+                  }
                     
                 } else {
     
-                  VStack {
-
-                    VStack(spacing: 5) {
-                            Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                              .font(.system(size: height * 0.35))
-                              .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
-                              .symbolEffect(.bounce, value: showResultView)
-                            
-                            Text(result == .success ? "突破成功" : "突破失败")
-                              .font(XiuxianFont.realmResultTitle)
-
-                              .foregroundColor(.white)
-                              .minimumScaleFactor(0.8) // 允许缩小
-                             
-                            
-                            if result == .success {
-                              Text(gameManager.getCurrentRealm())
-                                  .font(XiuxianFont.realmSubtitle)
-
-                                .foregroundColor(primaryColor)
-                            } else {
-                              
-                              Text("道心受损 -\(gameManager.currentPenaltyPercentage)%")
-                                .font(XiuxianFont.body)
-                                .foregroundColor(.gray)
-                            }
-                          
-                      }
-                      .padding(.top, 25)
-                     
-                      Spacer()
-                        
-                      BottomActionButton(
-                        title: "完成",
-                        primaryColor: primaryColor
-                      ) {
-                        isPresented = false
-                        // 2. 只有在成功时，才去检查飞升
-                        if result == .success {
-                          gameManager.checkFeiSheng()
-                        }
-                      }
-                      .padding(.bottom, 15)
-                    
-                  }
+                  // 结果页
+                  BreakthroughResultView(
+                    result: result,
+                    primaryColor: primaryColor,
+                    height: height,
+                    showResultView: showResultView,
+                    isPresented: $isPresented
+                  )
                   .ignoresSafeArea()
                 }
                 
@@ -333,4 +217,205 @@ struct BreakthroughView: View {
 
 #Preview {
   BreakthroughView(isPresented: .constant(true))
+}
+
+struct BreakthroughVisualsView: View {
+    @EnvironmentObject var gameManager: GameManager
+    let width: CGFloat
+    let primaryColor: Color
+    let colors: [Color]
+    
+    // 动画状态
+    let isAttempting: Bool
+    let particles: [QiParticle]
+    let coreRotation: Double
+    let coreBrightness: Double
+    let coreScale: CGFloat
+    let shockwaveScale: CGFloat
+    let shockwaveOpacity: Double
+    let sacleWidth = 0.85
+  
+    // ✨ 新增：接收成功率用于显示
+    let successRate: Double
+    
+    var body: some View {
+        ZStack {
+            // A. 静态底轨
+            Circle()
+                .trim(from: 0.16, to: 0.84)
+                .stroke(primaryColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .rotationEffect(.degrees(90))
+                .frame(width: width * sacleWidth, height: width * sacleWidth)
+            
+            // B. 境界文字 (上半部分)
+            if !isAttempting {
+                VStack(spacing: 5) {
+                    Text(gameManager.getRealmShort())
+                        .font(XiuxianFont.realmTitle)
+                        .foregroundColor(.white)
+                        .shadow(color: primaryColor, radius: 10)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        .layoutPriority(1)
+                    
+                    Text(gameManager.getLayerName())
+                        .font(XiuxianFont.badge)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(primaryColor.opacity(0.15))
+                        .clipShape(Capsule())
+                }
+                .transition(.opacity)
+                .offset(y: -10) // 稍微往上提一点，避开圆心
+            }
+                      
+          // C. 底部信息位 (共鸣率 / 状态提示)
+            Text(isAttempting ? "天地灵气汇聚中..." : "共鸣率 \(Int(successRate * 100))%")
+              .font(XiuxianFont.body)
+            // 颜色切换：平时灰色，突破时亮色
+              .foregroundColor(isAttempting ? primaryColor : .gray)
+            // 位置固定
+              .offset(y: calculateGapYOffset(width: width,scale: sacleWidth))
+              .id(isAttempting ? "status" : "rate")
+              .transition(.opacity.animation(.easeInOut(duration: 0.5)))
+            
+            // D. 灵气粒子
+            ForEach(particles) { p in
+                Circle()
+                    .fill(primaryColor)
+                    .frame(width: p.size, height: p.size)
+                    .opacity(p.opacity)
+                    .offset(x: cos(p.angle) * p.distance, y: sin(p.angle) * p.distance)
+            }
+            
+            // E. 核心丹田
+            if isAttempting {
+                ZStack {
+                    Circle()
+                        .fill(AngularGradient(colors: [primaryColor.opacity(0), primaryColor], center: .center))
+                        .frame(width: 80, height: 80)
+                        .rotationEffect(.degrees(coreRotation))
+                        .blur(radius: 5)
+                    
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 40, height: 40)
+                        .shadow(color: primaryColor, radius: 10 + coreBrightness * 20)
+                        .scaleEffect(coreScale)
+                }
+            }
+            
+            // F. 冲击波
+            Circle()
+                .stroke(Color.white, lineWidth: 20)
+                .frame(width: 50, height: 50)
+                .scaleEffect(shockwaveScale)
+                .opacity(shockwaveOpacity)
+        }
+        .frame(width: width, height: width)
+    }
+  
+  
+  /// 计算圆环缺口连线的垂直偏移量 (从圆心向下)
+      /// - Returns: Y轴偏移量
+      func calculateGapYOffset(width: CGFloat, scale: CGFloat = 0.85, startTrim: Double = 0.16, endTrim: Double = 0.84) -> CGFloat {
+          // 1. 半径
+          let radius = (width * scale) / 2
+          
+          // 2. 计算缺口的一半角度 (弧度制)
+          // 缺口比例 = 1.0 - (0.84 - 0.16) = 0.32
+          let gapRatio = 1.0 - (endTrim - startTrim)
+          // 360度 * 缺口比例 / 2 = 半角
+          // 转换成弧度: 2 * pi * ratio / 2 = pi * ratio
+          let halfGapAngleRadians = gapRatio * .pi
+          
+          // 3. 计算垂直距离 (余弦定理)
+          // 这就是从圆心向下到"缺口连线"的精确距离
+          let chordDistance = radius * cos(halfGapAngleRadians)
+          
+          return chordDistance
+      }
+  
+}
+
+
+struct BreakthroughControlsView: View {
+    @EnvironmentObject var gameManager: GameManager
+    let primaryColor: Color
+    let isAttempting: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+
+            Spacer().frame(height: 10)
+
+          
+            BottomActionButton(
+                title: isAttempting ? "突破中..." : "逆天改命",
+                primaryColor: primaryColor
+            ) {
+                action()
+            }
+            .disabled(isAttempting)
+            .overlay(
+                Group {
+                    if isAttempting {
+                        Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    }
+                }
+            )
+        }
+    }
+}
+
+
+struct BreakthroughResultView: View {
+    let result: BreakthroughView.BreakthroughResult?
+    let primaryColor: Color
+    let height: CGFloat
+    let showResultView: Bool
+    @EnvironmentObject var gameManager: GameManager
+    @Binding var isPresented: Bool
+    
+    var body: some View {
+        VStack {
+            VStack(spacing: 5) {
+                Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(.system(size: height * 0.35))
+                    .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
+                    .symbolEffect(.bounce, value: showResultView)
+                
+                Text(result == .success ? "突破成功" : "突破失败")
+                    .font(XiuxianFont.realmResultTitle)
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.8)
+                
+                if result == .success {
+                    Text(gameManager.getCurrentRealm())
+                        .font(XiuxianFont.realmSubtitle)
+                        .foregroundColor(primaryColor)
+                } else {
+                    Text("道心受损 -\(gameManager.currentPenaltyPercentage)%")
+                        .font(XiuxianFont.body)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding(.top, 25)
+            
+            Spacer()
+            
+            BottomActionButton(
+                title: "完成",
+                primaryColor: primaryColor
+            ) {
+                isPresented = false
+                if result == .success {
+                    gameManager.checkFeiSheng()
+                }
+            }
+            .padding(.bottom, 15)
+        }
+    }
 }
