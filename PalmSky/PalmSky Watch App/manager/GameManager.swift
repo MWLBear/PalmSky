@@ -23,11 +23,14 @@ class GameManager: ObservableObject {
       player.level >= GameConstants.MAX_LEVEL
     }
   
-    private var timer: Timer?
-    private var eventCheckTimer: Timer?
+    private var mainLoopTimer: Timer?  // ⚡ 性能优化：合并原先的 3 个定时器
+    private var mainLoopTickCount: Int = 0
     private var lastEventCheck: Date = Date()
     private var cancellables = Set<AnyCancellable>()
     
+    // ⚡ 修复：跟踪 App 是否处于活跃状态，避免息屏时弹出事件
+    var isAppActive: Bool = true
+
     private let levelManager = GameLevelManager.shared
     
   // 记录上次同步给手机的时间
@@ -51,7 +54,7 @@ class GameManager: ObservableObject {
 //        }
       
         checkBreakCondition()
-        setupAutoSave()
+        // ⚡ 性能优化：setupAutoSave 已合并到 startMainLoop 中
       
         // ✨ 新增：请求通知权限
         NotificationManager.shared.requestPermission()
@@ -134,77 +137,92 @@ class GameManager: ObservableObject {
   
     // MARK: - Lifecycle
     func startGame() {
-        startAutoGain()
-        startEventCheck()
+        startMainLoop()
     }
     
     func pauseGame() {
-        timer?.invalidate()
-        eventCheckTimer?.invalidate()
+        mainLoopTimer?.invalidate()
         savePlayer()
     }
     
   
     // MARK: - Auto Gain
   
-  // MARK: - 核心收益计算 (新增方法)
+  // MARK: - 核心收益计算 (纯函数，不修改状态)
       
       /// 获取当前单次点击的真实收益 (包含 Buff 加成)
+      /// ⚡ 纯计算函数，不修改任何状态，可安全在 View 中调用
     func getCurrentTapGain() -> Double {
       var gain = levelManager.tapGain(level: player.level, reincarnation: player.reincarnationCount)
       
-      // 检查 Tap Buff (点击增益)
-      if let buff = player.tapBuff {
-        if Date() < buff.expireAt {
-          // 乘法加成
-          gain *= (1.0 + buff.bonusRatio)
-        } else {
-          player.tapBuff = nil
-        }
+      // 检查 Tap Buff (点击增益) - 只读取，不清理
+      if let buff = player.tapBuff, Date() < buff.expireAt {
+        gain *= (1.0 + buff.bonusRatio)
       }
       
       return gain
     }
     
-    // 🔴 新增：计算当前的每秒收益 (带 Debuff 检查)
+    /// 计算当前的每秒收益 (带 Buff/Debuff 检查)
+    /// ⚡ 纯计算函数，不修改任何状态，可安全在 View 中调用
     func getCurrentAutoGain() -> Double {
       var gain = levelManager.autoGain(level: player.level, reincarnation: player.reincarnationCount)
       
-      
-      // 1. 检查 Auto Buff (增益)
-      if let buff = player.autoBuff {
-        if Date() < buff.expireAt {
-          // 公式：基础值 * (1 + 增益比例)
-          // 例如 value=0.5, 则乘 1.5
-          gain *= (1.0 + buff.bonusRatio)
-        } else {
-          player.autoBuff = nil // 过期清理
-        }
+      // 检查 Auto Buff (增益) - 只读取
+      if let buff = player.autoBuff, Date() < buff.expireAt {
+        gain *= (1.0 + buff.bonusRatio)
       }
       
-      // 检查 Debuff
-      if let debuff = player.debuff {
-        if Date() < debuff.expireAt {
-          // Debuff 生效中，收益打折
-          gain *= debuff.multiplier
-        } else {
-          // Debuff 已过期，清理掉
-          // 注意：这里不会立即保存，会在下一次 tick 或退出时保存
-          player.debuff = nil
-        }
+      // 检查 Debuff - 只读取
+      if let debuff = player.debuff, Date() < debuff.expireAt {
+        gain *= debuff.multiplier
       }
       
       return gain
     }
     
-    // MARK: - Auto Gain
-    private func startAutoGain() {
-        timer?.invalidate()
+    /// 清理过期的 Buff/Debuff，在 tick() 中调用
+    private func cleanupExpiredBuffs() {
+      let now = Date()
+      if let buff = player.tapBuff, buff.expireAt <= now {
+        player.tapBuff = nil
+      }
+      if let buff = player.autoBuff, buff.expireAt <= now {
+        player.autoBuff = nil
+      }
+      if let debuff = player.debuff, debuff.expireAt <= now {
+        player.debuff = nil
+      }
+    }
+    
+    // MARK: - ⚡ 性能优化：统一主循环
+    // 合并原先的 3 个定时器：自动收益 + 事件检测 + 自动保存
+    // 现在：单个 1 秒定时器，内部通过计数器控制不同功能的执行频率
+    private func startMainLoop() {
+        mainLoopTimer?.invalidate()
+        mainLoopTickCount = 0
         
-        guard player.settings.autoGainEnabled else { return }
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.tick(deltaSeconds: 1.0)
+        // ⚡ 修复：主循环始终运行，不受 autoGainEnabled 开关影响
+        // autoGainEnabled 只控制自动收益，不影响事件检测和自动保存
+        mainLoopTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.mainLoopTickCount += 1
+            
+            // 1. 自动收益（每 1 秒）- 仅当开关开启时执行
+            if self.player.settings.autoGainEnabled {
+                self.tick(deltaSeconds: 1.0)
+            }
+            
+            // 2. 事件检测（每 10 秒 = 10 个 tick）
+            if self.mainLoopTickCount % 10 == 0 {
+                self.checkForEvent()
+            }
+            
+            // 3. 自动保存（每 60 秒 = 60 个 tick）
+            if self.mainLoopTickCount % 60 == 0 {
+                print("⚡ MainLoop AutoSave", Date(), self.player.currentQi)
+                self.savePlayer(forceSyncToPhone: false)
+            }
         }
     }
     
@@ -218,6 +236,9 @@ class GameManager: ObservableObject {
         let gain = getCurrentAutoGain() * deltaSeconds
         player.currentQi += gain
         checkBreakCondition()
+      
+        // ⚡ 在 tick 中统一清理过期的 Buff/Debuff
+        cleanupExpiredBuffs()
     }
     
     // MARK: - Tap Action
@@ -337,20 +358,15 @@ class GameManager: ObservableObject {
     }
     
     // MARK: - Event System
-    private func startEventCheck() {
-        eventCheckTimer?.invalidate()
-        
-        eventCheckTimer = Timer.scheduledTimer(
-            withTimeInterval: GameConstants.EVENT_CHECK_INTERVAL_SECONDS,
-            repeats: true
-        ) { [weak self] _ in
-            self?.checkForEvent()
-        }
-    }
+    // ⚡ 性能优化：startEventCheck 已被合并到 startMainLoop 中
+    // 保留 checkForEvent() 方法供 mainLoop 调用
     
     private func checkForEvent() {
        // ✅ 修正：如果已经在大结局，或者当前正在显示事件，都不要触发
         guard !showEventView, !showEndgame else { return }
+        
+        // ⚡ 修复：只有 App 处于活跃状态时才弹出事件，避免息屏时 sheet 交互失效
+        guard isAppActive else { return }
         
         // 也可以加一个双重保险：如果已经满级了，也不触发
         guard player.level < GameConstants.MAX_LEVEL else { return }
@@ -601,19 +617,14 @@ class GameManager: ObservableObject {
     
     func toggleAutoGain() {
         player.settings.autoGainEnabled.toggle()
-        if player.settings.autoGainEnabled {
-            startAutoGain()
-        } else {
-            timer?.invalidate()
-        }
+        // ⚡ 主循环内部会检查 autoGainEnabled，无需重启定时器
         savePlayer()
     }
     
     // MARK: - 删档重置 (Hard Reset)
     func resetGame() {
       // 1. 停止当前的所有计时器 (防止旧逻辑干扰)
-      timer?.invalidate()
-      eventCheckTimer?.invalidate()
+      mainLoopTimer?.invalidate()  // ⚡ 优化：使用统一主循环
       
       // 2. 重置玩家数据 (回到 0 世，Lv 1)
       // Player 的 init() 默认 reincarnationCount = 0
@@ -640,12 +651,8 @@ class GameManager: ObservableObject {
   
     
     // MARK: - Persistence
-    private func setupAutoSave() {
-        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-            print("setupAutoSave",Date(),self?.player.currentQi ?? 0)
-            self?.savePlayer(forceSyncToPhone: false)
-        }
-    }
+    // ⚡ 性能优化：setupAutoSave 已被合并到 startMainLoop 中
+    // 自动保存现在每 60 秒执行一次（原先 30 秒）
     
     func savePlayer(forceSyncToPhone: Bool = true) {
         if let encoded = try? JSONEncoder().encode(player) {
@@ -728,8 +735,8 @@ extension GameManager {
          // 只需要关闭大结局视图，回到主页
          // 因为等级已经是 MAX，MainView 会自动变为观想形态 (稍后适配)
          self.showEndgame = false
-         // 可以在这里做一些清理，比如停止自动增长计时器，省电
-         self.timer?.invalidate()
+         // ⚡ 优化：停止主循环省电
+         self.mainLoopTimer?.invalidate()
      }
      
      /// 方案 B: 转世重修 (删号重练)

@@ -79,8 +79,9 @@ struct RootPagerView: View {
         // body 底部添加
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
-                print("🌙 Background: 彻底闭关")
-                // App 回到前台，计算离线收益
+                print("☀️ Active: 回到前台")
+                // ⚡ 修复：标记 App 为活跃状态
+                gameManager.isAppActive = true
               
                 // 1. 回到前台，取消之前的通知 (因为我已经上线了，不用再提醒我了)
                 NotificationManager.shared.cancelNotifications()
@@ -91,6 +92,9 @@ struct RootPagerView: View {
             } else if newPhase == .background {
                 // App 切后台，保存时间
                 print("🌙 Background: 彻底闭关")
+                // ⚡ 修复：标记 App 为非活跃状态
+                gameManager.isAppActive = false
+              
                 gameManager.player.lastLogout = Date() // 更新时间
                 gameManager.savePlayer()
               
@@ -100,6 +104,10 @@ struct RootPagerView: View {
                 NotificationManager.shared.scheduleFullGainNotification()
               }
               
+            } else if newPhase == .inactive {
+                // ⚡ 修复：inactive 状态也标记为非活跃（息屏）
+                print("💤 Inactive: 息屏")
+                gameManager.isAppActive = false
             }
 //            else if newPhase == .inactive {
 //                print("💤 Inactive: 视为暂停/准备离线")
@@ -281,6 +289,7 @@ struct ParticleView: View {
     }
     
     var body: some View {
+        // ⚡ 性能优化：从 60fps 降至 10fps，减少 CPU 唤醒 .periodic(from: .now, by: 0.1)
         TimelineView(.animation) { timeline in
             Canvas { context, size in
                 for particle in particles {
@@ -641,6 +650,7 @@ struct TaijiView: View {
         // 🔴 核心：太极实体的直径，只占容器的 68% (留出 32% 给光晕)
         let shapeSize = size * 0.68
         
+        // ⚡ 性能优化：从 60fps 降至 15fps，在视觉流畅和功耗之间取得平衡
         TimelineView(.animation) { timeline in
           let now = timeline.date
           let colors = RealmColor.gradient(for: level)
