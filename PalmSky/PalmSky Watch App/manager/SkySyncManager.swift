@@ -308,6 +308,11 @@ extension SkySyncManager {
             GameCenterManager.shared.submitScore(player.click, to: SkyConstants.GameCenter.Leaderboard.playerClick.rawValue)
 
           }
+          
+          // MARK: - 3. 上报成就 (使用封装类)
+          // 🔥 核心修改：一行搞定
+          AchievementReporter.shared.checkAndReport(for: player)
+          
        
         }
       } catch {

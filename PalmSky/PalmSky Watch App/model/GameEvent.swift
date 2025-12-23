@@ -24,7 +24,7 @@ struct GameConstants {
   //  static let EVENT_PROBABILITY_PER_CHECK = 0.05   // 提高一点奇遇概率到 5%，增加乐趣
     
     // ✅ 新增：基础概率与成长系数
-    static let EVENT_PROB_BASE = 0.05       // 基础 5%
+    static let EVENT_PROB_BASE = 0.08       // 基础 5%
     static let EVENT_PROB_MAX = 0.10        // 上限 10% (太高会很烦)
   
     // Complication
@@ -74,12 +74,15 @@ struct Player: Codable {
   
    // ✨ 新增：轮回次数 (第1世是0，转世后变成1)
     var reincarnationCount: Int = 0
+   // ✨ 新增：累计失败次数 (用于成就)
+    var totalFailures: Int = 0
   
     init(id: String = "default_player") {
         self.id = id
         self.level = 1
         self.click = 0
         self.currentQi = 0.0
+        self.totalFailures = 0 // 初始化
         self.lastLogout = Date()
         self.settings = Settings()
         self.items = Items()

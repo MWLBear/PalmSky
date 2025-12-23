@@ -102,7 +102,7 @@ EVENT_TEMPLATES = [
     },
     {   # Index 2: 赌 Buff
         "type": "buff_gamble",
-        "desc_suffix": " 药力狂暴！",
+        "desc_suffix": " 成败一念。",
         "choice_a_logic": "gamble_buff_auto",
         "choice_b_logic": "gain_auto_safe" # 这里会匹配到 ACTION_B_SAFE
     },

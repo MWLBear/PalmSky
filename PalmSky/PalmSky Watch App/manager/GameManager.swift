@@ -269,6 +269,10 @@ class GameManager: ObservableObject {
             return true
         } else {
           
+          // ✨ 1. 记录累计失败次数 (无论是否有护身符，只要判定输了就算)
+          // 或者你可以决定：用了护身符不算失败成就？通常算比较好，因为你确实脸黑。
+          player.totalFailures += 1
+          
           RecordManager.shared.trackBreak(success: false, successRate: successRate, currentRealmName: getRealmShort())
           
           
@@ -737,13 +741,18 @@ extension GameManager {
          let oldSettings = player.settings
          let oldId = player.id
          let nextCount = player.reincarnationCount + 1
-
+         let savedClicks = player.click // 点击数也要保留！
+         let savedFailures = player.totalFailures // ✨ 失败数也要保留！
+       
        
          self.player = Player() // 重新初始化
          self.player.id = oldId
          self.player.settings = oldSettings // 继承设置
          // ✨ 继承轮回次数
          self.player.reincarnationCount = nextCount
+         self.player.click = savedClicks         // ✅ 继承点击
+         self.player.totalFailures = savedFailures // ✅ 继承失败
+       
        
          // 3. 状态重置
          self.showEndgame = false

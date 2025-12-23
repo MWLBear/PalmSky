@@ -116,14 +116,14 @@ class GameCenterManager: ObservableObject {
   
     // MARK: - 3. 解锁成就
     
-    func unlockAchievement(id achievementID: String, percentComplete: Double = 100.0) {
+    func unlockAchievement(id achievementID: String, percentComplete: Double = 100.0, showBanner: Bool = true) {
        
         // 在手机上，直接解锁
         guard GKLocalPlayer.local.isAuthenticated else { return }
 
         let achievement = GKAchievement(identifier: achievementID)
         achievement.percentComplete = percentComplete
-        achievement.showsCompletionBanner = true
+        achievement.showsCompletionBanner = showBanner
         
         Task {
             do {

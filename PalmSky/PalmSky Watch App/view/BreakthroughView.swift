@@ -238,6 +238,8 @@ struct BreakthroughVisualsView: View {
     // ✨ 新增：接收成功率用于显示
     let successRate: Double
     
+    let offsetY = -15.0
+
     var body: some View {
         ZStack {
             // A. 静态底轨
@@ -267,7 +269,7 @@ struct BreakthroughVisualsView: View {
                         .clipShape(Capsule())
                 }
                 .transition(.opacity)
-                .offset(y: -10) // 稍微往上提一点，避开圆心
+                .offset(y: offsetY) // 稍微往上提一点，避开圆心
             }
                       
           // C. 底部信息位 (共鸣率 / 状态提示)
