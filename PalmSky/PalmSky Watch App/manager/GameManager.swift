@@ -659,9 +659,13 @@ class GameManager: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: SkyConstants.UserDefaults.userDefaultsKey)
         }
       
-        // 2. ✨ 保存 Widget 快照 (App Group)
-        let progress = getCurrentProgress()
-        SharedDataManager.saveSnapshot(player: player, progress: progress)
+      // 2. ✨ 保存 Widget 快照 (更新调用)
+        // 获取当前等级的突破需求
+        let cost = levelManager.breakCost(level: player.level)
+        // 获取当前的基础自动产出 (含轮回加成)
+        let rawGain = levelManager.autoGain(level: player.level, reincarnation: player.reincarnationCount)
+        
+        SharedDataManager.saveSnapshot(player: player, breakCost: cost, rawAutoGain: rawGain)
       
         // 3. ✨ 发送数据到手机 (智能节流)
         let now = Date()

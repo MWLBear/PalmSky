@@ -28,10 +28,11 @@ struct EntranceProvider: TimelineProvider {
 }
 
 struct XiuxianEntranceView: View {
+  @Environment(\.widgetRenderingMode) var widgetRenderingMode
     var body: some View {
         ZStack {
           
-         // AccessoryWidgetBackground()
+         AccessoryWidgetBackground()
           
 //          Image("TaiChi2")
 //            .resizable()
@@ -40,7 +41,16 @@ struct XiuxianEntranceView: View {
 //            .widgetAccentable()
 //            .padding()
           
-          TaijiShapeView(skin: .default)
+          if widgetRenderingMode == .fullColor {
+            // A. 全彩模式 (比如图文表盘的中间)：显示你原来的精美立体太极
+            TaijiShapeView(skin: .default)
+              .padding(3)
+          } else {
+            // B. 着色模式 (比如你的截图)：显示镂空太极
+            TaijiStencilView()
+              .padding(3)
+              .widgetAccentable() // 🔥 关键：告诉系统，这个View可以被染成红色/绿色
+          }
             
         }
     }

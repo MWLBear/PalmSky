@@ -75,6 +75,6 @@ struct TaijiShapeView: View {
             }
         }
         // 整体外发光
-       // .shadow(color: skin.glowColor.opacity(0.1), radius: 15)
+        .shadow(color: skin.glowColor.opacity(0.1), radius: 15)
     }
 }

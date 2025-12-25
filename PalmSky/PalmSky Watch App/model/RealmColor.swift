@@ -75,3 +75,29 @@ struct RealmColor {
         }
     }
 }
+
+extension RealmColor {
+    
+    // 生成“本命灵力对抗天劫”的专属渐变
+    static func tribulationGradient(for level: Int) -> Gradient {
+        // 取境界的主色调 (建议取 last，通常更亮、更鲜艳)
+        let baseColor = primaryLastColor(for: level)
+        
+        // 天劫专属色：雷金
+        let thunderGold = Color(hex: "FFD700") // 纯金更亮一点
+        
+        return Gradient(stops: [
+            // 0% - 30%: 还是自己的本命灵力 (保留自我)
+            .init(color: baseColor, location: 0.0),
+            
+            // 30% - 60%: 天雷降临 (金光炸裂)
+            .init(color: thunderGold, location: 0.35),
+            
+            // 60% - 85%: 劫火焚烧 (橙色预警)
+            .init(color: .orange, location: 0.65),
+            
+            // 85% - 100%: 生死一线 (血红)
+            .init(color: .red, location: 1.0)
+        ])
+    }
+}

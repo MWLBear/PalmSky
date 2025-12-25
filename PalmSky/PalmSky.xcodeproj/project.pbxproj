@@ -113,6 +113,7 @@
 				model/TaijiSkin.swift,
 				model/XiuxianFont.swift,
 				view/TaijiShapeView.swift,
+				view/TaijiStencilView.swift,
 			);
 			target = 04DAB5A22EF4313300AF7427 /* SkyExtension */;
 		};
@@ -123,12 +124,20 @@
 			);
 			target = 04A830DC2EEC094A00DDEDDC /* PalmSky Watch App */;
 		};
+		04F1F0372EFAD43400B2D73C /* Exceptions for "PalmSky" folder in "PalmSky" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 04A830CC2EEC094900DDEDDC /* PalmSky */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		04A830CF2EEC094900DDEDDC /* PalmSky */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				04F1F0372EFAD43400B2D73C /* Exceptions for "PalmSky" folder in "PalmSky" target */,
 				041B3AF42EF5037900102458 /* Exceptions for "PalmSky" folder in "PalmSky Watch App" target */,
 			);
 			path = PalmSky;
@@ -533,6 +542,7 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PalmSky-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
@@ -541,7 +551,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -570,6 +580,7 @@
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PalmSky-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
@@ -578,7 +589,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -608,6 +619,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PalmSky/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -621,7 +633,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -650,6 +662,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PalmSky/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -663,7 +676,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -699,7 +712,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -734,7 +747,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
