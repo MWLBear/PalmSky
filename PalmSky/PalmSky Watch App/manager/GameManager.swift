@@ -615,6 +615,11 @@ class GameManager: ObservableObject {
         savePlayer()
     }
     
+    func toggleSound() {
+        player.settings.soundEnabled.toggle()
+        savePlayer()
+    }
+  
     func toggleAutoGain() {
         player.settings.autoGainEnabled.toggle()
         // ⚡ 主循环内部会检查 autoGainEnabled，无需重启定时器
@@ -699,27 +704,91 @@ class GameManager: ObservableObject {
 }
 
 extension GameManager {
-  // MARK: - Break Mini Result (for CrownBalanceView)
-  func applyBreakResult(success: Bool) {
-      let cost = levelManager.breakCost(level: player.level)
-
-      if success {
-          // 成功突破
-          player.level += 1
-          player.currentQi = max(0, player.currentQi - cost)
-
-           HapticManager.shared.playIfEnabled(.success)
-      } else {
-          // 失败惩罚
-          player.currentQi *= 0.9
-          HapticManager.shared.playIfEnabled(.failure)
+  // MARK: - 小游戏结算逻辑 (与概率突破逻辑保持一致)
+      func finalizeMiniGame(isWin: Bool) -> Bool {
+          let cost = levelManager.breakCost(level: player.level)
+          // 为了统计数据，我们需要获取当前的理论成功率
+          let successRate = levelManager.breakSuccess(level: player.level)
+          
+          if isWin {
+              // 🎉 --- 渡劫成功 ---
+              
+              // 1. 埋点 (成功)
+              RecordManager.shared.trackBreak(success: true, successRate: successRate, currentRealmName: getRealmShort())
+              
+              // 2. 检查飞升 (如果是满级前的最后一次渡劫)
+              if player.level >= GameConstants.MAX_LEVEL {
+                  RecordManager.shared.trackAscension()
+                  // 延迟触发大结局 UI
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                      self.showEndgame = true
+                  }
+              }
+              
+              // 3. 执行升级
+              player.level += 1
+              player.currentQi = max(0, player.currentQi - cost)
+              
+              // 4. 清除负面状态
+              player.debuff = nil
+              showBreakButton = false
+              
+              HapticManager.shared.playIfEnabled(.success)
+              savePlayer()
+              return true
+              
+          } else {
+              // 💔 --- 渡劫失败 ---
+              
+              // 1. 埋点 (失败)
+              RecordManager.shared.trackBreak(success: false, successRate: successRate, currentRealmName: getRealmShort())
+              
+              // 2. ✨ 检查护身符 (保持逻辑一致性：手残也能用道具救)
+              if player.items.protectCharm > 0 {
+                  player.items.protectCharm -= 1
+                  
+                  DispatchQueue.main.async {
+                      self.offlineToastMessage = "渡劫失败，护身符抵消惩罚"
+                  }
+                  
+                  // 仅震动，不扣灵气
+                  HapticManager.shared.playIfEnabled(.failure)
+                  checkBreakCondition()
+                  savePlayer()
+                  return false
+                  
+              } else {
+                  // 3. 💀 执行惩罚 (复用 breakFailPenalty 公式)
+                  
+                  // 获取当前等级对应的惩罚比例 (例如 10% - 30%)
+                  let penaltyRate = levelManager.breakFailPenalty(level: player.level)
+                  let lostQi = player.currentQi * penaltyRate
+                  
+                  // 扣除灵气
+                  player.currentQi -= lostQi
+                  
+                  // 4. 高境界 Debuff (道心不稳)
+                  if player.level >= 90 {
+                      let expireDate = Date().addingTimeInterval(3600)
+                      player.debuff = DebuffStatus(type: .unstableDao, multiplier: 0.7, expireAt: expireDate)
+                      
+                      DispatchQueue.main.async {
+                          self.offlineToastMessage = "渡劫失败 道心受损 (灵气 -\(lostQi.xiuxianString))"
+                      }
+                  } else {
+                      // 普通提示
+                      DispatchQueue.main.async {
+                          self.offlineToastMessage = "渡劫失败 元气大伤 (灵气 -\(lostQi.xiuxianString))"
+                      }
+                  }
+                  
+                  HapticManager.shared.playIfEnabled(.failure)
+                  checkBreakCondition()
+                  savePlayer()
+                  return false
+              }
+          }
       }
-
-      checkBreakCondition()
-      savePlayer()
-  }
-
-  
 }
 
 extension GameManager {

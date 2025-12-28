@@ -110,6 +110,7 @@ struct BuffStatus: Codable {
 struct Settings: Codable {
     var hapticEnabled: Bool = true
     var autoGainEnabled: Bool = true
+    var soundEnabled: Bool = true
 }
 
 //护身符（你已有）

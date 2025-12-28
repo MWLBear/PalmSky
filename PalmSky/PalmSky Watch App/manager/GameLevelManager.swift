@@ -8,6 +8,16 @@
 import Foundation
 // MARK: - Game Level Manager
 class GameLevelManager {
+  
+    // 1. 定义游戏类型
+    enum TribulationGameType {
+        case none           // 普通小层级 (播动画)
+        case mindDemon      // 炼气篇：破心魔 (见缝插针)
+        case swordDefense   // 金丹篇：御剑挡劫 (守圈)
+        case inscription    // 合体篇：刻阵法 (记忆)
+        case skyRush        // 飞升篇：冲九霄 (跑酷)
+    }
+  
     static let shared = GameLevelManager()
     private init() {}
     
@@ -209,4 +219,47 @@ extension GameLevelManager {
           return realmDescription(for: currentLevel, reincarnation: reincarnation)
       }
   
+}
+
+extension GameLevelManager {
+    
+    // 2. 核心映射逻辑
+    func getTribulationGameType(for level: Int) -> TribulationGameType {
+        // 规则：只有在 "第9层" 突破到下一大境界时，才触发游戏
+        // level 9 -> 10, 18 -> 19 ...
+        // 注意：这里假设 level 是当前等级。如果当前是9级，点突破就是要去10级。
+        let isMajorBreakthrough = (level % 9 == 0)
+        
+        if !isMajorBreakthrough {
+            return .none // 平时只播动画，走概率
+        }
+    
+        return .mindDemon
+      
+      // 渡劫小游戏,先添加一个,以后备用
+      
+        // 获取当前大境界索引 (0-15)
+//        let stageIdx = stage(for: level)
+//        
+//        switch stageIdx {
+//        case 0...3:  // 筑基 - 辟谷
+//            return .mindDemon
+//        case 4...7:  // 金丹 - 分神
+//            return .swordDefense
+//        case 8...11: // 合体 - 地仙
+//            return .inscription
+//        case 12...15: // 天仙 - 九天
+//            return .skyRush
+//        default:
+//            return .mindDemon
+//        }
+    }
+    
+    // 3. 获取游戏难度 (0.5 - 1.5)
+    // 境界越高，游戏速度越快，容错越低
+    func getGameDifficulty(for level: Int) -> Double {
+        let base = 0.8
+        let progress = Double(level) / Double(GameConstants.MAX_LEVEL)
+        return base + (progress * 0.7) // 动态调整
+    }
 }

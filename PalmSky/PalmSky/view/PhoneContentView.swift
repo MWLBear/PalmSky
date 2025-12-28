@@ -196,3 +196,9 @@ struct PhoneContentView_Previews: PreviewProvider {
         PhoneContentView()
     }
 }
+
+extension String {
+    var cn: LocalizedStringKey {
+        LocalizedStringKey(self)
+    }
+}

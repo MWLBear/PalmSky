@@ -533,6 +533,7 @@ struct BottomControlView: View {
                 BottomActionButton(title:"立即突破" ,
                                    primaryColor: primaryColor) {
                   showBreakthrough = true
+                  HapticManager.shared.playIfEnabled(.click)
                 }
                 .padding(.bottom, 8)
                 .transition(.opacity) // 切换时的淡入淡出

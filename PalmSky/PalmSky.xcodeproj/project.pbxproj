@@ -318,11 +318,9 @@
 				};
 			};
 			buildConfigurationList = 04A830C82EEC094900DDEDDC /* Build configuration list for PBXProject "PalmSky" */;
-			developmentRegion = en;
+			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
-				Base,
 				"zh-Hans",
 			);
 			mainGroup = 04A830C42EEC094900DDEDDC;

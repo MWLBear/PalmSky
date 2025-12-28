@@ -35,6 +35,10 @@ struct BreakthroughView: View {
     @State private var result: BreakthroughResult?
     @State private var showResultView = false
   
+    // ✨✨✨ 新增：小游戏状态 ✨✨✨
+    @State private var showMiniGame = false
+    @State private var miniGameType: GameLevelManager.TribulationGameType = .none
+  
    let offsetY = 15.0
 
     enum BreakthroughResult {
@@ -96,10 +100,23 @@ struct BreakthroughView: View {
                       // 🚀 核心修改：这里控制距离底部的距离
                       .padding(.bottom, offsetY)
                     }
-                    
                     // 确保 Layer B 能利用到底部安全区空间
                     .ignoresSafeArea(edges: .bottom)
                     
+                    // ✨✨✨ C. 小游戏层 (覆盖在最上面) ✨✨✨
+                    if showMiniGame {
+                      MiniGameContainer(
+                        type: miniGameType,
+                        level: gameManager.player.level,
+                        isPresented: $isPresented
+                      ) { isWin in
+                        // 游戏结束回调
+                        handleMiniGameFinish(isWin: isWin)
+                      }
+                      .transition(.opacity.animation(.easeInOut))
+                      .zIndex(100) // 确保在最顶层
+                    }
+              
   
                   }
                     
@@ -128,55 +145,117 @@ struct BreakthroughView: View {
     
     // MARK: - ✨ 粒子与动画逻辑
     private func startBreakthrough() {
-        withAnimation { isAttempting = true }
-        
-        // 1. 开始生成聚气粒子
-        // 逻辑在 updateParticles() 里，这里只需要打开开关
-        
-        withAnimation(.linear(duration: 2.0)) {
-          buttonProgress = 1.0
-        }
       
-        // 2. 核心凝练动画 (2秒)
-        // 从 1.0 压缩到 0.2 (密度极大)，亮度飙升
-        withAnimation(.easeIn(duration: 2.0)) {
-            coreScale = 0.2
-            coreBrightness = 1.0
-        }
-        // 核心旋转加速
-        withAnimation(.linear(duration: 2.0)) {
-            coreRotation = 720
+       HapticManager.shared.playIfEnabled(.click)
+
+      // 判断当前等级是否需要玩游戏
+        let type = GameLevelManager.shared.getTribulationGameType(for: gameManager.player.level)
+        
+        if type == .none {
+          // A. 普通层级：走原来的纯概率动画
+          runNormalAnimation()
+        } else {
+          // B. 大境界突破：启动小游戏
+          startMiniGame(type: type)
         }
         
-        // 震动反馈 (越来越快)
-        for i in 0..<10 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.2) {
-               HapticManager.shared.playIfEnabled(.click)
+    }
+    
+  // 2. 启动小游戏
+    private func startMiniGame(type: GameLevelManager.TribulationGameType) {
+        withAnimation { isAttempting = true }
+        // 稍微延迟一点弹出游戏，给一点 UI 响应时间
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.miniGameType = type
+            withAnimation(.spring()) {
+                self.showMiniGame = true
             }
+        }
+    }
+  
+    // 3. 小游戏结束回调
+    private func handleMiniGameFinish(isWin: Bool) {
+      // 关闭游戏界面
+      withAnimation { showMiniGame = false }
+      
+      // 调用 GameManager 进行结算 (软惩罚/奖励逻辑)
+      let success = gameManager.finalizeMiniGame(isWin: isWin)
+      
+      // 播放结算动画 (闪光 + 结果页)
+      playResultAnimation(success: success)
+      
+    }
+    
+    // 4. 原来的动画流程 (抽离出来)
+     private func runNormalAnimation() {
+       
+         withAnimation { isAttempting = true }
+         
+         // 1. 开始生成聚气粒子
+         // 逻辑在 updateParticles() 里，这里只需要打开开关
+         
+         withAnimation(.linear(duration: 2.0)) {
+           buttonProgress = 1.0
+         }
+       
+         // 2. 核心凝练动画 (2秒)
+         // 从 1.0 压缩到 0.2 (密度极大)，亮度飙升
+         withAnimation(.easeIn(duration: 2.0)) {
+             coreScale = 0.2
+             coreBrightness = 1.0
+         }
+         // 核心旋转加速
+         withAnimation(.linear(duration: 2.0)) {
+             coreRotation = 720
+         }
+         
+         // 震动反馈 (越来越快)
+         for i in 0..<10 {
+             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.2) {
+                HapticManager.shared.playIfEnabled(.click)
+             }
+         }
+         
+         // 3. 爆发时刻 (2.0s)
+         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+             // 清空粒子
+             particles.removeAll()
+             
+             // 冲击波扩散
+             shockwaveOpacity = 1.0
+             withAnimation(.easeOut(duration: 0.3)) {
+                 shockwaveScale = 20.0 // 扩得非常大，冲出屏幕
+                 shockwaveOpacity = 0.0
+             }
+             
+             let success = gameManager.attemptBreak()
+             //🔥 调用通用结算动画
+             playResultAnimation(success: success)
+           
+         }
+     }
+  
+  
+   // 5. 统一的结果展示动画
+    private func playResultAnimation(success: Bool) {
+      // 1. 白光一闪
+        withAnimation(.easeOut(duration: 0.1)) { flashOpacity = 1.0 }
+        
+        // 2. 震动反馈
+        HapticManager.shared.playIfEnabled(success ? .success : .failure)
+        
+        // 3. 设置结果数据
+        result = success ? .success : .failure
+        
+        // 4. 切换到结果视图
+        withAnimation {
+          showResultView = true
+          // 如果不需要看动画倒放，可以在这里重置 isAttempting
+          // isAttempting = false
         }
         
-        // 3. 爆发时刻 (2.0s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            // 清空粒子
-            particles.removeAll()
-            
-            // 冲击波扩散
-            shockwaveOpacity = 1.0
-            withAnimation(.easeOut(duration: 0.3)) {
-                shockwaveScale = 20.0 // 扩得非常大，冲出屏幕
-                shockwaveOpacity = 0.0
-            }
-            
-            // 白光一闪
-            withAnimation(.easeOut(duration: 0.05)) { flashOpacity = 1.0 }
-            
-            // 结算
-            let success = gameManager.attemptBreak()
-            result = success ? .success : .failure
-            HapticManager.shared.playIfEnabled(success ? .success : .failure)
-            withAnimation { showResultView = true }
-            withAnimation(.easeOut(duration: 1.0).delay(0.1)) { flashOpacity = 0.0 }
-        }
+        // 5. 白光消退
+        withAnimation(.easeOut(duration: 1.0).delay(0.1)) { flashOpacity = 0.0 }
     }
     
     // 每帧刷新粒子

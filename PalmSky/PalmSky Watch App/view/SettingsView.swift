@@ -89,6 +89,20 @@ struct SettingsView: View {
                 
                 // MARK: - Section 3: 仙府设置
                 Section {
+                  
+                  Toggle(isOn: Binding(
+                      get: { gameManager.player.settings.soundEnabled },
+                      set: { _ in gameManager.toggleSound() }
+                  )) {
+                      Label {
+                          Text("声音")
+                      } icon: {
+                          Image(systemName: "speaker.wave.2.fill")
+                              .foregroundColor(themeColor)
+                      }
+                  }
+                  .tint(themeColor)
+                  
                     Toggle(isOn: Binding(
                         get: { gameManager.player.settings.hapticEnabled },
                         set: { _ in gameManager.toggleHaptic() }
