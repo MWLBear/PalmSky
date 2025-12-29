@@ -14,10 +14,13 @@ class HapticManager {
     private init() {}
 
     
+    // ✨ 内部维护开关状态 (默认开启，由 GameManager 同步)
+    var isEnabled: Bool = true
+
     func playIfEnabled(_ type: WKHapticType) {
-      if GameManager.shared.player.settings.hapticEnabled {
-        play(type)
-      }
+        if isEnabled {
+            play(type)
+        }
     }
 
     func play(_ type: WKHapticType) {

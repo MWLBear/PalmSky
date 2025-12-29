@@ -22,6 +22,14 @@ class GameManager: ObservableObject {
     var isAscended: Bool {
       player.level >= GameConstants.MAX_LEVEL
     }
+    
+    // ✨ 步数炼化事件 (用于触发主页动画)
+    struct RefineEvent: Equatable {
+        let id = UUID()
+        let amount: Double
+    }
+    @Published var refineEvent: RefineEvent?
+
   
     private var mainLoopTimer: Timer?  // ⚡ 性能优化：合并原先的 3 个定时器
     private var mainLoopTickCount: Int = 0
@@ -58,6 +66,9 @@ class GameManager: ObservableObject {
       
         // ✨ 新增：请求通知权限
         NotificationManager.shared.requestPermission()
+        
+        // ✨ 同步震动设置到 HapticManager
+        HapticManager.shared.isEnabled = self.player.settings.hapticEnabled
     }
     
   // 在 init() 或者应用启动时调用
@@ -613,6 +624,13 @@ class GameManager: ObservableObject {
     func toggleHaptic() {
         player.settings.hapticEnabled.toggle()
         savePlayer()
+        
+        // ✨ 同步状态
+        HapticManager.shared.isEnabled = player.settings.hapticEnabled
+        
+        if player.settings.hapticEnabled {
+             HapticManager.shared.play(.click)
+        }
     }
     
     func toggleSound() {
@@ -700,6 +718,12 @@ class GameManager: ObservableObject {
     func getLayerName() -> String {
         return levelManager.layerName(for: player.level)
     }
+    
+    // ✨ 触发炼化动画
+    func triggerRefineAnimation(amount: Double) {
+        self.refineEvent = RefineEvent(amount: amount)
+    }
+
   
 }
 

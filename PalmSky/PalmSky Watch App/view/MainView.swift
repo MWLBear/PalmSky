@@ -85,6 +85,9 @@ struct RootPagerView: View {
               
                 // 1. 回到前台，取消之前的通知 (因为我已经上线了，不用再提醒我了)
                 NotificationManager.shared.cancelNotifications()
+                
+                // 2. 刷新步数
+                WatchHealthManager.shared.fetchTodaySteps()
               
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     gameManager.calculateOfflineGain()
@@ -187,22 +190,22 @@ struct MainView: View {
                 .offset(y: visualIsAscended ? 0 : offsetY)
            
                 // 3. 物理太极 (居中)
-                TaijiView(level: gameManager.player.level, onTap: {
-                  if !gameManager.isAscended {
-                      gameManager.onTap()
-                    } else {
-                      // 满级仅播放震动和动画
-                      HapticManager.shared.playIfEnabled(.click)
-
-                    }
-                    // 点击时的缩放反馈
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                        pulse = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        pulse = false
-                    }
-                })
+                TaijiView(
+                    level: gameManager.player.level,
+                    triggerImpulse: gameManager.refineEvent?.id, // 绑定事件ID
+                    onTap: {
+                      if !gameManager.isAscended {
+                          gameManager.onTap()
+                        } else {
+                          HapticManager.shared.playIfEnabled(.click)
+                        }
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                            pulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            pulse = false
+                        }
+                    })
                 .frame(width: taijiSize, height: taijiSize)
                 .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
                 .offset(y: visualIsAscended ? 0 : offsetY)
@@ -244,8 +247,16 @@ struct MainView: View {
         .toast(message: $gameManager.offlineToastMessage)
 
         .onAppear { gameManager.startGame() }
-      
-   
+        // 监听炼化事件
+        .onChange(of: gameManager.refineEvent) { _, newEvent in
+            if let event = newEvent {
+                // 触发通用 Toast
+                gameManager.offlineToastMessage = "步步生莲 +\(event.amount.xiuxianString)"
+                
+                // 震动
+                HapticManager.shared.playIfEnabled(.success)
+            }
+        }
       
         .onChange(of: showBreakthrough) {oldShowing, isShowing in
           
@@ -471,10 +482,11 @@ struct BuffStatusBar: View {
                   Text(isPositive ? "+\(percent)%" : "-\(percent)%")
                 }
                 .font(XiuxianFont.buffTag)
-
+                // ✨ 修复高度不一致
+                .frame(height: 15)
                 .foregroundColor(.white)
                 .padding(.horizontal, 6)
-                .padding(.vertical, 2)
+                // .padding(.vertical, 2) // 移除垂直 padding，靠 frame 撑开
                 .background(
                   isPositive
                   ? Color.orange
@@ -491,9 +503,10 @@ struct BuffStatusBar: View {
                     Text("+\(Int(buff.bonusRatio * 100))%")
                 }
                 .font(XiuxianFont.buffTag)
+                // ✨ 修复高度不一致
+                .frame(height: 15)
                 .foregroundColor(.black)
                 .padding(.horizontal, 6)
-                .padding(.vertical, 2)
                 .background(Color.green.opacity(0.8))
                 .clipShape(Capsule())
                 .transition(.scale)
@@ -506,9 +519,10 @@ struct BuffStatusBar: View {
                     Text("道心不稳")
                 }
                 .font(XiuxianFont.buffTag)
+                // ✨ 修复高度不一致
+                .frame(height: 15)
                 .foregroundColor(.white)
                 .padding(.horizontal, 6)
-                .padding(.vertical, 2)
                 .background(Color.red.opacity(0.8))
                 .clipShape(Capsule())
                 .transition(.scale)
@@ -612,6 +626,8 @@ struct QiRippleEffect: View {
 
 struct TaijiView: View {
     let level: Int
+    // ✨ 外部物理冲量触发器 (UUID变化时触发)
+    var triggerImpulse: UUID?
     let onTap: () -> Void
     
   // 监听皮肤变化
@@ -717,6 +733,19 @@ struct TaijiView: View {
           .contentShape(Circle())
           .onTapGesture { handleTap() }
           .onChange(of: now) {oldDate, newDate in updatePhysics(currentTime: newDate) }
+          // ✨ 响应外部冲量 (炼化步数时)
+          .onChange(of: triggerImpulse) { _, _ in
+              // 猛烈旋转 + 爆发波纹
+              extraVelocity += 800
+              scale = 1.25 // 很大幅度的缩放
+              // 连发3道波纹
+              for i in 0..<3 {
+                  var wave = QiWave()
+                  wave.scale = 0.2 + CGFloat(i) * 0.1
+                  wave.rotationSpeed = 300
+                  waves.append(wave)
+              }
+          }
         }
       }
     }

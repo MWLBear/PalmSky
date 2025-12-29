@@ -16,6 +16,21 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+              
+                // MARK: - ✨ 机缘 (步数炼化)
+                Section(header: Text("炼体").foregroundColor(themeColor)) {
+                  // ✅ 直接调用封装好的组件
+                  StepRefineRow(themeColor: themeColor) { gain in
+                      // 1. 触发主页动画信号
+                      gameManager.triggerRefineAnimation(amount: gain)
+                      
+                      // 2. 切回主页 (延迟一点点，让视觉连贯)
+                      withAnimation {
+                          currentTab = 0
+                      }
+                  }
+                }
+              
                 // MARK: - Section 1: 道途信息
                 Section {
                     HStack {
