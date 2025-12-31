@@ -10,6 +10,7 @@ import SwiftUI
 struct TaijiSkin: Identifiable, Equatable {
     let id: String
     let name: String
+    let productID: String? // 关联的内购商品ID (nil代表免费)
     
     // --- 阳面配置 (通常是白的那面) ---
     let yangColors: [Color] // 渐变色数组
@@ -40,6 +41,7 @@ struct TaijiSkin: Identifiable, Equatable {
     static let `default` = TaijiSkin(
       id: "classic",
       name: "道法自然",
+      productID: nil,
       
       // 阳面：纯白 -> 极浅的灰 (模拟光照从左上角射入)
       yangColors: [Color(hex: "FFFFFF"), Color(hex: "E0E0E0")],
@@ -59,6 +61,7 @@ struct TaijiSkin: Identifiable, Equatable {
     static let fire = TaijiSkin(
         id: "fire",
         name: "烈火鉴",
+        productID: "com.palmsky.skin.fire", // 必须和 PurchaseManager 中的定义一致
         yangColors: [Color(hex: "FFD700"), Color(hex: "FFA500")], // 金 -> 橙
         yangEyeColor: Color(hex: "8B0000"),
         yinColors: [Color(hex: "8B0000"), Color(hex: "FF4500")],  // 深红 -> 亮红

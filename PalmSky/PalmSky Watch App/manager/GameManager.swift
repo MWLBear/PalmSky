@@ -17,6 +17,9 @@ class GameManager: ObservableObject {
 
    // 新增：控制是否显示大结局视图
     @Published var showEndgame: Bool = false
+    
+    // 🚨 新增：控制付费墙显示
+    @Published var showPaywall: Bool = false
   
    // 新增计算属性
     var isAscended: Bool {
@@ -101,7 +104,12 @@ class GameManager: ObservableObject {
           print("calculateOfflineGain - rawTimeDiff",rawTimeDiff)
           // 2. ⚠️ 修正点：增加 12小时 (43200秒) 上限
           // 鼓励玩家每天早晚各看一次，增加粘性
-          let maxOfflineSeconds: TimeInterval = 12 * 60 * 60
+          //let maxOfflineSeconds: TimeInterval = 12 * 60 * 60
+        
+        // 🔥 核心修改：动态获取上限
+          let isPro = PurchaseManager.shared.hasAccess
+          let maxOfflineSeconds = isPro ? SkyConstants.PRO_OFFLINE_LIMIT : SkyConstants.FREE_OFFLINE_LIMIT
+        
           let effectiveTime = min(rawTimeDiff, maxOfflineSeconds)
           
           // 3. 计算收益
@@ -123,8 +131,18 @@ class GameManager: ObservableObject {
               
               let timeStr = effectiveTime.formatTime()
 
-              DispatchQueue.main.async {
-                self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
+//              DispatchQueue.main.async {
+//                self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
+//              }
+            
+              if !isPro && rawTimeDiff > maxOfflineSeconds {
+                DispatchQueue.main.async {
+                  self.offlineToastMessage = "闭关\(timeStr)(上限)，灵气 +\(offlineTotal.xiuxianString)\n解锁契约可延至12小时"
+                }
+              } else {
+                DispatchQueue.main.async {
+                  self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
+                }
               }
             
               // 触发 UI 提示 (如果你做了弹窗的话)
@@ -269,6 +287,19 @@ class GameManager: ObservableObject {
     }
     
     // MARK: - Breakthrough
+    
+    /// 请求开始突破
+    /// - Parameter onStart: 如果允许突破（无付费墙拦截），则执行此闭包
+    func requestBreakthrough(onStart: () -> Void) {
+        if player.level >= SkyConstants.FREE_MAX_LEVEL && !PurchaseManager.shared.hasAccess {
+            // 拦截：显示付费墙
+            self.showPaywall = true
+        } else {
+            // 放行：执行UI跳转
+            onStart()
+        }
+    }
+
     private func checkBreakCondition() {
         let cost = levelManager.breakCost(level: player.level)
         showBreakButton = player.currentQi >= cost && player.level < GameConstants.MAX_LEVEL
@@ -688,7 +719,12 @@ class GameManager: ObservableObject {
         // 获取当前的基础自动产出 (含轮回加成)
         let rawGain = levelManager.autoGain(level: player.level, reincarnation: player.reincarnationCount)
         
-        SharedDataManager.saveSnapshot(player: player, breakCost: cost, rawAutoGain: rawGain)
+        SharedDataManager.saveSnapshot(
+            player: player,
+            breakCost: cost,
+            rawAutoGain: rawGain,
+            isUnlocked: PurchaseManager.shared.hasAccess // 🔥 传入解锁状态
+        )
       
         // 3. ✨ 发送数据到手机 (智能节流)
         let now = Date()

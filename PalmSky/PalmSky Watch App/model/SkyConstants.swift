@@ -9,6 +9,25 @@ import Foundation
 
 struct SkyConstants {
   
+
+  // 商业模式变更的主要版本号
+  // 付费版本: 1.0-1.0.2 (major = 1)
+  // 免费版本: 2.0+ (major = 2)
+  // 所有 major < 2 的用户都是付费老用户
+  static let newBusinessModelMajorVersion = 2
+  
+ 
+  // ✅ 建议：改为 Lv 10 (炼气圆满，准备筑基时)
+  // 或者 Lv 19 (体验了一段筑基后)
+  
+  static let FREE_MAX_LEVEL = 10 //36
+  
+  static let FREE_OFFLINE_LIMIT: TimeInterval = 2 * 60 * 60 // 离线锁：2小时
+  static let PRO_OFFLINE_LIMIT: TimeInterval = 12 * 60 * 60 // 付费锁：12小时
+    
+  static let FREE_STEPS_LIMIT = 5_000    // 步数锁：5千步
+  static let PRO_STEPS_LIMIT = 40_000    // 付费锁：4万步
+  
   /// 用于管理 UserDefaults 的键
   struct UserDefaults {
     
@@ -19,6 +38,14 @@ struct SkyConstants {
     
     static let appGroupID = "group.com.palmsky"
     static let snapshotKey = "complication_snapshot_v1"
+    
+    // MARK: - Purchase & Skin
+    /// 完整版权限缓存
+    static let hasAccessCache = "com.palmsky.hasAccessCache"
+    /// 老用户状态缓存
+    static let isLegacyUserCache = "com.palmsky.isLegacyUserCache"
+    /// 当前使用的皮肤ID
+    static let currentSkinID = "current_skin_id"
     
   }
   

@@ -20,9 +20,16 @@ struct ComplicationSnapshot: Codable, Equatable {
     let rawGainPerSecond: Double // 基础每秒产出 (不含0.8折扣)
     let saveTime: Date          // 存盘时间
     
+    // 🔥 新增：是否已解锁 (付费状态)
+    // 如果为 false，表盘将显示锁，不显示进度
+    let isUnlocked: Bool
+    
     // 🔥 核心：复刻 App 的离线计算逻辑
     func getPredictedProgress(at date: Date) -> Double {
-        // 1. 计算时间差
+        // 1. 如果未解锁，进度锁定为 0 (或者 View 层直接不显示进度)
+        if !isUnlocked { return 0.0 }
+        
+        // 2. 计算时间差
         let timeDiff = date.timeIntervalSince(saveTime)
         
         // 如果时间是负的（系统误差），直接返回当前进度
@@ -49,45 +56,59 @@ struct ComplicationSnapshot: Codable, Equatable {
     // 默认空数据
     static let empty = ComplicationSnapshot(
         realmName: "筑基", level: 1,
-        currentQi: 30, targetQi: 100, rawGainPerSecond: 1, saveTime: Date()
+        currentQi: 30, targetQi: 100, rawGainPerSecond: 0, saveTime: Date(),
+        isUnlocked: false // 🔒 默认锁定，防止解码失败时泄露权限
     )
-
 }
-
 
 struct SharedDataManager {
     // ⚠️ 替换为你自己的 App Group ID
-
     // 获取共享 UserDefaults
     static var sharedDefaults: UserDefaults? {
       UserDefaults(suiteName: SkyConstants.UserDefaults.appGroupID)
     }
     
     // 1. 保存快照 (App 调用)
-    static func saveSnapshot(player: Player, breakCost: Double, rawAutoGain: Double) {
+    static func saveSnapshot(player: Player, breakCost: Double, rawAutoGain: Double, isUnlocked: Bool) {
+        
+      guard let defaults = sharedDefaults else {
+          return
+      }
+
       let snap = ComplicationSnapshot(
         realmName: GameLevelManager.shared.stageName(for: player.level, reincarnation: player.reincarnationCount),
         level: player.level,
         currentQi: player.currentQi,
         targetQi: breakCost,
         rawGainPerSecond: rawAutoGain, // 传入基础速度
-        saveTime: Date()
+        saveTime: Date(),
+        isUnlocked: isUnlocked
       )
       
       if let data = try? JSONEncoder().encode(snap) {
-        sharedDefaults?.set(data, forKey: SkyConstants.UserDefaults.snapshotKey)
+        defaults.set(data, forKey: SkyConstants.UserDefaults.snapshotKey)
+        // 强制同步，确保立即写入
+        defaults.synchronize()
         reloadComplications()
       }
     }
     
     // 2. 读取快照 (Widget 调用)
     static func loadSnapshot() -> ComplicationSnapshot {
-      guard let data = sharedDefaults?.data(forKey: SkyConstants.UserDefaults.snapshotKey),
-              let snap = try? JSONDecoder().decode(ComplicationSnapshot.self, from: data)
-        else {
-            return .empty
-        }
-        return snap
+      guard let defaults = sharedDefaults else {
+          return .empty
+      }
+        
+      guard let data = defaults.data(forKey: SkyConstants.UserDefaults.snapshotKey) else {
+          return .empty
+      }
+        
+      do {
+          let snap = try JSONDecoder().decode(ComplicationSnapshot.self, from: data)
+          return snap
+      } catch {
+          return .empty
+      }
     }
     
     // 3. 刷新 Widget

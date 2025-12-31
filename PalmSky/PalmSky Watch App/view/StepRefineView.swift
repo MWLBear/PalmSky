@@ -56,7 +56,7 @@ struct StepRefineRow: View {
     
   // MARK: - 左侧文字信息
     private func infoView(isMaxed: Bool) -> some View {
-      VStack(alignment: .leading, spacing: 1) {
+      VStack(alignment: .leading, spacing: 5) {
         
         // 第一行：状态文字
         if healthManager.stepsAvailableToRefine > 0 {
@@ -80,8 +80,9 @@ struct StepRefineRow: View {
         HStack(spacing: 2) {
           Text("今日 \(healthManager.todaySteps)步")
             .monospacedDigit()
-            .font(XiuxianFont.buffTag)
+            .font(XiuxianFont.caption)
             .foregroundColor(.gray)
+            .minimumScaleFactor(0.5)
         }
       }
     }

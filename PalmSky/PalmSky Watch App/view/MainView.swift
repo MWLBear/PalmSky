@@ -45,6 +45,9 @@ struct RootPagerView: View {
                   .toolbar(.hidden, for: .navigationBar)
                 }
             }
+            .sheet(isPresented: $gameManager.showPaywall) {
+                PaywallView()
+            }
 
             // 庆祝界面 (ZIndex 2)
             if showCelebration {
@@ -153,6 +156,9 @@ struct MainView: View {
    //✨ 新增：专门控制圆环闭合的视觉状态
     @State private var visualIsAscended = false
   
+   // ✨ 新增：控制境界详情页显示
+   @State private var showRealmDetail = false
+  
     let offsetY = 15.0
   
     var body: some View {
@@ -223,6 +229,9 @@ struct MainView: View {
                       layerName: gameManager.getLayerName(),
                       primaryColor: primaryColor
                     )
+                    .onTapGesture {
+                      showRealmDetail = true
+                    }
                     
                     Spacer()
                     
@@ -246,6 +255,31 @@ struct MainView: View {
         .navigationBarHidden(true)
         .toast(message: $gameManager.offlineToastMessage)
 
+      // ✨ 挂载 Sheet 弹窗
+        .sheet(isPresented: $showRealmDetail) {
+          WatchRealmListView(
+            currentLevel: gameManager.player.level,
+            reincarnationCount: gameManager.player.reincarnationCount
+          )
+        }
+      
+        .onOpenURL { url in
+            print("🚀 Deep link received: \(url.absoluteString)")
+            
+            if url.absoluteString == "palmSky://store" {
+                // 延迟一点，等界面加载完，弹出付费墙
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                  gameManager.showPaywall = true
+                }
+            }
+          
+            if url.absoluteString == "palmSky://breakthrough" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                  showBreakthrough = true
+                }
+            }
+        }
+      
         .onAppear { gameManager.startGame() }
         // 监听炼化事件
         .onChange(of: gameManager.refineEvent) { _, newEvent in
@@ -546,12 +580,17 @@ struct BottomControlView: View {
                 // --- 模式 A: 突破按钮 ---
                 BottomActionButton(title:"立即突破" ,
                                    primaryColor: primaryColor) {
-                  showBreakthrough = true
-                  HapticManager.shared.playIfEnabled(.click)
+                    
+                    // ✨ 逻辑已下沉到 GameManager
+                    gameManager.requestBreakthrough {
+                        // 只有通过检查才会执行这里
+                        showBreakthrough = true
+                    }
+                    HapticManager.shared.playIfEnabled(.click)
                 }
                 .padding(.bottom, 8)
                 .transition(.opacity) // 切换时的淡入淡出
-                
+
             } else {
                 // --- 模式 B: 灵气数值 ---
                 let isApproaching = gameManager.getCurrentProgress() >= 0.90

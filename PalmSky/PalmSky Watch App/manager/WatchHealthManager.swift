@@ -14,9 +14,11 @@ class WatchHealthManager: ObservableObject {
     private let healthStore = HKHealthStore()
     
     // MARK: - 配置常量
-    // 每日有效步数上限 (防止摇步器刷数值崩坏)
-    let MAX_DAILY_STEPS = 30_000
-    
+    // 🔥 核心修改：动态上限
+    var MAX_DAILY_STEPS: Int {
+        return PurchaseManager.shared.hasAccess ? SkyConstants.PRO_STEPS_LIMIT : SkyConstants.FREE_STEPS_LIMIT
+    }
+  
     // 步数转化倍率 (1步 = 1倍点击收益，鼓励走路)
     private let WALKING_BONUS_RATIO = 1.0
     
@@ -82,11 +84,11 @@ class WatchHealthManager: ObservableObject {
     func fetchTodaySteps() {
       
               // 🔥 调试专用：如果是模拟器，直接给个假数据
-//        #if targetEnvironment(simulator)
+       //#if targetEnvironment(simulator)
        #if DEBUG
         DispatchQueue.main.async {
           // 每次启动给 8888 步，或者随机一个数
-          self.todaySteps = 22000
+          self.todaySteps = 5000
           // self.todaySteps = Int.random(in: 1000...20000)
         }
         return // 直接返回，不走下面的 HealthKit 查询

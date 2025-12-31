@@ -20,7 +20,8 @@ struct Provider: TimelineProvider {
                  currentQi: 30,
                  targetQi: 100,
                  rawGainPerSecond: 1, // 随便填，占位用
-                 saveTime: Date()
+                 saveTime: Date(),
+                 isUnlocked: true // 占位符默认解锁
              )
       
       return ComplicationEntry(
@@ -43,7 +44,8 @@ struct Provider: TimelineProvider {
                   currentQi: 8800,
                   targetQi: 10000,
                   rawGainPerSecond: 10,
-                  saveTime: Date()
+                  saveTime: Date(),
+                  isUnlocked: true // 预览图默认解锁，给用户看最好的一面
               )
               // 进度设为 88% 比较美观
               entry = ComplicationEntry(date: Date(), snapshot: fakeSnap, displayProgress: 0.88)
@@ -71,6 +73,15 @@ struct Provider: TimelineProvider {
            print("存档时间: \(snap.saveTime)")
            print("基础灵气: \(snap.currentQi)")
            print("每秒产出: \(snap.rawGainPerSecond)")
+    
+           // ⚡️ 优化：如果未解锁，不需要计算未来变化，直接返回单帧
+           // 节省电量，且当用户付费成功后，App 会调用 reloadTimelines 刷新
+           if !snap.isUnlocked {
+               let entry = ComplicationEntry(date: currentDate, snapshot: snap, displayProgress: 0)
+               let timeline = Timeline(entries: [entry], policy: .never)
+               completion(timeline)
+               return
+           }
     
           var entries: [ComplicationEntry] = []
           
@@ -112,76 +123,116 @@ struct XiuxianComplicationEntryView : View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
     
-    // ✅ 优化 1: 动态颜色逻辑 (使用 displayProgress)
+    // 动态颜色
     var progressColor: Color {
         entry.displayProgress >= 0.9 ? .orange : .green
     }
     
     var body: some View {
-        
+        // 🔥 核心判断：如果没有解锁，显示"锁定样式"
+        if !entry.snapshot.isUnlocked {
+            lockedView
+        } else {
+            // 原来的正常显示逻辑 (保持不变)
+            unlockedView
+        }
+    }
+    
+    // MARK: - 🔒 锁定状态视图 (诱导付费)
+    @ViewBuilder
+    var lockedView: some View {
+        switch family {
+        case .accessoryCircular:
+            // 圆形：显示一把锁
+            ZStack {
+                Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                Image(systemName: "lock.fill")
+                    .font(.title3)
+                    .foregroundColor(.white)
+            }
+            .widgetLabel {
+                Text("需解锁完整版")
+            }
+            
+        case .accessoryCorner:
+            Image(systemName: "lock.fill")
+                .font(.title3)
+                .widgetLabel {
+                    Text("解锁表盘进度")
+                }
+            
+        case .accessoryRectangular:
+            HStack {
+                Image(systemName: "lock.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.orange)
+                VStack(alignment: .leading) {
+                    Text("功能已锁定")
+                        .font(.headline)
+                        .widgetAccentable()
+                    Text("仅限飞升契约")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
+            
+        case .accessoryInline:
+            Text("🔒 需解锁表盘功能")
+            
+        @unknown default:
+            Image(systemName: "lock.fill")
+        }
+    }
+    
+    // MARK: - ✅ 解锁状态视图
+    @ViewBuilder
+    var unlockedView: some View {
         let stageColor = RealmColor.gradient(for: entry.snapshot.level).last ?? .green
 
         switch family {
             
-          case .accessoryCircular:
-          
+        case .accessoryCircular:
             // 判断是否满进度
-            if entry.displayProgress >= 0.99 { // 稍微宽容一点，0.99就算满
-              // MARK: - 🎉 满级特效状态
-              Gauge(value: 1.0, in: 0...1) {
-                // 1. 顶部状态：圆满
-                Text("渡劫")
-                  .font(.system(size: 10, weight: .bold, design: .rounded))
-              } currentValueLabel: {
-
-                Image(systemName: "bolt.fill")
-                .font(.system(size: 22))
-                .symbolRenderingMode(.hierarchical)
-                
-              }
-              .gaugeStyle(.circular)
-              // 颜色：使用金红渐变，代表雷劫之火
-//              .tint(Gradient(colors: [.yellow, .orange, .red]))
-              .tint(
-                RealmColor.tribulationGradient(for: entry.snapshot.level)
-              )
-              
-                                     
-            } else {
-              
-              // MARK: - 普通状态 (仿官方天气/电量风格)
-                Gauge(value: entry.displayProgress, in: 0...1) {
-                  // 1. 顶部/底部的境界名 (根据表盘不同，位置会自动调整)
-                  Text(entry.snapshot.realmName)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
+            if entry.displayProgress >= 0.99 {
+                // MARK: - 🎉 满级特效状态
+                Gauge(value: 1.0, in: 0...1) {
+                    Text("渡劫")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
                 } currentValueLabel: {
-                  // ✨ 核心修改：大数字 + 小符号
-                  // 使用 SwiftUI 的 Text 拼接特性
-                  (
-                    Text("\(Int(entry.displayProgress * 100))")
-                      .font(.system(size: 20, weight: .semibold, design: .rounded)) // 数字极大、极粗
-                      .monospacedDigit() // 数字等宽，防止跳动
-                    +
-                    Text("%")
-                      .font(.system(size: 12, weight: .semibold, design: .rounded)) // 符号小巧
-                     
-                  )
-                  // 整体允许微缩，防止"100%"爆框
-                  .minimumScaleFactor(0.7)
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 22))
+                        .symbolRenderingMode(.hierarchical)
+                }
+                .gaugeStyle(.circular)
+                .tint(RealmColor.tribulationGradient(for: entry.snapshot.level))
+                
+            } else {
+                // MARK: - 普通状态
+                Gauge(value: entry.displayProgress, in: 0...1) {
+                    Text(entry.snapshot.realmName)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                } currentValueLabel: {
+                    (
+                        Text("\(Int(entry.displayProgress * 100))")
+                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                        +
+                        Text("%")
+                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    )
+                    .minimumScaleFactor(0.7)
                 }
                 .gaugeStyle(.circular)
                 .tint(stageColor)
-               
             }
-          
             
         case .accessoryCorner:
             Text(entry.snapshot.realmName)
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .widgetLabel {
-                    // ❌ 修正：使用 displayProgress
                     Gauge(value: entry.displayProgress, in: 0...1) {
                         Text("\(Int(entry.displayProgress * 100))%")
                     }
@@ -195,7 +246,6 @@ struct XiuxianComplicationEntryView : View {
                         .font(.headline)
                         .widgetAccentable()
                     
-                    // ❌ 修正：使用 displayProgress 判断文案
                     Text(entry.displayProgress >= 0.9 ? "瓶颈松动" : "修炼中...")
                         .font(.caption2)
                         .foregroundColor(.secondary)
@@ -204,13 +254,11 @@ struct XiuxianComplicationEntryView : View {
                 
                 // 右侧进度
                 VStack(alignment: .trailing) {
-                    // ❌ 修正：使用 displayProgress
                     Text("\(Int(entry.displayProgress * 100))%")
                         .font(.caption)
                         .monospacedDigit()
                         .foregroundColor(progressColor)
                     
-                    // ❌ 修正：使用 displayProgress
                     ProgressView(value: entry.displayProgress)
                         .progressViewStyle(.linear)
                         .tint(progressColor)
@@ -219,7 +267,6 @@ struct XiuxianComplicationEntryView : View {
             }
             
         case .accessoryInline:
-            // ❌ 修正：使用 displayProgress
             Text("\(entry.snapshot.realmName) · \(Int(entry.displayProgress * 100))%")
             
         default:
@@ -236,8 +283,8 @@ struct XiuxianComplication: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             XiuxianComplicationEntryView(entry: entry)
-                // ✅ 修正：传入 entry.displayProgress 来判断跳转
-                .widgetURL(deeplinkURL(progress: entry.displayProgress))
+                // ✅ 修正：传入 snapshot 判断跳转
+                .widgetURL(deeplinkURL(isUnlocked: entry.snapshot.isUnlocked, progress: entry.displayProgress))
         }
         .configurationDisplayName("修炼进度")
         .description("展示当前的境界与灵气进度")
@@ -249,10 +296,15 @@ struct XiuxianComplication: Widget {
         ])
     }
   
-    // ✅ 修改 helper 方法，接收 Double 类型的进度
-    func deeplinkURL(progress: Double) -> URL {
-        // 如果预测进度显示满了，点击直接跳去突破界面
-        if progress >= 0.9 {
+    // ✅ 修改 helper 方法，接收解锁状态
+    func deeplinkURL(isUnlocked: Bool, progress: Double) -> URL {
+        // 1. 如果未解锁，跳去付费页
+        if !isUnlocked {
+            return URL(string: "palmSky://store")!
+        }
+        
+        // 2. 如果预测进度显示满了，点击直接跳去突破界面
+      if progress >= 1.0 {
             return URL(string: "palmSky://breakthrough")!
         } else {
             return URL(string: "palmSky://main")!

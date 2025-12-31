@@ -2,8 +2,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var gameManager: GameManager
+    @ObservedObject var purchaseManager = PurchaseManager.shared // ✨ 监听购买状态
     @Environment(\.dismiss) var dismiss
     @State private var showResetAlert = false
+    @State private var showPaywall = false // ✨ 新增：控制付费墙显示
+  
   // ✨ 新增：接收父视图传来的页码绑定
     @Binding var currentTab: Int
   
@@ -33,6 +36,21 @@ struct SettingsView: View {
               
                 // MARK: - Section 1: 道途信息
                 Section {
+                    // 🌟 老玩家专属标识
+                    if purchaseManager.isLegacyUser {
+                        HStack {
+                            Image(systemName: "crown.fill") // 皇冠图标
+                                .foregroundColor(.yellow)
+                          
+                            Text("开天道祖") // 霸气的称号
+                                .foregroundColor(.yellow)
+                                .bold()
+                                .shadow(color: .orange.opacity(0.5), radius: 4) // 自带光晕
+                      
+                          Spacer()
+                        }
+                    }
+
                     HStack {
                         Image(systemName: "person.fill")
                             .foregroundColor(themeColor)
@@ -58,6 +76,7 @@ struct SettingsView: View {
                   HStack {
                     Image(systemName: "shield.fill")
                       .foregroundColor(themeColor)
+                      .font(.title3)
                     Text("护身符")
                     Spacer()
                     Text("\(gameManager.player.items.protectCharm)")
@@ -102,6 +121,64 @@ struct SettingsView: View {
                         .foregroundColor(themeColor)
                 }
                 
+              
+              // MARK: - ✨ 新增 Section: 飞升契约 (内购专区)
+                Section {
+                  
+                  // 1. 解锁按钮 (仅未付费时显示)
+                  if !purchaseManager.hasAccess {
+                    Button {
+                      showPaywall = true
+                      HapticManager.shared.playIfEnabled(.click)
+                    } label: {
+                      HStack {
+                        // 图标
+                        Image(systemName: "lock.open.fill")
+                          .foregroundColor(themeColor)
+                          .font(.title3)
+                          
+                        // 文字
+                        VStack(alignment: .leading, spacing: 2) {
+                          Text("解锁完整版")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                          
+                        }
+                        
+                        Spacer()
+                        
+                        // 箭头
+                        Image(systemName: "chevron.right")
+                          .font(.caption)
+                          .foregroundColor(.gray)
+                      }
+                      .padding(.vertical, 4)
+                    }
+                  }
+                  
+                  // 2. 恢复购买按钮 (移到这里)
+                  Button {
+                    Task {
+                      HapticManager.shared.playIfEnabled(.click)
+                      // 调用恢复逻辑
+                      _ = try? await PurchaseManager.shared.restorePurchases()
+                      HapticManager.shared.playIfEnabled(.success)
+                    }
+                  } label: {
+                    Label {
+                      Text("恢复契约")
+                    } icon: {
+                      Image(systemName: "arrow.clockwise")
+                        .font(.title3)
+                        .foregroundColor(themeColor)
+                    }
+                  }
+                  
+                } header: {
+                  Text("飞升契约") // 霸气的 Section 标题
+                    .foregroundColor(themeColor)
+                }
+              
                 // MARK: - Section 3: 仙府设置
                 Section {
                   
@@ -188,6 +265,11 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("设置")
+          // ✨ 挂载付费墙弹窗
+            .sheet(isPresented: $showPaywall) {
+              PaywallView()
+            }
+          
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden) // 移除默认背景
             .background(Color.black)      // 使用纯黑背景
