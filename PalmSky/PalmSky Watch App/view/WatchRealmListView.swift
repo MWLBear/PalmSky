@@ -68,8 +68,6 @@ struct WatchRealmListView: View {
                         return .white.opacity(0.6)
                       }()
                       
-                      // 3. 计算字重
-                      let fontWeight: Font.Weight = isCurrent ? .bold : .regular
                       
                       HStack {
                         // 状态图标

@@ -562,9 +562,30 @@ struct BuffStatusBar: View {
                 .transition(.scale)
             }
         }
+        .onTapGesture {
+            // 只有当有 Buff 时才允许点击
+            if hasAnyBuff {
+                showBuffDetail = true
+                HapticManager.shared.playIfEnabled(.click)
+            }
+        }
+        .sheet(isPresented: $showBuffDetail) {
+            BuffDetailView()
+        }
         // 当状态变化时，添加平滑动画
         .animation(.spring(), value: gameManager.player.tapBuff?.expireAt)
         .animation(.spring(), value: gameManager.player.autoBuff?.expireAt)
+    }
+    
+    @State private var showBuffDetail = false
+    
+    // 助手属性：判断是否有 Buff
+    var hasAnyBuff: Bool {
+        let now = Date()
+        let hasTap = (gameManager.player.tapBuff?.expireAt ?? .distantPast) > now
+        let hasAuto = (gameManager.player.autoBuff?.expireAt ?? .distantPast) > now
+        let hasDebuff = (gameManager.player.debuff?.expireAt ?? .distantPast) > now
+        return hasTap || hasAuto || hasDebuff
     }
 }
 
