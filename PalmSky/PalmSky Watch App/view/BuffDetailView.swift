@@ -15,7 +15,7 @@ struct BuffDetailView: View {
                         BuffRow(
                             icon: "hand.tap.fill",
                             color: buff.bonusRatio >= 0 ? .orange : .gray,
-                            title: "机缘 · 顿悟",
+                            title: buff.bonusRatio >= 0 ? "机缘 · 顿悟" : "劫难 · 虚弱",
                             desc: buff.bonusRatio >= 0 ? "点击收益提升 \(Int(buff.bonusRatio * 100))%" : "点击收益降低 \(Int(abs(buff.bonusRatio) * 100))%",
                             expireAt: buff.expireAt
                         )

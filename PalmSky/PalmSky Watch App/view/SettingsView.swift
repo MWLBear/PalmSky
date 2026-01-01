@@ -220,6 +220,43 @@ struct SettingsView: View {
                         }
                     }
                     .tint(themeColor)
+                    
+                    // ✨ VIP 专属：自动冲关
+                    if purchaseManager.hasAccess {
+                        Toggle(isOn: Binding(
+                            get: { gameManager.player.settings.autoBreakthrough },
+                            set: { gameManager.toggleAutoBreakthrough($0) }
+                        )) {
+                            Label {
+                                Text("自动冲关")
+                            } icon: {
+                                Image(systemName: "bolt.horizontal.circle.fill")
+                                    .foregroundColor(themeColor)
+                            }
+                        }
+                        .tint(themeColor)
+                    } else {
+                   
+                        Button {
+                            showPaywall = true
+                            HapticManager.shared.playIfEnabled(.click)
+                        } label: {
+                            HStack {
+                                Label {
+                                    Text("自动冲关")
+                                } icon: {
+                                    Image(systemName: "bolt.horizontal.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
                 } header: {
                     Text("仙府设置")
                         .foregroundColor(themeColor)

@@ -60,6 +60,8 @@ struct PaywallView: View {
                       // lV10 付费墙
                         BenefitRow(icon: "crown.fill", title: "境界解封", subtitle: "突破炼气，筑基成仙", color: .yellow)
                         Divider()
+                        BenefitRow(icon: "bolt.horizontal.circle.fill", title: "自动冲关", subtitle: "解放双手，快速升级", color: .orange) // ✨ 新增
+                        Divider()
                         BenefitRow(icon: "clock.fill", title: "闭关延时", subtitle: "离线挂机，十二小时", color: .blue)
                         Divider()
                         BenefitRow(icon: "figure.walk", title: "肉身成圣", subtitle: "单日炼化，四万步数", color: .green)

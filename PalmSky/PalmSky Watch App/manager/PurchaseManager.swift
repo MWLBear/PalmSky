@@ -30,7 +30,7 @@ enum PurchaseError: LocalizedError {
         case .verificationFailed:
             return NSLocalizedString("购买验证失败", comment: "")
         case .userCancelled:
-            return "User cancelled"
+            return NSLocalizedString("购买取消", comment: "") //"User cancelled"
         }
     }
 }

@@ -674,6 +674,33 @@ class GameManager: ObservableObject {
         // ⚡ 主循环内部会检查 autoGainEnabled，无需重启定时器
         savePlayer()
     }
+  
+    // MARK: - Auto Breakthrough (VIP Feature)
+    func toggleAutoBreakthrough(_ enabled: Bool) {
+        player.settings.autoBreakthrough = enabled
+        savePlayer()
+        
+        // ✨ 修改：开关只控制是否"启用连击模式"
+        // 真正的触发逻辑移到 BreakthroughView 中，由玩家手动点击"立即突破"后的结果页驱动
+        if enabled {
+            print("🚀 自动冲关模式：已开启 (手动突破后自动连击)")
+        } else {
+            print("🛑 自动冲关模式：已关闭")
+        }
+    }
+    
+    // 助手方法：检查能否继续自动突破
+    func canAutoBreakNext() -> Bool {
+        // 1. 灵气检查
+        let cost = levelManager.breakCost(level: player.level)
+        if player.currentQi < cost { return false }
+        
+        // 2. 也是大境界关卡检查
+        let gameType = levelManager.getTribulationGameType(for: player.level)
+        if gameType != .none { return false }
+        
+        return true
+    }
     
     // MARK: - 删档重置 (Hard Reset)
     func resetGame() {

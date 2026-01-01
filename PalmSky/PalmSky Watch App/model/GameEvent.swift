@@ -76,16 +76,44 @@ struct Player: Codable {
     var reincarnationCount: Int = 0
    // ✨ 新增：累计失败次数 (用于成就)
     var totalFailures: Int = 0
+    
+    // 🚨 必须手动添加 CodingKeys
+    enum CodingKeys: String, CodingKey {
+        case id, level, click, currentQi, lastLogout, settings, items, debuff
+        case tapBuff, autoBuff, reincarnationCount, totalFailures
+    }
   
     init(id: String = "default_player") {
         self.id = id
         self.level = 1
         self.click = 0
         self.currentQi = 0.0
-        self.totalFailures = 0 // 初始化
+        self.totalFailures = 0
         self.lastLogout = Date()
         self.settings = Settings()
         self.items = Items()
+    }
+    
+    // ✨ 安全解码构造函数
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        level = try container.decode(Int.self, forKey: .level)
+        click = try container.decode(Int.self, forKey: .click)
+        currentQi = try container.decode(Double.self, forKey: .currentQi)
+        lastLogout = try container.decode(Date.self, forKey: .lastLogout)
+        settings = try container.decode(Settings.self, forKey: .settings)
+        items = try container.decode(Items.self, forKey: .items)
+        
+        // Optionals are safe with decodeIfPresent
+        debuff = try container.decodeIfPresent(DebuffStatus.self, forKey: .debuff)
+        tapBuff = try container.decodeIfPresent(BuffStatus.self, forKey: .tapBuff)
+        autoBuff = try container.decodeIfPresent(BuffStatus.self, forKey: .autoBuff)
+        
+        // ✨ 新增字段：给予默认值，防删档
+        reincarnationCount = try container.decodeIfPresent(Int.self, forKey: .reincarnationCount) ?? 0
+        totalFailures = try container.decodeIfPresent(Int.self, forKey: .totalFailures) ?? 0
     }
 }
 
@@ -111,6 +139,30 @@ struct Settings: Codable {
     var hapticEnabled: Bool = true
     var autoGainEnabled: Bool = true
     var soundEnabled: Bool = true
+    
+    // ✨ 新增：VIP 自动冲关
+    var autoBreakthrough: Bool = false
+    
+    // 🚨 手动添加 CodingKeys
+    enum CodingKeys: String, CodingKey {
+        case hapticEnabled
+        case autoGainEnabled
+        case soundEnabled
+        case autoBreakthrough
+    }
+    
+    // ✨ 空构造函数
+    init() {}
+    
+    // ✨ 安全解码构造函数 (防旧版本数据崩溃)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        hapticEnabled = try container.decodeIfPresent(Bool.self, forKey: .hapticEnabled) ?? true
+        autoGainEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoGainEnabled) ?? true
+        soundEnabled = try container.decodeIfPresent(Bool.self, forKey: .soundEnabled) ?? true
+        autoBreakthrough = try container.decodeIfPresent(Bool.self, forKey: .autoBreakthrough) ?? false
+    }
 }
 
 //护身符（你已有）

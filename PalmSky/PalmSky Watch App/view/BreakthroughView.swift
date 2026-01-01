@@ -128,7 +128,8 @@ struct BreakthroughView: View {
                     primaryColor: primaryColor,
                     height: height,
                     showResultView: showResultView,
-                    isPresented: $isPresented
+                    isPresented: $isPresented,
+                    onAutoContinue: handleAutoContinue // ✨ 绑定自动逻辑
                   )
                   .ignoresSafeArea()
                 }
@@ -256,6 +257,27 @@ struct BreakthroughView: View {
         
         // 5. 白光消退
         withAnimation(.easeOut(duration: 1.0).delay(0.1)) { flashOpacity = 0.0 }
+    }
+    
+    // ✨ 自动连招逻辑
+    private func handleAutoContinue() {
+        // 重置 UI 状态
+        withAnimation(.easeOut(duration: 0.3)) {
+            showResultView = false
+            flashOpacity = 0.0
+            isAttempting = false
+            result = nil
+            // 重置动画相关的
+            coreScale = 1.0
+            coreBrightness = 0.0
+            shockwaveOpacity = 0.0
+        }
+        
+        print("🔄 自动连击：发起下一轮冲击...")
+        // 立即触发下一次
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            startBreakthrough()
+        }
     }
     
     // 每帧刷新粒子
@@ -434,7 +456,7 @@ struct BreakthroughControlsView: View {
 
           
             BottomActionButton(
-                title: isAttempting ? "突破中..." : "逆天改命",
+                title: isAttempting ? "突破中..." : (gameManager.player.settings.autoBreakthrough ? "自动冲关" : "逆天改命"),
                 primaryColor: primaryColor
             ) {
                 action()
@@ -459,6 +481,13 @@ struct BreakthroughResultView: View {
     let showResultView: Bool
     @EnvironmentObject var gameManager: GameManager
     @Binding var isPresented: Bool
+    
+    // ✨ 回调：自动继续
+    var onAutoContinue: () -> Void
+    
+    // 倒计时状态
+    @State private var autoCountdown = 1.5
+    @State private var timer: Timer?
     
     var body: some View {
         VStack {
@@ -487,16 +516,64 @@ struct BreakthroughResultView: View {
             
             Spacer()
             
-            BottomActionButton(
-                title: "完成",
-                primaryColor: primaryColor
-            ) {
-                isPresented = false
-                if result == .success {
-                    gameManager.checkFeiSheng()
+            // 按钮区域
+            if shouldAutoContinue() {
+                 VStack(spacing: 4) {
+                    ProgressView()
+                        .tint(primaryColor)
+                    Text("闭关冲击中 \(String(format: "%.1f", autoCountdown))s")
+                        .font(XiuxianFont.body)
+                        .foregroundColor(.gray)
                 }
+                .padding(.bottom, 20)
+                .onAppear { startAutoTimer() }
+                .onDisappear { stopTimer() }
+                
+            } else {
+                BottomActionButton(
+                    title: "完成",
+                    primaryColor: primaryColor
+                ) {
+                    closeView()
+                }
+                .padding(.bottom, 15)
             }
-            .padding(.bottom, 15)
+        }
+    }
+    
+    // 逻辑：判断是否处于自动连招状态
+    func shouldAutoContinue() -> Bool {
+        // 1. 结果必须是成功
+        guard result == .success else { return false }
+        // 2. 开关必须开启
+        guard gameManager.player.settings.autoBreakthrough else { return false }
+        // 3. 必须还能继续 (有灵气，非瓶颈)
+        guard gameManager.canAutoBreakNext() else { return false }
+        
+        return true
+    }
+    
+    // 启动倒计时
+    private func startAutoTimer() {
+        autoCountdown = 1.5
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            autoCountdown -= 0.1
+            if autoCountdown <= 0 {
+                stopTimer()
+                onAutoContinue()
+            }
+        }
+    }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func closeView() {
+        isPresented = false
+        if result == .success {
+            gameManager.checkFeiSheng()
         }
     }
 }
