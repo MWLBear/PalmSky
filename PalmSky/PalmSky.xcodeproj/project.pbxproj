@@ -534,7 +534,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
@@ -543,6 +543,7 @@
 				INFOPLIST_FILE = "PalmSky-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
@@ -573,7 +574,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
@@ -582,6 +583,7 @@
 				INFOPLIST_FILE = "PalmSky-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.palmsky;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
@@ -613,7 +615,7 @@
 				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
@@ -656,7 +658,7 @@
 				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
@@ -699,7 +701,7 @@
 				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -734,7 +736,7 @@
 				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				GENERATE_INFOPLIST_FILE = YES;

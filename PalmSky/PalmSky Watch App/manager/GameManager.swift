@@ -189,6 +189,11 @@ class GameManager: ObservableObject {
         gain *= (1.0 + buff.bonusRatio)
       }
       
+      // 检查 Debuff - 只读取
+      if let debuff = player.debuff, Date() < debuff.expireAt {
+        gain *= debuff.multiplier
+      }
+      
       return gain
     }
     

@@ -1,0 +1,43 @@
+🛑 1. 代码层：生死检查 (必看)
+
+关闭上帝模式：
+检查 GameManager.init，确保 debugAscended 是 false。
+确保没有写死 player.level = 143 或 currentQi = 999999。
+确保 SettingsView 里的测试按钮已注释或删除。
+权限配置 (Info.plist)：
+Watch Target：必须包含 NSHealthShareUsageDescription 和 NSHealthUpdateUsageDescription。
+iOS Target：如果有读取步数，也要加 NSHealthShareUsageDescription。
+漏了这两个，审核员一打开就会闪退，秒拒。
+Capabilites：
+iOS 和 Watch 的 App Groups ID 是否一致？
+iOS 和 Watch 的 Game Center 是否都已开启？
+📝 2. App Store Connect 后台配置
+版本号：设置为 2.0.0（大版本更新）。
+应用内购买 (IAP)：
+产品 ID：com.palmsky.jindan (或其他) 是否与代码完全一致？
+审核截图：必须上传一张 PaywallView（付费墙）的截图给审核员看，否则会被因“元数据缺失”打回。
+描述：不要太简单，写清楚权益（如：解锁自动冲关、12小时挂机）。
+Game Center：
+排行榜：ID 是否对应？
+成就：ID 是否对应？图像是否已上传？
+隐私政策：更新隐私标签，声明使用了“健康与健身”和“用户标识符(GameCenter)”。
+🖼️ 3. 商店素材 (卖相)
+图标：检查是否是那套统一的“绿色渐变 + 3D拟物”图标。
+截图：
+Watch 端：霓虹太极、渡劫小游戏、闭关Toast、圆环闭合。
+iOS 端：天地洪炉界面、步数炼化界面。
+记得把截图里的时间 P 成 9:41。
+文案：
+What's New：第一行务必加粗写 【老玩家福利：自动升级为永久VIP】。
+描述：强调“免费下载”、“离线挂机”、“步数修仙”。
+📣 4. 上线后的第一波动作
+当你收到 "Ready for Sale" 邮件的那一刻：
+改价：如果是付费转免费，记得在“价格与销售范围”里把价格改成 0 (Free)。
+发帖：去小红书/抖音发布那个准备好的视频。
+标题：“我把8块钱的门槛砍了！Apple Watch 赛博修仙 V2.0 免费公测！”
+痛点：“没手表也能玩！手机版同步上线！”
+观察：
+盯着 Crashlytics (如果有接) 或 Xcode Organizer 里的崩溃日志。
+关注评论区，如果有老玩家说“怎么还要钱”，立刻回复解释“请检查网络，老玩家自动解锁”。
+道友，吉时已到。
+打包，上传，飞升！ 🚀⚡️

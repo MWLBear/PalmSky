@@ -35,6 +35,10 @@ struct MiniGameContainer: View {
                       .onTapGesture {
                         scene.fireNeedle() // 调用场景里的发射方法
                       }
+                      // 🔥 关键修改 4：清理场景，防止音效和动作泄漏
+                      .onDisappear {
+                        cleanupMindDemonScene()
+                      }
 
                   } else {
                     // 首次加载，创建场景并赋值给 State
@@ -76,6 +80,7 @@ struct MiniGameContainer: View {
                         .onTapGesture {
                           // 震动反馈
                           HapticManager.shared.playIfEnabled(.click)
+                          cleanupMindDemonScene() // 🔥 退出时也清理
                           isPresented = false
                           // onFinish(false) // 如果需要回调失败逻辑可以加上
                         }
@@ -141,5 +146,21 @@ struct MiniGameContainer: View {
     func createSwordScene(size: CGSize) -> SKScene {
         // ... 返回你之前的 SwordDefenseScene ...
         return SKScene() // 占位
+    }
+    
+    // 🔥 新增：清理 MindDemonScene 的方法
+    private func cleanupMindDemonScene() {
+        guard let scene = mindDemonScene else { return }
+        
+        // 停止所有动作（包括环境雷电循环）
+        scene.removeAllActions()
+        
+        // 停止场景中所有节点的动作
+        scene.removeAllChildren()
+        
+        // 清空场景引用
+        mindDemonScene = nil
+        
+        print("MindDemonScene 已清理")
     }
 }
