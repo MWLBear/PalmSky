@@ -36,19 +36,30 @@ struct SettingsView: View {
               
                 // MARK: - Section 1: 道途信息
                 Section {
-                    // 🌟 老玩家专属标识
-                    if purchaseManager.isLegacyUser {
-                        HStack {
-                            Image(systemName: "crown.fill") // 皇冠图标
-                                .foregroundColor(.yellow)
+                  // ✨ 身份铭牌 (仅 VIP 显示)
+                    if purchaseManager.hasAccess {
+                      HStack {
+                        // 图标区分：老玩家用皇冠，新VIP用勋章
+                        Image(systemName: purchaseManager.isLegacyUser ? "crown.fill" : "checkmark.seal.fill")
+                          .foregroundColor(.yellow)
                           
-                            Text("开天道祖") // 霸气的称号
-                                .foregroundColor(.yellow)
-                                .bold()
-                                .shadow(color: .orange.opacity(0.5), radius: 4) // 自带光晕
-                      
-                          Spacer()
+                        // 称号区分
+                        if purchaseManager.isLegacyUser {
+                          // 🌟 老玩家专属
+                          Text("开天道祖")
+                            .foregroundColor(.yellow)
+                            .bold()
+                            .shadow(color: .orange.opacity(0.8), radius: 5) // 强光晕
+                        
+                          
+                        } else {
+                          // 💰 普通付费玩家 (对应飞升契约)
+                          Text("飞升契约")
+                            .foregroundColor(.yellow)
+                            .bold()
+                            .shadow(color: .yellow.opacity(0.3), radius: 2) // 弱光晕
                         }
+                      }
                     }
 
                     HStack {
@@ -86,7 +97,13 @@ struct SettingsView: View {
                 } header: {
                     Text("道途信息")
                         .foregroundColor(themeColor)
-                }
+                } footer: {
+                  // 🔥 新增：如果是老玩家，显示解释文案
+                  if purchaseManager.isLegacyUser {
+                      Text("首发道友纪念 · 绝版身份标识")
+                          .foregroundColor(.yellow.opacity(0.8)) // 金色小字
+                  }
+              }
                 
                 // MARK: - Section 2: 数值详情 (补回来的部分)
                 Section {
@@ -338,8 +355,7 @@ struct SettingsView: View {
                     message: Text("当前所有修为将化为乌有，此操作不可撤销！"),
                     primaryButton: .destructive(Text("确认重置")) {
                       gameManager.resetGame()
-                      WKInterfaceDevice.current().play(.directionUp)
-                      
+                      HapticManager.shared.play(.directionUp)
                       // 🚀 核心修改：切回第 0 页 (主页)
                       withAnimation {
                         currentTab = 0

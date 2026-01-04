@@ -77,42 +77,68 @@ struct PaywallView: View {
                     Spacer(minLength: 0)
                     
                     // MARK: - 3. 购买按钮
-                    if purchaseManager.isPurchasing {
-                        ProgressView()
-                            .tint(.orange)
-                            .padding()
-                    } else {
-                        if let product = purchaseManager.products.first {
-                            Button {
-                                buy(product)
-                            } label: {
-                                Text("结成契约 \(product.displayPrice)")
-                                    .font(XiuxianFont.secondaryButton)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 40)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color.orange, Color.red],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .clipShape(Capsule())
-                                    // 呼吸阴影
-                                    .shadow(color: .orange.opacity(isAnimating ? 0.6 : 0.3), radius: isAnimating ? 10 : 5)
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 12)
-                        } else {
-                            // 加载中
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.white.opacity(0.1))
-                                .frame(height: 40)
-                                .overlay(Text("正在连接天道...").font(.caption).foregroundColor(.gray))
-                                .padding(.horizontal, 12)
-                                .task { try? await purchaseManager.loadProducts() }
+                    if let product = purchaseManager.products.first {
+                      Button {
+                        // 1. 立即震动 (防止审核员觉得没反应)
+                        HapticManager.shared.playIfEnabled(.click)
+                        
+                        // 2. 发起购买
+                        if !purchaseManager.isPurchasing {
+                          buy(product)
                         }
+                      } label: {
+                        ZStack {
+                          // --- Layer A: 统一的背景 ---
+                          // 无论是否加载中，背景都一样，保证视觉稳定性
+                          LinearGradient(
+                            colors: [Color.orange, Color.red],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                          )
+                          .clipShape(Capsule())
+                          
+                          // --- Layer B: 内容切换 ---
+                          if purchaseManager.isPurchasing {
+                            // 状态 A: 加载中
+                            HStack(spacing: 6) {
+                              ProgressView()
+                                .tint(.white) // 白色转圈
+                                .scaleEffect(0.8) // 稍微调小一点适配高度
+                                .frame(width: 15, height: 15)
+                              
+                              Text("正在连接...")
+                                .font(XiuxianFont.secondaryButton)
+                                .foregroundColor(.white)
+                            }
+                          } else {
+                            // 状态 B: 正常价格
+                            Text("结成契约 \(product.displayPrice ?? "...")")
+                              .font(XiuxianFont.secondaryButton)
+                              .foregroundColor(.white)
+                          }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40) // 固定高度
+                        // 阴影效果
+                        .shadow(color: .orange.opacity(0.5), radius: 8)
+                      }
+                      .buttonStyle(.plain)
+                      .padding(.horizontal, 12)
+                      // 加载中禁用点击
+                      .disabled(purchaseManager.isPurchasing)
+                      
+                    } else {
+                      // 商品加载中占位
+                      RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.1))
+                        .frame(height: 40)
+                        .overlay(
+                          Text("正在连接天道...")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        )
+                        .padding(.horizontal, 12)
+                        .task { try? await purchaseManager.loadProducts() }
                     }
                     
                     // 4. 恢复购买 (极简)
@@ -196,3 +222,11 @@ struct BenefitRow: View {
 #Preview(body: {
   PaywallView()
 })
+
+extension Product {
+  
+  var displayPrice: String? {
+      return self.price.formatted(self.priceFormatStyle)
+  }
+  
+}

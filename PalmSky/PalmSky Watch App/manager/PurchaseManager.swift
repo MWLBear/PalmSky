@@ -167,8 +167,11 @@ class PurchaseManager: NSObject, ObservableObject {
             return
         }
         
-        isPurchasing = true
-        defer { isPurchasing = false }
+        await MainActor.run { isPurchasing = true }
+
+        defer {
+          Task { @MainActor in isPurchasing = false }
+        }
         
         do {
             let result = try await product.purchase()
