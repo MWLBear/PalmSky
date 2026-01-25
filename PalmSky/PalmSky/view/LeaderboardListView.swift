@@ -131,9 +131,16 @@ struct LeaderboardRowView: View {
 
 // MARK: - 主排行榜视图 (List 基础版本)
 struct LeaderboardListView: View {
-   
+    
+    // 平台选择
+    enum LeaderboardPlatform {
+        case watch
+        case phone
+    }
+    
     @State private var entries: [LeaderboardEntry] = []
     @State private var selectedTimeScope: GKLeaderboard.TimeScope = .today
+    @State private var selectedPlatform: LeaderboardPlatform = .phone
     @State private var isLoading = false
     @State private var cachedEntries: [GKLeaderboard.TimeScope: [LeaderboardEntry]] = [:]
 
@@ -162,11 +169,29 @@ struct LeaderboardListView: View {
             .ignoresSafeArea()
         
             VStack(spacing: 8) {
-                // 分段选择器
-          
-              SegmentedSelectorView(
-                  items: timeScopes,
-                  selectedScope: $selectedTimeScope)
+                // 分段选择器 + 平台切换
+                HStack(spacing: 12) {
+                    SegmentedSelectorView(
+                        items: timeScopes,
+                        selectedScope: $selectedTimeScope
+                    )
+                    
+                    // 平台切换按钮
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selectedPlatform = selectedPlatform == .watch ? .phone : .watch
+                        }
+                    } label: {
+                        Image(systemName: selectedPlatform == .watch ? "applewatch" : "iphone")
+                            .font(.title2)
+                            .foregroundColor(.primary)
+                            .frame(width: 44, height: 44)
+                            .background(Color(UIColor.secondarySystemFill))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal)
                   
                 // 列表内容
                 if isLoading {
@@ -200,10 +225,11 @@ struct LeaderboardListView: View {
           loadRealEntries(forceRefresh: true) // 页面首次显示强制刷新
 
         }
-        .onChange(of: selectedTimeScope) { newScope in
-          
+        .onChange(of: selectedTimeScope) { _, newScope in
           loadRealEntries(forceRefresh: true) //手机每次都强制刷新
-          
+        }
+        .onChange(of: selectedPlatform) { _, _ in
+          loadRealEntries(forceRefresh: true) // 切换平台时刷新
         }
         .onReceive(skySyncManager.$leaderboardEntries) { newEntries in
             // 收到数据，说明请求成功，取消超时定时器
@@ -238,8 +264,17 @@ struct LeaderboardListView: View {
 
         // 5. 在 iOS 上：直接请求
         Task {
+            // 根据平台选择不同的 leaderboard ID
+            let leaderboardID: String
+            switch selectedPlatform {
+            case .watch:
+                leaderboardID = SkyConstants.GameCenter.Leaderboard.playerLevel.rawValue
+            case .phone:
+                leaderboardID = SkyConstants.GameCenter.Leaderboard.playerLevelIphone.rawValue
+            }
+            
             let fetchedEntries = await GameCenterManager.shared.fetchLeaderboardEntries(
-              for: SkyConstants.GameCenter.Leaderboard.playerLevel.rawValue,
+                for: leaderboardID,
                 timeScope: selectedTimeScope
             )
             await MainActor.run {

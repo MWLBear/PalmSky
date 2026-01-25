@@ -1,6 +1,5 @@
 import AVFoundation
 import SwiftUI
-import WatchKit
 import SpriteKit
 
 public class SkyAudio {
@@ -122,10 +121,10 @@ public class SkyAudio {
 extension SkyAudio {
   
   
-  public func play(_ type: WKHapticType) {
-    guard isVibrationEnabled else { return } // 如果震动关闭，直接返回
-    WKInterfaceDevice.current().play(type)
-  }
+//  public func play(_ type: WKHapticType) {
+//    guard isVibrationEnabled else { return } // 如果震动关闭，直接返回
+//    WKInterfaceDevice.current().play(type)
+//  }
   
   
   public func nodePlay(_ filename: String, on node: SKNode) {

@@ -13,6 +13,8 @@ struct PalmSkyApp: App {
   @AppStorage("app_theme_preference") private var selectedTheme: AppTheme = .dark
 
   init() {
+     _ = EventPool.shared
+     _ = PurchaseManager.shared
      let _ = GameCenterManager.shared
      SkySyncManager.shared.activate()
   
@@ -22,6 +24,7 @@ struct PalmSkyApp: App {
       WindowGroup {
         PhoneMianView()
           .preferredColorScheme(selectedTheme.colorScheme)
+          .environmentObject(GameManager.shared)
 
       }
   }

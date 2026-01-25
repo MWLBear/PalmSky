@@ -285,7 +285,7 @@ extension SkySyncManager {
         await MainActor.run {
           self.syncedData = player
           
-          UserDefaults.standard.set(gameData, forKey: SkyConstants.UserDefaults.userDefaultsKey)
+         // UserDefaults.standard.set(gameData, forKey: SkyConstants.UserDefaults.userDefaultsKey)
 
           // 仅当玩家至少赢过一局才处理相关成就 & 提交分数
           // --- 提交 Game Center ---

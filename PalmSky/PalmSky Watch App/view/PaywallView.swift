@@ -8,9 +8,6 @@ struct PaywallView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
-    // 动态呼吸状态
-    @State private var isAnimating = false
-    
     var body: some View {
         ZStack {
             // 1. 背景：保持深邃黑，加一点点底部的氛围光
@@ -66,10 +63,26 @@ struct PaywallView: View {
                         Divider()
                         BenefitRow(icon: "figure.walk", title: "肉身成圣", subtitle: "单日炼化，四万步数", color: .green)
                         Divider()
+                      
+                        #if os(watchOS)
                         BenefitRow( icon: "applewatch.watchface",  title: "表盘显化",subtitle: "表盘组件，实时进度",color: .cyan)
+                        #elseif os(iOS)
+                        BenefitRow( icon: "applewatch.watchface",  title: "腕上天机",subtitle: "Apple Watch，专属表盘",color: .cyan)
+                        #endif
+        
                         Divider()
                         BenefitRow(icon: "infinity", title: "百世轮回", subtitle: "开启转世，继承天赋", color: .purple)
                         Divider()
+                      
+                         HStack {
+                             Spacer()
+                             Text("✨ 一次购买，双端通用")
+                                 .font(XiuxianFont.caption)
+                                 .foregroundColor(.gray)
+                                 .padding(.top, 8)
+                             Spacer()
+                         }
+        
 
                     }
                     .padding(.horizontal, 8)
@@ -129,16 +142,42 @@ struct PaywallView: View {
                       
                     } else {
                       // 商品加载中占位
-                      RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.1))
-                        .frame(height: 40)
-                        .overlay(
-                          Text("正在连接天道...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        )
-                        .padding(.horizontal, 12)
-                        .task { try? await purchaseManager.loadProducts() }
+                      VStack(spacing: 12) {
+                        if purchaseManager.loadError != nil {
+                          // 错误状态：只显示重试按钮
+                          Button {
+                            Task { try? await purchaseManager.loadProducts() }
+                          } label: {
+                            Text("重试连接")
+                              .font(XiuxianFont.secondaryButton)
+                              .foregroundColor(.white)
+                              .frame(maxWidth: .infinity)
+                              .frame(height: 40)
+                              .background(Color.orange)
+                              .clipShape(Capsule())
+                          }
+                          .buttonStyle(.plain)
+                          .padding(.horizontal, 12)
+                        } else {
+                          // 加载中状态
+                          RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white.opacity(0.1))
+                            .frame(height: 40)
+                            .overlay(
+                              Text("正在连接天道...")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            )
+                            .padding(.horizontal, 12)
+                        }
+                      }
+                      .task { try? await purchaseManager.loadProducts() }
+                      .onChange(of: purchaseManager.loadError) { _, error in
+                        if let error = error {
+                          alertMessage = error
+                          showingAlert = true
+                        }
+                      }
                     }
                     
                     // 4. 恢复购买 (极简)
@@ -150,11 +189,6 @@ struct PaywallView: View {
                     .foregroundColor(.gray)
                     .buttonStyle(.plain)
                 }
-            }
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                isAnimating = true
             }
         }
         .alert(isPresented: $showingAlert) {

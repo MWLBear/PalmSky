@@ -1,6 +1,8 @@
 import Foundation
 import Combine
+#if os(watchOS)
 import WatchKit
+#endif
 
 let debugAscended = false // 九天玄仙8层-测试开关
 
@@ -58,11 +60,11 @@ class GameManager: ObservableObject {
       
       // 👇👇👇【测试代码】开启上帝模式 👇👇👇
         // 这一段在测试完后记得删除或注释掉
-//        if debugAscended {
-//            self.player.level = 43 // 设定为满级前一级
-//            self.player.currentQi = 199_999 // 给无限灵气
-//            // 👆👆👆【测试代码】结束 👆👆👆
-//        }
+        if debugAscended {
+            self.player.level = 143 // 设定为满级前一级
+            self.player.currentQi = 9999999_999999 // 给无限灵气
+            // 👆👆👆【测试代码】结束 👆👆👆
+        }
       
         checkBreakCondition()
         // ⚡ 性能优化：setupAutoSave 已合并到 startMainLoop 中
@@ -745,20 +747,24 @@ class GameManager: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: SkyConstants.UserDefaults.userDefaultsKey)
         }
       
-      // 2. ✨ 保存 Widget 快照 (更新调用)
+        // 2. ✨ 保存 Widget 快照 (仅 Watch 端或者是共享容器支持时)
         // 获取当前等级的突破需求
         let cost = levelManager.breakCost(level: player.level)
         // 获取当前的基础自动产出 (含轮回加成)
         let rawGain = levelManager.autoGain(level: player.level, reincarnation: player.reincarnationCount)
         
+        #if os(watchOS)
         SharedDataManager.saveSnapshot(
             player: player,
             breakCost: cost,
             rawAutoGain: rawGain,
             isUnlocked: PurchaseManager.shared.hasAccess // 🔥 传入解锁状态
         )
+        #endif
       
         // 3. ✨ 发送数据到手机 (智能节流)
+        // 仅 Watch 端才需要发送给手机
+        #if os(watchOS)
         let now = Date()
         // 判定条件：强制发送 OR 距离上次发送超过 5 分钟 (300秒)
         if forceSyncToPhone || now.timeIntervalSince(lastPhoneSyncTime) > 300 {
@@ -766,6 +772,35 @@ class GameManager: ObservableObject {
           lastPhoneSyncTime = now
           print("📡 同步手机成功 (强制: \(forceSyncToPhone))")
         }
+        #endif
+
+       //手机端上传GameCenter
+        #if os(iOS)
+      
+        if player.level > 0 {
+          print("WatchSync (iOS): processIncomingGameData submitScore",player.level)
+          
+          // ✅ 使用封装好的公式计算总分
+          let totalScore = GameLevelManager.shared.calculateTotalScore(
+            level: player.level,
+            reincarnation: player.reincarnationCount
+          )
+          
+          // 提交总胜利数到 Game Center 排行榜
+          GameCenterManager.shared.submitScore(Int(totalScore), to: SkyConstants.GameCenter.Leaderboard.playerLevelIphone.rawValue)
+        
+        }
+        
+        if player.click > 0 {
+          
+          GameCenterManager.shared.submitScore(player.click, to: SkyConstants.GameCenter.Leaderboard.playerClickIphone.rawValue)
+
+        }
+    
+        AchievementReporter.shared.checkAndReport(for: player)
+  
+        #endif
+      
     }
     
     // MARK: - Getters

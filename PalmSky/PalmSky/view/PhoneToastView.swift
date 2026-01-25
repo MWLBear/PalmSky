@@ -12,7 +12,7 @@ import SwiftUI
 import SwiftUI
 
 // MARK: - Toast Modifier
-struct ToastModifier: ViewModifier {
+struct PhoneToastModifier: ViewModifier {
     @Binding var isPresented: Bool
     let message: String
     let duration: Double
@@ -107,7 +107,7 @@ extension View {
     func toast(_ message: String,
                isPresented: Binding<Bool>,
                duration: Double = 2) -> some View {
-        self.modifier(ToastModifier(isPresented: isPresented,
+        self.modifier(PhoneToastModifier(isPresented: isPresented,
                                     message: message,
                                     duration: duration))
     }

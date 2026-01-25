@@ -58,12 +58,17 @@ class PurchaseManager: NSObject, ObservableObject {
     }
     
     @Published var isPurchasing: Bool = false
+    @Published var loadError: String? = nil
     @Published var isLegacyUser: Bool = false {
         didSet {
             // 缓存老用户状态
             UserDefaults.standard.set(isLegacyUser, forKey: isLegacyUserCacheKey)
             print("💾 isLegacyUser cached: \(isLegacyUser)")
         }
+    }
+    
+    private enum LoadProductsError: Error {
+        case timeout
     }
     
     // 通用查询接口: 检查是否已购买某商品
@@ -103,60 +108,125 @@ class PurchaseManager: NSObject, ObservableObject {
     
     // MARK: - Legacy User Check
     func checkLegacyAccess() async {
+        // 如果缓存已经是 true，就不必重复查 AppTransaction 了，但要触发一次权限重算保底
+        if UserDefaults.standard.bool(forKey: isLegacyUserCacheKey) {
+            await MainActor.run {
+                self.isLegacyUser = true
+                self.hasAccess = true
+            }
+            return
+        }
+        
         do {
-            let shared = try await AppTransaction.shared
+            let result = try await AppTransaction.shared
             
-            if case .verified(let appTransaction) = shared {
-                let originalVersion = appTransaction.originalAppVersion
-             
-              print("📝 Original App Version: \(originalVersion)")
-
-              
-                // 解析版本号 (e.g. "1.0", "1.2.3")
-                let versionComponents = originalVersion.split(separator: ".")
+            if case .verified(let appTransaction) = result {
+                let originalPurchaseDate = appTransaction.originalPurchaseDate
+                print("📝 原始购买时间: \(originalPurchaseDate)")
                 
-                if let majorString = versionComponents.first, let major = Int(majorString) {
-                     print("📝 Original App Version: \(originalVersion) (Major: \(major))")
-                    
-                    if major < SkyConstants.newBusinessModelMajorVersion {
-                        // 老用户：直接赋予权限
-                        await MainActor.run {
-                            self.isLegacyUser = true
-                            self.hasAccess = true
-                        }
-                        print("🎉 Legacy User Detected! Access Granted.")
-                    } else {
-                        await MainActor.run {
-                            self.isLegacyUser = false
-                        }
-                        // hasAccess 取决于是否购买了 IAP，在 updatePurchasedProducts 更新
-                         print("🆕 New User Detected.")
+                // 📅 截止时间：2026-01-03 02:29 (北京时间 UTC+8) = 2026-01-02 18:29 (UTC)
+                var components = DateComponents()
+                components.year = 2026
+                components.month = 1
+                components.day = 2
+                components.hour = 18    // UTC 18点
+                components.minute = 29 // UTC 29分
+                components.timeZone = TimeZone(identifier: "UTC")
+                
+                let calendar = Calendar(identifier: .gregorian)
+                
+                // 边界情况处理：如果创建失败，默认判定为新用户（更安全）
+                guard let cutoffDate = calendar.date(from: components) else {
+                    print("⚠️ cutoffDate 创建失败，默认判定为新用户")
+                    await MainActor.run {
+                        self.isLegacyUser = false
+                        self.hasAccess = false
+                    }
+                    return
+                }
+                
+                print("📅 截止时间 (UTC): \(cutoffDate)")
+                
+                if originalPurchaseDate < cutoffDate {
+                    print("🎉 判定为老用户 (购买时间 < 截止时间)")
+                    await MainActor.run {
+                        self.isLegacyUser = true
+                        self.hasAccess = true
                     }
                 } else {
-                     print("⚠️ Failed to parse original version: \(originalVersion)")
+                    print("🆕 判定为新用户 (购买时间 >= 截止时间)")
+                    await MainActor.run {
+                        self.isLegacyUser = false
+                        self.hasAccess = false
+                    }
                 }
             } else {
-                 print("⚠️ Unverified App Transaction")
+                print("⚠️ AppTransaction 验证失败")
             }
         } catch {
-            print("❌ Failed to get AppTransaction: \(error)")
+            print("❌ 老用户验证出错: \(error)")
         }
     }
     
     // MARK: - Load Products
     func loadProducts() async throws {
-        guard !self.productsLoaded else { return }
+        // 如果已经加载到商品了，就不重复加载
+        guard !self.productsLoaded || self.products.isEmpty else { return }
+        
+        // 清除之前的错误
+        await MainActor.run { self.loadError = nil }
         
         do {
-            let fetchedProducts = try await Product.products(for: productIds)
+            let fetchedProducts = try await fetchProductsWithTimeout()
             await MainActor.run {
                 self.products = fetchedProducts
-                self.productsLoaded = true
+                // 只有加载到商品才标记为已加载
+                if !fetchedProducts.isEmpty {
+                    self.productsLoaded = true
+                }
+                self.loadError = nil
             }
             print("✅ Products loaded successfully: \(self.products.count) products")
+            
+            // 如果加载到 0 个商品，提示可能的原因
+            if fetchedProducts.isEmpty {
+                print("⚠️ Loaded 0 products. Possible reasons: no network permission, product IDs not configured")
+                await MainActor.run {
+                    self.loadError = "请检查网络权限或稍后重试"
+                }
+            }
         } catch {
+            if case LoadProductsError.timeout = error {
+                print("⏳ Load products timeout")
+                await MainActor.run {
+                    self.loadError = "连接超时，请重试"
+                }
+                throw error
+            }
+            
             print("❌ Failed to load products: \(error)")
+            await MainActor.run {
+                self.loadError = "网络连接失败，请检查网络"
+            }
             throw error
+        }
+    }
+
+    private func fetchProductsWithTimeout(
+        timeoutSeconds: UInt64 = 8
+    ) async throws -> [Product] {
+        try await withThrowingTaskGroup(of: [Product].self) { group in
+            group.addTask { [productIds] in
+                try await Product.products(for: productIds)
+            }
+            group.addTask {
+                try await Task.sleep(nanoseconds: timeoutSeconds * 1_000_000_000)
+                throw LoadProductsError.timeout
+            }
+            
+            let result = try await group.next()
+            group.cancelAll()
+            return result ?? []
         }
     }
     
@@ -288,4 +358,3 @@ class PurchaseManager: NSObject, ObservableObject {
         }
     }
 }
-

@@ -1,5 +1,5 @@
 import SpriteKit
-import WatchKit
+//import WatchKit
 import UIKit
 //https://xfcf1.github.io/
 class MindDemonScene: SKScene, SKPhysicsContactDelegate {
@@ -182,7 +182,11 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         centerLabel?.fontColor = .white
 //        centerLabel?.text = "\(remaining)"
         centerLabel?.text = "\(successfulPins)/\(requiredPins)"
+        #if os(watchOS)
         centerLabel?.position = CGPoint(x: GameConfig.wheelRadius, y: frame.minY + GameConfig.pinLength / 2)
+        #elseif os(iOS)
+        centerLabel?.position = CGPoint(x: GameConfig.wheelRadius, y: frame.minY + GameConfig.pinLength * 1.2)
+        #endif
         centerLabel?.zPosition = 5
         addChild(centerLabel!)
          

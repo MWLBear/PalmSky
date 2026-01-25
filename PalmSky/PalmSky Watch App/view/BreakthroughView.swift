@@ -39,8 +39,19 @@ struct BreakthroughView: View {
     @State private var showMiniGame = false
     @State private var miniGameType: GameLevelManager.TribulationGameType = .none
   
-   let offsetY = 15.0
-
+    #if os(watchOS)
+    let visualOffsetY: CGFloat = 15.0
+    #elseif os(iOS)
+    let visualOffsetY: CGFloat = 0.0
+    #endif
+    // Bottom padding needs to be consistent
+ 
+    #if os(watchOS)
+    let bottomPadding: CGFloat = 15.0
+    #elseif os(iOS)
+    let bottomPadding: CGFloat = 15.0
+    #endif
+  
     enum BreakthroughResult {
         case success
         case failure
@@ -50,7 +61,13 @@ struct BreakthroughView: View {
     
     var body: some View {
         GeometryReader { geo in
+          
+            #if os(watchOS)
             let width = geo.size.width
+            #elseif os(iOS)
+            let width = geo.size.width - 15
+            #endif
+                      
             let height = geo.size.height
 
             let colors = RealmColor.gradient(for: gameManager.player.level)
@@ -87,7 +104,7 @@ struct BreakthroughView: View {
                       // ✨ 传入成功率
                       successRate: GameLevelManager.shared.breakSuccess(level: gameManager.player.level)
                     )
-                    .offset(y: offsetY)
+                    .offset(y: visualOffsetY)
                     
                     VStack {
                       Spacer() // 这是一个强力弹簧，把下面的内容死死压在底部
@@ -98,7 +115,7 @@ struct BreakthroughView: View {
                         action: startBreakthrough
                       )
                       // 🚀 核心修改：这里控制距离底部的距离
-                      .padding(.bottom, offsetY)
+                      .padding(.bottom, bottomPadding)
                     }
                     // 确保 Layer B 能利用到底部安全区空间
                     .ignoresSafeArea(edges: .bottom)
@@ -334,7 +351,18 @@ struct BreakthroughVisualsView: View {
     let coreScale: CGFloat
     let shockwaveScale: CGFloat
     let shockwaveOpacity: Double
+
+    #if os(watchOS)
     let sacleWidth = 0.85
+    #elseif os(iOS)
+    let sacleWidth = 1.0
+    #endif
+  
+    #if os(watchOS)
+    let lineWidth = 10.0
+    #elseif os(iOS)
+    let lineWidth = 16.0
+    #endif
   
     // ✨ 新增：接收成功率用于显示
     let successRate: Double
@@ -346,7 +374,7 @@ struct BreakthroughVisualsView: View {
             // A. 静态底轨
             Circle()
                 .trim(from: 0.16, to: 0.84)
-                .stroke(primaryColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .stroke(primaryColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(90))
                 .frame(width: width * sacleWidth, height: width * sacleWidth)
             
@@ -406,7 +434,7 @@ struct BreakthroughVisualsView: View {
                         .frame(width: 40, height: 40)
                         .shadow(color: primaryColor, radius: 10 + coreBrightness * 20)
                         .scaleEffect(coreScale)
-                }
+                }.offset(y: offsetY) // 稍微往上提一点，避开圆心
             }
             
             // F. 冲击波
@@ -436,8 +464,13 @@ struct BreakthroughVisualsView: View {
           // 3. 计算垂直距离 (余弦定理)
           // 这就是从圆心向下到"缺口连线"的精确距离
           let chordDistance = radius * cos(halfGapAngleRadians)
-          
+                    
+          #if os(watchOS)
           return chordDistance
+          #elseif os(iOS)
+          return chordDistance - 15
+          #endif
+        
       }
   
 }
@@ -493,7 +526,7 @@ struct BreakthroughResultView: View {
         VStack {
             VStack(spacing: 5) {
                 Image(systemName: result == .success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .font(.system(size: height * 0.35))
+                    .font(.system(size: height * 0.25))
                     .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
                     .symbolEffect(.bounce, value: showResultView)
                 

@@ -91,15 +91,56 @@
 		04DAB5BC2EF4352D00AF7427 /* Exceptions for "PalmSky Watch App" folder in "PalmSky" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				events.json,
 				manager/AchievementReporter.swift,
+				manager/EventPool.swift,
 				manager/GameLevelManager.swift,
+				manager/GameManager.swift,
+				manager/HapticManager.swift,
+				manager/NotificationManager.swift,
+				manager/PurchaseManager.swift,
+				manager/RecordManager.swift,
+				manager/SkinManager.swift,
+				manager/SkyAudio.swift,
 				manager/SkySyncManager.swift,
+				manager/WatchHealthManager.swift,
+				model/CultivationRecord.swift,
 				model/GameEvent.swift,
 				model/GameFormulas.swift,
 				model/RealmColor.swift,
 				model/SkyConstants.swift,
 				model/TaijiSkin.swift,
 				model/XiuxianFont.swift,
+				PalmSkyProducts.storekit,
+				view/BottomActionButton.swift,
+				view/BottomControlView.swift,
+				view/BreakthroughView.swift,
+				view/BuffDetailView.swift,
+				view/BuffStatusBar.swift,
+				view/CelebrationView.swift,
+				view/CultivationRingView.swift,
+				view/EventView.swift,
+				view/game/GameGuideView.swift,
+				view/game/images/KnifeHit.mp3,
+				view/game/images/KnifeHitFail.mp3,
+				view/game/images/kunai.png,
+				view/game/images/lightning.mp3,
+				view/game/images/timber.png,
+				view/game/MindDemonScene.swift,
+				view/game/MiniGameContainer.swift,
+				view/game/SwordDefenseScene.swift,
+				view/LifeReviewView.swift,
+				view/MainView.swift,
+				view/ParticleView.swift,
+				view/PaywallView.swift,
+				view/RealmHeaderView.swift,
+				view/SettingsView.swift,
+				view/StepRefineView.swift,
+				view/SwipeTutorialView.swift,
+				view/TaijiShapeView.swift,
+				view/TaijiView.swift,
+				view/ToastView.swift,
+				view/WatchRealmListView.swift,
 			);
 			target = 04A830CC2EEC094900DDEDDC /* PalmSky */;
 		};
@@ -534,7 +575,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
@@ -551,7 +592,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -574,7 +615,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PalmSky Watch App/PalmSky Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
@@ -591,7 +632,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -615,7 +656,7 @@
 				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
@@ -623,6 +664,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PalmSky/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -630,12 +673,12 @@
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -658,7 +701,7 @@
 				CODE_SIGN_ENTITLEMENTS = PalmSky/PalmSky.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PalmSky/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = N9D9LC468N;
@@ -666,6 +709,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PalmSky/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "掌上修仙";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于读取您的每日步数，将运动成果转化为游戏内的修行灵气。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -673,12 +718,12 @@
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -701,7 +746,7 @@
 				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -714,7 +759,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -736,7 +781,7 @@
 				CODE_SIGN_ENTITLEMENTS = SkyExtension.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = N9D9LC468N;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -749,7 +794,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

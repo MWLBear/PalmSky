@@ -54,6 +54,10 @@ struct SkyConstants {
     enum Leaderboard: String {
       case playerLevel = "sky_player_level"
       case playerClick = "sky_player_clicks"
+      
+      case playerLevelIphone = "sky_player_level_iphone"
+      case playerClickIphone = "sky_player_clicks_iphone"
+      
     }
     
     // MARK: - Game Center 成就 IDs

@@ -21,7 +21,10 @@ struct SettingsView: View {
             List {
               
                 // MARK: - ✨ 机缘 (步数炼化)
-                Section(header: Text("炼体").foregroundColor(themeColor)) {
+                Section(header: Text("炼体").foregroundColor(themeColor),
+                        footer: Text("数据来源于HeaLthKit，仅用于步数兑换灵气，严格保护隐私。")
+                        .foregroundColor (.secondary)
+                ) {
                   // ✅ 直接调用封装好的组件
                   StepRefineRow(themeColor: themeColor) { gain in
                       // 1. 触发主页动画信号
@@ -184,6 +187,7 @@ struct SettingsView: View {
                   } label: {
                     Label {
                       Text("恢复契约")
+                        .foregroundColor(.white)
                     } icon: {
                       Image(systemName: "arrow.clockwise")
                         .font(.title3)
@@ -246,6 +250,7 @@ struct SettingsView: View {
                         )) {
                             Label {
                                 Text("自动冲关")
+                                .foregroundColor(.white)
                             } icon: {
                                 Image(systemName: "bolt.horizontal.circle.fill")
                                     .foregroundColor(themeColor)
@@ -261,6 +266,8 @@ struct SettingsView: View {
                             HStack {
                                 Label {
                                     Text("自动冲关")
+                                    .foregroundColor(.white)
+
                                 } icon: {
                                     Image(systemName: "bolt.horizontal.circle.fill")
                                         .foregroundColor(.gray)
@@ -269,7 +276,7 @@ struct SettingsView: View {
                                 Spacer()
                                 
                                 Image(systemName: "lock.fill")
-                                    .font(.caption2)
+                                    //.font(.caption2)
                                     .foregroundColor(.gray)
                             }
                         }
@@ -379,8 +386,8 @@ struct SettingsView: View {
 }
 
 // MARK: - Preview
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-      SettingsView(currentTab: .constant(1))
-    }
-}
+//struct SettingsView_Previews: PreviewProvider {
+//    static var previews: some View {
+//      SettingsView(currentTab: .constant(1))
+//    }
+//}

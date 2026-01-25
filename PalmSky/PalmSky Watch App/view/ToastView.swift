@@ -8,6 +8,12 @@ struct ToastView: View {
     // 控制动画的状态
     @State private var isVisible = false
     
+    #if os(watchOS)
+    let paddingTop: CGFloat = 10
+    #elseif os(iOS)
+    let paddingTop: CGFloat = 55
+    #endif
+  
     var body: some View {
         VStack {
             HStack(spacing: 6) {
@@ -36,7 +42,7 @@ struct ToastView: View {
                     )
             )
             .shadow(color: Color.black.opacity(0.3), radius: 10, y: 5)
-            .padding(.top, 10) // 最终停留位置的顶部边距
+            .padding(.top, paddingTop) // 最终停留位置的顶部边距
             
             Spacer()
         }

@@ -6,151 +6,143 @@ struct StepRefineRow: View {
     let themeColor: Color
     var onRefineSuccess: ((Double) -> Void)? = nil
     
+    // 计算属性
+    private var isMaxLimitReached: Bool {
+        healthManager.todaySteps >= healthManager.MAX_DAILY_STEPS && healthManager.stepsAvailableToRefine <= 0
+    }
+    
+    private var hasStepsToRefine: Bool {
+        healthManager.stepsAvailableToRefine > 0
+    }
+    
     var body: some View {
-        // 1. 判断是否达到上限
-        let isMaxLimitReached = healthManager.todaySteps >= healthManager.MAX_DAILY_STEPS && healthManager.stepsAvailableToRefine <= 0
-      
-        Button(action: {
-          
-            if healthManager.stepsAvailableToRefine > 0 {
-              // ✅ 优先级第一：只要有步数，先炼化！不管是不是超了上限
-              handleRefineSteps()
-            } else if isMaxLimitReached {
-              // 🟠 优先级第二：没步数了，且到了上限，才提示“肉身极限”
-              HapticManager.shared.playIfEnabled(.failure)
-              gameManager.offlineToastMessage = "凡胎肉体已达极限，明日再来"
-            }
-          
-        }) {
-            HStack(spacing: 6) {
-                iconView(isMaxed: isMaxLimitReached)
+        Button(action: handleTap) {
+            VStack(alignment: .leading, spacing: 6) {
+                // 顶部：状态行
+                HStack(spacing: 6) {
+                    // 图标
+                    Image(systemName: "figure.walk")
+                        .font(.body)
+                        .foregroundColor(statusColor)
+                    
+                    // 状态文字
+                    Text(statusText)
+                        .foregroundColor(statusColor)
+                    
+                    Spacer(minLength: 0)
+                    
+                    // 徽章
+                    badgeView
+                }
                 
-                infoView(isMaxed: isMaxLimitReached)
-                  .layoutPriority(1)
-              
-                Spacer(minLength: 0)
-
-                statusView(isMaxed: isMaxLimitReached)
+                // 底部：今日步数
+                Text("今日 \(healthManager.todaySteps.formatted()) 步")
+                    .font(XiuxianFont.caption)
+                    .foregroundColor(.secondary)
             }
             .contentShape(Rectangle())
-            .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
-        // ⚠️ 只有在“没步数”且“没达上限”时才禁用
-        // 如果达上限了，允许点击(为了看提示)；如果有步数，允许点击(炼化)
-        .disabled(healthManager.stepsAvailableToRefine <= 0 && !isMaxLimitReached)
+        .disabled(!hasStepsToRefine && !isMaxLimitReached)
         .onAppear {
             healthManager.requestPermission()
             healthManager.fetchTodaySteps()
         }
     }
-
-    // MARK: - Subviews
     
-    private func iconView(isMaxed: Bool) -> some View {
-        // 达到上限变橙色，否则跟随主题色
-        Image(systemName: "figure.walk")
-            .font(.title3)
-            .foregroundColor(isMaxed ? .orange : themeColor)
+    // MARK: - 状态颜色
+    private var statusColor: Color {
+        if hasStepsToRefine { return .green }
+        if isMaxLimitReached { return .orange }
+        return .gray
     }
     
-  // MARK: - 左侧文字信息
-    private func infoView(isMaxed: Bool) -> some View {
-      VStack(alignment: .leading, spacing: 5) {
-        
-        // 第一行：状态文字
-        if healthManager.stepsAvailableToRefine > 0 {
-          Text("点击炼化") // 🟢
-            .foregroundColor(.green)
-        } else if isMaxed {
-          Text("经脉已满") // 🟠
-            .foregroundColor(.orange)
-        } else {
-          // ⚪️ 没满，也没得领
-          if healthManager.todaySteps == 0 {
-            Text("暂无步数") // 刚起床
-              .foregroundColor(.gray)
-          } else {
-            Text("炼化完成") // 走过了，领完了
-              .foregroundColor(.gray)
-          }
-        }
-        
-        // 第二行：今日步数 (保持不变)
-        HStack(spacing: 2) {
-          Text("今日 \(healthManager.todaySteps)步")
-            .monospacedDigit()
-            .font(XiuxianFont.caption)
-            .foregroundColor(.gray)
-            .minimumScaleFactor(0.5)
-        }
-      }
+    // MARK: - 状态文字
+    private var statusText: String {
+        if hasStepsToRefine { return "点击炼化" }
+        if isMaxLimitReached { return "经脉已满" }
+        return healthManager.todaySteps == 0 ? "暂无步数" : "炼化完成"
     }
     
-    // MARK: - 右侧按钮状态
+    // MARK: - 右侧徽章
     @ViewBuilder
-    private func statusView(isMaxed: Bool) -> some View {
-      if healthManager.stepsAvailableToRefine > 0 {
-        // 🟢 有步数
-        HStack(spacing: 0) {
-          Text("+\(healthManager.stepsAvailableToRefine)")
-            .font(XiuxianFont.caption)
-            .contentTransition(.numericText())
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
+    private var badgeView: some View {
+        if hasStepsToRefine {
+            // 🟢 可炼化
+            Text("+\(healthManager.stepsAvailableToRefine.formatted())")
+                .font(XiuxianFont.caption)
+                .monospacedDigit()
+                .foregroundColor(.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(themeColor.opacity(0.25))
+                .clipShape(Capsule())
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+          
+            
+        } else if isMaxLimitReached {
+            // 🟠 达上限 - 简洁设计
+            HStack(spacing: 3) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 9))
+                Text("已满")
+            }
+            .font(.caption2)
+            .foregroundColor(.orange.opacity(0.8))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.orange.opacity(0.12))
+            .clipShape(Capsule())
+            
+        } else {
+            // ⚪️ 已完成 / 无步数 - 简洁设计
+            if healthManager.todaySteps == 0 {
+                HStack(spacing: 3) {
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.system(size: 9))
+                    Text("休憩")
+                }
+                .font(.caption2)
+                .foregroundColor(.secondary.opacity(0.5))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.secondary.opacity(0.1))
+                .clipShape(Capsule())
+            } else {
+                HStack(spacing: 3) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 9))
+                    Text("已领")
+                }
+                .font(.caption2)
+                .foregroundColor(.secondary.opacity(0.5))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.secondary.opacity(0.1))
+                .clipShape(Capsule())
+            }
         }
-        .foregroundColor(.primary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(themeColor.opacity(0.25))
-        .clipShape(Capsule())
-        
-      } else if isMaxed {
-        // 🟠 达上限
-        HStack(spacing: 2) {
-          Image(systemName: "lock.fill")
-            .font(.system(size: 10))
-          Text("上限")
-            .font(XiuxianFont.caption)
-        }
-        .foregroundColor(.orange)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.orange.opacity(0.15))
-        .clipShape(Capsule())
-        
-      } else {
-        // ⚪️ 没步数 (0步 或 已领完)
-        HStack(spacing: 2) {
-          if healthManager.todaySteps == 0 {
-            // 0步显示脚印
-            Image(systemName: "shoeprints.fill")
-              .font(.system(size: 10))
-            Text("休憩")
-          } else {
-            // 领完显示对号
-            Image(systemName: "checkmark")
-            Text("已领")
-          }
-        }
-        .font(XiuxianFont.secondaryButton)
-        .foregroundColor(.secondary.opacity(0.5))
-        .fixedSize()
-      }
     }
-  
+    
+    // MARK: - 点击处理
+    private func handleTap() {
+        if hasStepsToRefine {
+            handleRefineSteps()
+        } else if isMaxLimitReached {
+            HapticManager.shared.playIfEnabled(.failure)
+            gameManager.offlineToastMessage = "凡胎肉体已达极限，明日再来"
+        }
+    }
     
     private func handleRefineSteps() {
-         let baseGain = gameManager.getCurrentTapGain()
-         let gain = healthManager.refine(perStepValue: baseGain)
-         if gain > 0 {
-             gameManager.player.currentQi += gain
-             gameManager.savePlayer()
-             
-             // 震动
-             HapticManager.shared.playIfEnabled(.success)
-           
-             onRefineSuccess?(gain)
-         }
+        let baseGain = gameManager.getCurrentTapGain()
+        let gain = healthManager.refine(perStepValue: baseGain)
+        if gain > 0 {
+            gameManager.player.currentQi += gain
+            gameManager.savePlayer()
+            HapticManager.shared.playIfEnabled(.success)
+            onRefineSuccess?(gain)
+        }
     }
 }

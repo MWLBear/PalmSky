@@ -7,6 +7,11 @@
 
 import Foundation
 import SwiftUI
+#if os(watchOS)
+import WatchKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct BottomActionButton: View {
     let title: String
@@ -48,10 +53,17 @@ func maxButtonWidth(
     endTrim: Double = 0.84,
     paddingRatio: CGFloat = 0.80
 ) -> CGFloat {
-    let screenWidth = WKInterfaceDevice.current().screenBounds.width / 2
+    let halfWidth: CGFloat
+    #if os(watchOS)
+    halfWidth = WKInterfaceDevice.current().screenBounds.width / 2
+    #elseif os(iOS)
+    // iOS 上，游戏窗口大约是屏幕宽度的 0.58 (参考 BaguaContainerView)
+    halfWidth = (UIScreen.main.bounds.width * 0.50) / 2
+    #endif
+    
     let arcLength = endTrim - startTrim
     let gapRatio = 1.0 - arcLength
-    let radius = screenWidth * 0.90 // 圆环撑满 90% 屏幕
+    let radius = halfWidth * 0.90 // 圆环撑满 90% 屏幕
     let gapAngle = gapRatio * 2 * .pi
     let gapWidth = 2 * radius * sin(gapAngle / 2)
     return gapWidth * paddingRatio

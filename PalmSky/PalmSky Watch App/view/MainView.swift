@@ -8,6 +8,10 @@ struct RootPagerView: View {
     @State private var showCelebration = false
     @State private var showReview = false
     @ObservedObject var recordManager = RecordManager.shared
+    
+    // 首次提示相关
+    @AppStorage("hasSeenSwipeTutorial") private var hasSeenSwipeTutorial = false
+    @State private var showSwipeTutorial = false
 
     @Environment(\.scenePhase) var scenePhase
 
@@ -30,6 +34,8 @@ struct RootPagerView: View {
                 SettingsView(currentTab: $page).tag(1)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+          
+            #if os(watchOS)
             .sheet(isPresented: $showBreakthrough) {
               NavigationView {
                 BreakthroughView(isPresented: $showBreakthrough)
@@ -45,6 +51,8 @@ struct RootPagerView: View {
                   .toolbar(.hidden, for: .navigationBar)
                 }
             }
+            #endif
+          
             .sheet(isPresented: $gameManager.showPaywall) {
                 PaywallView()
             }
@@ -77,6 +85,64 @@ struct RootPagerView: View {
                 }
                 .transition(.opacity)
                 .zIndex(3) // 设高一点，盖住一切
+            }
+          
+          
+            #if os(iOS)
+          
+            // 6. 突破界面 (Overlay 覆盖)
+            if showBreakthrough {
+                BreakthroughView(isPresented: $showBreakthrough)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    .zIndex(4)
+            }
+            
+            // 7. 奇遇事件 (Overlay 覆盖)
+            if gameManager.showEventView {
+              
+              if let event = gameManager.currentEvent {
+                NavigationView {
+                  EventView(event: event)
+                }
+               // .toolbar(.hidden, for: .navigationBar)
+              }
+              
+            }
+          
+            #endif
+            
+            // 🆕 左滑提示动画
+            if showSwipeTutorial && page == 0 {
+                SwipeTutorialView()
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    .zIndex(5)
+            }
+        }
+        .onChange(of: page) { _, newPage in
+            // 用户滑动后，隐藏提示并标记已看过
+            if showSwipeTutorial {
+                withAnimation {
+                    showSwipeTutorial = false
+                }
+                hasSeenSwipeTutorial = true
+            }
+        }
+        .onAppear {
+            // 首次进入且未看过提示，延迟3秒显示
+            if !hasSeenSwipeTutorial {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showSwipeTutorial = true
+                    }
+                    
+                    // 3秒后自动消失
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                        withAnimation {
+                            showSwipeTutorial = false
+                        }
+                        hasSeenSwipeTutorial = true
+                    }
+                }
             }
         }
         // body 底部添加
@@ -159,13 +225,26 @@ struct MainView: View {
    // ✨ 新增：控制境界详情页显示
    @State private var showRealmDetail = false
   
-    let offsetY = 15.0
+  
+    #if os(watchOS)
+    let visualOffsetY: CGFloat = 15.0
+    #elseif os(iOS)
+    let visualOffsetY: CGFloat = 0.0
+    #endif
+  
+    //let offsetY = 15.0
   
     var body: some View {
         GeometryReader { geo in
             // 核心尺寸计算
             let screenWidth = geo.size.width
+          
+            #if os(watchOS)
             let ringSize = screenWidth * 0.90 // 圆环撑满 90% 屏幕
+            #elseif os(iOS)
+            let ringSize = screenWidth - 15 // 手机占满中间的位置
+            #endif
+          
             let taijiSize = screenWidth * 0.65 // 太极占 65%
             
             let colors = RealmColor.gradient(for: gameManager.player.level)
@@ -193,7 +272,7 @@ struct MainView: View {
                   gradientColors: [colors.first ?? primaryColor, primaryColor],
                   isAscended: visualIsAscended
                 )
-                .offset(y: visualIsAscended ? 0 : offsetY)
+                .offset(y: visualIsAscended ? 0 : visualOffsetY)
            
                 // 3. 物理太极 (居中)
                 TaijiView(
@@ -214,7 +293,7 @@ struct MainView: View {
                     })
                 .frame(width: taijiSize, height: taijiSize)
                 .scaleEffect(pulse ? 1.08 : 1.0) // 更有力的跳动
-                .offset(y: visualIsAscended ? 0 : offsetY)
+                .offset(y: visualIsAscended ? 0 : visualOffsetY)
 
                 // 4. 信息层 (Text Overlay)
                 VStack {
@@ -229,6 +308,9 @@ struct MainView: View {
                       layerName: gameManager.getLayerName(),
                       primaryColor: primaryColor
                     )
+                    #if os(iOS)
+                    .offset(y: -10)
+                    #endif
                     .onTapGesture {
                       showRealmDetail = true
                     }
@@ -245,6 +327,12 @@ struct MainView: View {
                         showBreakthrough: $showBreakthrough,
                         primaryColor: primaryColor
                       )
+                      #if os(watchOS)
+                        .padding(.bottom, 0)
+                      #elseif os(iOS)
+                          .padding(.bottom, 10)
+                      #endif
+                     
                     }
                   }
                 }
@@ -252,7 +340,15 @@ struct MainView: View {
             }
         }
         .ignoresSafeArea()
+      
+        #if os(iOS)
+        .navigationTitle("掌上修仙")
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+      
+        #if os(watchOS)
         .navigationBarHidden(true)
+        #endif
         .toast(message: $gameManager.offlineToastMessage)
 
       // ✨ 挂载 Sheet 弹窗
@@ -280,7 +376,17 @@ struct MainView: View {
             }
         }
       
-        .onAppear { gameManager.startGame() }
+        .onAppear {
+            gameManager.startGame()
+            // ✨ 修复：如果玩家已经满级，立即设置圆环为合上状态（无动画）
+            if gameManager.isAscended {
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    visualIsAscended = true
+                }
+            }
+        }
         // 监听炼化事件
         .onChange(of: gameManager.refineEvent) { _, newEvent in
             if let event = newEvent {
@@ -314,544 +420,6 @@ struct MainView: View {
             }
           }
         }
-      
-      
+
     }
 }
-
-// MARK: - 1. 灵气粒子特效 (营造氛围)
-struct ParticleView: View {
-    let color: Color
-    @State private var particles: [Particle] = []
-    
-    struct Particle: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var scale: CGFloat
-        var opacity: Double
-        var speedY: CGFloat
-    }
-    
-    var body: some View {
-        // ⚡ 性能优化：从 60fps 降至 10fps，减少 CPU 唤醒 .periodic(from: .now, by: 0.1)
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                for particle in particles {
-                    let rect = CGRect(x: particle.x * size.width, y: particle.y * size.height, width: 4 * particle.scale, height: 4 * particle.scale)
-                    context.opacity = particle.opacity
-                    context.fill(Path(ellipseIn: rect), with: .color(color))
-                }
-            }
-            .onChange(of: timeline.date) { _, _ in updateParticles() }
-        }
-        .onAppear {
-            // 初始生成一些粒子
-            for _ in 0..<15 { particles.append(createParticle()) }
-        }
-    }
-    
-    func updateParticles() {
-        for i in particles.indices {
-            particles[i].y -= particles[i].speedY
-            particles[i].opacity -= 0.005
-        }
-        // 移除消失的，补充新的
-        particles.removeAll { $0.opacity <= 0 || $0.y < 0 }
-        if Float.random(in: 0...1) < 0.1 && particles.count < 20 {
-            particles.append(createParticle())
-        }
-    }
-    
-    func createParticle() -> Particle {
-        Particle(
-            x: CGFloat.random(in: 0.2...0.8),
-            y: 1.0, // 从底部升起
-            scale: CGFloat.random(in: 0.5...1.5),
-            opacity: Double.random(in: 0.3...0.7),
-            speedY: CGFloat.random(in: 0.002...0.005)
-        )
-    }
-}
-
-struct RealmHeaderView: View {
-    // MARK: - 参数
-    let realmName: String   // 境界名 (如: 胎息)
-    let layerName: String   // 层级名 (如: 五层)
-    let primaryColor: Color // 主题色
-    
-    var body: some View {
-      HStack(alignment: .firstTextBaseline, spacing: 4) {
-        // 1. 境界名称 (大标题)
-        Text(realmName)
-          .font(XiuxianFont.realmTitle)
-          .foregroundColor(.white)
-        // 文字发光效果
-          .shadow(color: primaryColor.opacity(0.8), radius: 8)
-        // ⬇️ 修改2：核心适配逻辑
-          .lineLimit(1)            // 强制不换行
-          .minimumScaleFactor(0.5) // 空间不够时，允许缩小到 13pt
-          .layoutPriority(1)       // 如果空间挤，优先压缩这个 Text
-        
-        // 2. Lv 胶囊 (徽章)
-        Text(layerName)
-          .font(XiuxianFont.badge)
-          .foregroundColor(.white)
-          .padding(.horizontal, 5)
-          .padding(.vertical, 2)
-          .background(primaryColor.opacity(0.25)) // 半透明背景
-          .clipShape(Capsule())
-        // 稍微往上提一点，视觉上与大标题居中对齐
-          .offset(y: -2)
-      }
-      .padding(.top, 20) // 保持原有的顶部间距
-    }
-}
-
-struct CultivationRingView: View {
-    // MARK: - 参数
-    let ringSize: CGFloat
-    let progress: Double
-    let primaryColor: Color
-    let gradientColors: [Color]
-    let isAscended: Bool // 满级状态
-    
-    // MARK: - 动态配置 (核心修改)
-    // 满级时：0.0 ~ 1.0 (全圆)
-    // 未满级：0.16 ~ 0.84 (底部缺口)
-    private var startTrim: Double { isAscended ? 0.0 : 0.16 }
-    private var endTrim: Double   { isAscended ? 1.0 : 0.84 }
-    
-    // 有效弧度长度
-    private var arcLength: Double { endTrim - startTrim }
-    
-    // 动画配置：慢速、庄重
-    private let closeAnimation = Animation.easeInOut(duration: 3.0)
-    
- 
-    var body: some View {
-        ZStack {
-            // 1. 轨道 (暗色背景)
-            Circle()
-                .trim(from: CGFloat(startTrim), to: CGFloat(endTrim))
-                .stroke(
-                    Color.white.opacity(0.12),
-                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
-                )
-                .rotationEffect(.degrees(90))
-                .frame(width: ringSize, height: ringSize)
-                // ✨ 动画：轨道缓慢合拢
-                .animation(closeAnimation, value: isAscended)
-            
-           
-            let ringGradient = AngularGradient(
-                gradient: Gradient(
-                    colors: isAscended
-                        // 满级：同色渐变（看起来就是纯色，但类型没变）
-                        ? [primaryColor, primaryColor]
-                        // 未满级：灵气流转
-                        : gradientColors
-                ),
-                center: .center,
-                startAngle: .degrees(90),
-                endAngle: .degrees(360)
-            )
-          
-            // 3. 进度条 (亮色填充)
-            Circle()
-                .trim(from: CGFloat(startTrim), to: CGFloat(startTrim + (arcLength * progress)))
-                .stroke(
-                
-                  ringGradient,
-                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
-                )
-                .rotationEffect(.degrees(90))
-                // 满级时增加发光强度
-                .shadow(color: primaryColor.opacity(isAscended ? 0.8 : 0.6), radius: isAscended ? 15 : 8)
-                .frame(width: ringSize, height: ringSize)
-                // ✨ 动画：进度条缓慢合拢
-                .animation(closeAnimation, value: isAscended)
-                // 进度本身的动画
-                .animation(.spring(response: 0.5), value: progress)
-          
-          
-            // 3. 进度光点 (流星头)
-//            if progress > 0 && !isAscended {
-//                Circle()
-//                    .fill(Color.white)
-//                    .frame(width: 6, height: 6)
-//                    .shadow(color: .white, radius: 4)
-//                    .offset(x: ringSize / 2)
-//                    // ⚠️ 注意：这里的 startTrim 和 arcLength 会随动画动态变化，
-//                    // 从而保证光点在圆环合拢时也能平滑移动到正确位置
-//                    .rotationEffect(.degrees(92.0 + (360.0 * (startTrim + arcLength * progress))))
-//                    // ✨ 动画：光点位置跟随圆环变化
-//                    .animation(closeAnimation, value: isAscended)
-//                    // 进度本身的动画保持原样
-//                    .animation(.spring(response: 0.5), value: progress)
-//                   
-//            }
-            
-        }
-    }
-}
-
-
-struct BuffStatusBar: View {
-    @EnvironmentObject var gameManager: GameManager
-
-    var body: some View {
-        HStack(spacing: 8) {
-            
-            // 1. 点击增益 (Tap Buff)
-            if let buff = gameManager.player.tapBuff, Date() < buff.expireAt {
-              
-                let isPositive = buff.bonusRatio >= 0
-                let percent = Int(abs(buff.bonusRatio) * 100)
-              
-                HStack(spacing: 4) {
-                  Image(systemName: isPositive
-                        ? "hand.tap.fill"
-                        : "bolt.slash.fill")
-                  Text(isPositive ? "+\(percent)%" : "-\(percent)%")
-                }
-                .font(XiuxianFont.buffTag)
-                // ✨ 修复高度不一致
-                .frame(height: 15)
-                .foregroundColor(.white)
-                .padding(.horizontal, 6)
-                // .padding(.vertical, 2) // 移除垂直 padding，靠 frame 撑开
-                .background(
-                  isPositive
-                  ? Color.orange
-                  : Color.black.opacity(0.7)
-                )
-                .clipShape(Capsule())
-                .transition(.scale)
-            }
-            
-            // 2. 自动增益 (Auto Buff)
-            if let buff = gameManager.player.autoBuff, Date() < buff.expireAt {
-                HStack(spacing: 4) {
-                    Image(systemName: "leaf.fill")
-                    Text("+\(Int(buff.bonusRatio * 100))%")
-                }
-                .font(XiuxianFont.buffTag)
-                // ✨ 修复高度不一致
-                .frame(height: 15)
-                .foregroundColor(.black)
-                .padding(.horizontal, 6)
-                .background(Color.green.opacity(0.8))
-                .clipShape(Capsule())
-                .transition(.scale)
-            }
-            
-            // 3. 负面状态 (Debuff)
-            if let debuff = gameManager.player.debuff, Date() < debuff.expireAt {
-                HStack(spacing: 2) {
-                    Image(systemName: "heart.slash.fill")
-                    Text("道心不稳")
-                }
-                .font(XiuxianFont.buffTag)
-                // ✨ 修复高度不一致
-                .frame(height: 15)
-                .foregroundColor(.white)
-                .padding(.horizontal, 6)
-                .background(Color.red.opacity(0.8))
-                .clipShape(Capsule())
-                .transition(.scale)
-            }
-        }
-        .onTapGesture {
-            // 只有当有 Buff 时才允许点击
-            if hasAnyBuff {
-                showBuffDetail = true
-                HapticManager.shared.playIfEnabled(.click)
-            }
-        }
-        .sheet(isPresented: $showBuffDetail) {
-            BuffDetailView()
-        }
-        // 当状态变化时，添加平滑动画
-        .animation(.spring(), value: gameManager.player.tapBuff?.expireAt)
-        .animation(.spring(), value: gameManager.player.autoBuff?.expireAt)
-    }
-    
-    @State private var showBuffDetail = false
-    
-    // 助手属性：判断是否有 Buff
-    var hasAnyBuff: Bool {
-        let now = Date()
-        let hasTap = (gameManager.player.tapBuff?.expireAt ?? .distantPast) > now
-        let hasAuto = (gameManager.player.autoBuff?.expireAt ?? .distantPast) > now
-        let hasDebuff = (gameManager.player.debuff?.expireAt ?? .distantPast) > now
-        return hasTap || hasAuto || hasDebuff
-    }
-}
-
-struct BottomControlView: View {
-    @EnvironmentObject var gameManager: GameManager
-
-    @Binding var showBreakthrough: Bool
-    let primaryColor: Color // 传入境界颜色
-    
-    var body: some View {
-        Group {
-            if gameManager.showBreakButton {
-                // --- 模式 A: 突破按钮 ---
-                BottomActionButton(title:"立即突破" ,
-                                   primaryColor: primaryColor) {
-                    
-                    // ✨ 逻辑已下沉到 GameManager
-                    gameManager.requestBreakthrough {
-                        // 只有通过检查才会执行这里
-                        showBreakthrough = true
-                    }
-                    HapticManager.shared.playIfEnabled(.click)
-                }
-                .padding(.bottom, 8)
-                .transition(.opacity) // 切换时的淡入淡出
-
-            } else {
-                // --- 模式 B: 灵气数值 ---
-                let isApproaching = gameManager.getCurrentProgress() >= 0.90
-                
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    // 灵力数值
-                    Text(gameManager.player.currentQi.xiuxianString)
-                        .font(XiuxianFont.coreValue)
-                        .foregroundColor(isApproaching ? primaryColor : .white)
-                        .contentTransition(.numericText())
-                        .shadow(color: .black.opacity(0.8), radius: 1, x: 0, y: 1)
-                        .minimumScaleFactor(0.8)
-                        .lineLimit(1)
-                    
-                    // 单位
-                    Text("灵气")
-                        .font(XiuxianFont.hudValue)
-                        .foregroundColor(Color.white.opacity(0.6))
-                        .padding(.bottom, 4)
-                }
-                .padding(.bottom, 8)
-                .transition(.opacity)
-            }
-        }
-        // 整个区域的切换动画
-        .animation(.easeInOut(duration: 0.3), value: gameManager.showBreakButton)
-    }
-}
-
-
-struct QiRippleEffect: View {
-    let color: Color
-    
-    var body: some View {
-        ZStack {
-            // Layer 1: 内圈 - 高频灵力 (密集短点)
-            // 模拟核心能量的高频振动
-            Circle()
-                .strokeBorder(
-                    color.opacity(0.9),
-                    style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [2, 10])
-                )
-                .frame(width: 60, height: 60)
-            
-            // Layer 2: 主阵法 - 符文轨迹 (长虚线 + 角度渐变)
-            // 模拟旋转时的拖尾光效
-            Circle()
-                .strokeBorder(
-                    AngularGradient(
-                        gradient: Gradient(colors: [
-                            color,              // 头 (亮)
-                            color.opacity(0.5), // 身 (半透)
-                            color.opacity(0)    // 尾 (隐形)
-                        ]),
-                        center: .center
-                    ),
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [15, 25])
-                )
-                .frame(width: 100, height: 100)
-            
-            // Layer 3: 外圈 - 扩散余波 (细虚线)
-            // 增加层次感和范围感
-            Circle()
-                .strokeBorder(
-                    color.opacity(0.5),
-                    style: StrokeStyle(lineWidth: 1, lineCap: .butt, dash: [5, 5])
-                )
-                .frame(width: 90, height: 90)
-        }
-    }
-}
-
-struct TaijiView: View {
-    let level: Int
-    // ✨ 外部物理冲量触发器 (UUID变化时触发)
-    var triggerImpulse: UUID?
-    let onTap: () -> Void
-    
-  // 监听皮肤变化
-     @ObservedObject var skinManager = SkinManager.shared
-  
-    // MARK: - Physics State
-    @State private var rotation: Double = 0
-    @State private var extraVelocity: Double = 0
-    @State private var scale: CGFloat = 1.0
-    @State private var lastTime: Date = Date()
-    
-    // MARK: - Wave Data (升级：增加旋转属性)
-    struct QiWave: Identifiable {
-        let id = UUID()
-        var scale: CGFloat = 0.2
-        var opacity: Double = 1.0
-        var rotation: Double = Double.random(in: 0...360) // 初始随机角度
-        // 🚀 修改：方向统一为正数 (顺时针)，与太极一致
-        // 速度设定在 90~180 之间，既有快慢变化，又保持同向流动
-        var rotationSpeed: Double = Double.random(in: 90...180)
-    }
-    @State private var waves: [QiWave] = []
-    
-    // Constants
-    private var baseVelocity: Double {
-        let stage = Double((level - 1) / 9)
-        return 30.0 + (stage * 5.0)
-    }
-    private let maxVelocity: Double = 1080.0
-    private let tapImpulse: Double = 250.0 // 稍微加大冲量
-    private let decayFactor: Double = 2.0
-    
-    var body: some View {
-            
-      GeometryReader { geo in
-        let size = min(geo.size.width, geo.size.height)
-        // 🔴 核心：太极实体的直径，只占容器的 68% (留出 32% 给光晕)
-        let shapeSize = size * 0.68
-        
-        // ⚡ 性能优化：从 60fps 降至 15fps，在视觉流畅和功耗之间取得平衡
-        TimelineView(.animation) { timeline in
-          let now = timeline.date
-          let colors = RealmColor.gradient(for: level)
-          let primaryColor = colors.last ?? .green
-          
-          ZStack {
-            // 1. 境界背景光 (呼吸)
-            let energyRatio = min(extraVelocity / 800.0, 1.0)
-            Circle()
-              .fill(
-                RadialGradient(
-                  gradient: Gradient(colors: [
-                    primaryColor.opacity(0.2 + energyRatio * 0.3),
-                    primaryColor.opacity(0.05),
-                    Color.clear
-                  ]),
-                  center: .center,
-                  startRadius: shapeSize * 0.35,
-                  endRadius: size * 0.6 + (energyRatio * 40)
-                )
-              )
-              .scaleEffect(1.0 + sin(now.timeIntervalSince1970 * 2.5) * 0.03)
-            
-            // 2. ✨✨✨ 灵力涟漪 (使用新组件) ✨✨✨
-            ForEach(waves) { wave in
-              QiRippleEffect(color: primaryColor)
-                .rotationEffect(.degrees(wave.rotation)) // 气旋自转
-                .scaleEffect(wave.scale)                 // 扩散
-                .opacity(wave.opacity)                   // 渐隐
-              // 🔥 关键：滤色模式，让光效叠加变亮，更有能量感
-                .blendMode(.screen)
-            }
-            
-            // 3. 太极主体
-//                            Image("TaiChi")
-//                                .resizable()
-//                                .aspectRatio(contentMode: .fit)
-//                                .frame(width: 125, height: 125)
-//                                .rotationEffect(.degrees(rotation))
-//                                .scaleEffect(scale)
-//                                .shadow(
-//                                    color: primaryColor.opacity(0.5 + energyRatio * 0.5),
-//                                    radius: 10 + (energyRatio * 15)
-//                                )
-            
-            TaijiShapeView(skin: skinManager.currentSkin)
-              .frame(width: shapeSize, height: shapeSize)
-              .rotationEffect(.degrees(rotation))
-              .scaleEffect(scale)
-//              .shadow(
-//                color: primaryColor.opacity(0.4 + energyRatio * 0.4),
-//                radius: 12 + (energyRatio * 10),
-//                x: 0, y: 0
-//              )
-            
-            // 阴影：增加扩散，减少不透明度，增加悬浮感
-              .shadow(
-                color: primaryColor.opacity(0.5),
-                radius: 15,
-                x: 0, y: 0
-              )
-          }
-          .contentShape(Circle())
-          .onTapGesture { handleTap() }
-          .onChange(of: now) {oldDate, newDate in updatePhysics(currentTime: newDate) }
-          // ✨ 响应外部冲量 (炼化步数时)
-          .onChange(of: triggerImpulse) { _, _ in
-              // 猛烈旋转 + 爆发波纹
-              extraVelocity += 800
-              scale = 1.25 // 很大幅度的缩放
-              // 连发3道波纹
-              for i in 0..<3 {
-                  var wave = QiWave()
-                  wave.scale = 0.2 + CGFloat(i) * 0.1
-                  wave.rotationSpeed = 300
-                  waves.append(wave)
-              }
-          }
-        }
-      }
-    }
-    
-    // MARK: - Physics Logic
-    private func updatePhysics(currentTime: Date) {
-        let deltaTime = currentTime.timeIntervalSince(lastTime)
-        lastTime = currentTime
-        
-        // 旋转与阻尼
-        let currentVelocity = baseVelocity + extraVelocity
-        rotation += currentVelocity * deltaTime
-        
-        if extraVelocity > 0 {
-            extraVelocity -= extraVelocity * decayFactor * deltaTime
-            if extraVelocity < 1.0 { extraVelocity = 0 }
-        }
-        
-        // 更新波纹状态
-        for i in waves.indices.reversed() {
-            // 扩散速度 (稍微快一点，爆发感)
-            waves[i].scale += 3.5 * deltaTime
-            // 消失速度
-            waves[i].opacity -= 1.5 * deltaTime
-            // 气旋旋转
-            waves[i].rotation += waves[i].rotationSpeed * deltaTime
-            
-            if waves[i].opacity <= 0 {
-                waves.remove(at: i)
-            }
-        }
-        
-        // 按压回弹
-        if scale > 1.0 {
-            scale -= 3.0 * deltaTime
-            if scale < 1.0 { scale = 1.0 }
-        }
-    }
-    
-    private func handleTap() {
-        if (baseVelocity + extraVelocity + tapImpulse) < maxVelocity {
-            extraVelocity += tapImpulse
-        }
-        scale = 1.15 // 按压幅度大一点，手感好
-        waves.append(QiWave())
-        onTap()
-    }
-}
-
