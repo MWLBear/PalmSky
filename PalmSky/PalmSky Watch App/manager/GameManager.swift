@@ -60,11 +60,11 @@ class GameManager: ObservableObject {
       
       // 👇👇👇【测试代码】开启上帝模式 👇👇👇
         // 这一段在测试完后记得删除或注释掉
-        if debugAscended {
-            self.player.level = 143 // 设定为满级前一级
-            self.player.currentQi = 9999999_999999 // 给无限灵气
-            // 👆👆👆【测试代码】结束 👆👆👆
-        }
+//        if debugAscended {
+//            self.player.level = 143 // 设定为满级前一级
+//            self.player.currentQi = 9999999_999999 // 给无限灵气
+//            // 👆👆👆【测试代码】结束 👆👆👆
+//        }
       
         checkBreakCondition()
         // ⚡ 性能优化：setupAutoSave 已合并到 startMainLoop 中

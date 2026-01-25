@@ -84,15 +84,15 @@ class WatchHealthManager: ObservableObject {
     func fetchTodaySteps() {
       
               // 🔥 调试专用：如果是模拟器，直接给个假数据
-       #if targetEnvironment(simulator)
-//       #if DEBUG
-        DispatchQueue.main.async {
-          // 每次启动给 8888 步，或者随机一个数
-          self.todaySteps = 35000
-          // self.todaySteps = Int.random(in: 1000...20000)
-        }
-        return // 直接返回，不走下面的 HealthKit 查询
-        #endif
+//       #if targetEnvironment(simulator)
+////       #if DEBUG
+//        DispatchQueue.main.async {
+//          // 每次启动给 8888 步，或者随机一个数
+//          self.todaySteps = 35000
+//          // self.todaySteps = Int.random(in: 1000...20000)
+//        }
+//        return // 直接返回，不走下面的 HealthKit 查询
+//        #endif
       
         guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
         
