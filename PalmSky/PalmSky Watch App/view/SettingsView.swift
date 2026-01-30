@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showResetAlert = false
     @State private var showPaywall = false // ✨ 新增：控制付费墙显示
+    @State private var showLeaderboard = false
   
   // ✨ 新增：接收父视图传来的页码绑定
     @Binding var currentTab: Int
@@ -22,7 +23,7 @@ struct SettingsView: View {
               
                 // MARK: - ✨ 机缘 (步数炼化)
                 Section(header: Text("炼体").foregroundColor(themeColor),
-                        footer: Text("数据来源于HeaLthKit，仅用于步数兑换灵气，严格保护隐私。")
+                        footer: Text("数据来源于HealthKit，仅用于步数兑换灵气，严格保护隐私。")
                         .foregroundColor (.secondary)
                 ) {
                   // ✅ 直接调用封装好的组件
@@ -96,6 +97,24 @@ struct SettingsView: View {
                     Text("\(gameManager.player.items.protectCharm)")
                       .foregroundColor(.gray)
                   }
+                  
+                 #if os(watchOS)
+                  HStack {
+                    Image(systemName: "trophy.fill")
+                      .foregroundColor(themeColor)
+                      .font(.title3)
+                    Text("飞升榜")
+                      .foregroundColor(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                      .font(.caption)
+                      .foregroundColor(.gray)
+                  }
+                  .contentShape(Rectangle())
+                  .onTapGesture {
+                    showLeaderboard = true
+                  }
+                  #endif
                   
                 } header: {
                     Text("道途信息")
@@ -329,6 +348,9 @@ struct SettingsView: View {
           // ✨ 挂载付费墙弹窗
             .sheet(isPresented: $showPaywall) {
               PaywallView()
+            }
+            .sheet(isPresented: $showLeaderboard) {
+              LeaderboardListView()
             }
           
             .navigationBarTitleDisplayMode(.inline)

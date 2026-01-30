@@ -95,8 +95,8 @@ class PurchaseManager: NSObject, ObservableObject {
         
         // 后台异步更新在线状态 (不阻塞启动)
         Task {
-            await updatePurchasedProducts()
             await checkLegacyAccess()
+            await updatePurchasedProducts()
             // 顺便预加载商品信息 (失败也不影响主流程)
             try? await loadProducts()
         }
@@ -140,7 +140,6 @@ class PurchaseManager: NSObject, ObservableObject {
                     print("⚠️ cutoffDate 创建失败，默认判定为新用户")
                     await MainActor.run {
                         self.isLegacyUser = false
-                        self.hasAccess = false
                     }
                     return
                 }
@@ -157,7 +156,6 @@ class PurchaseManager: NSObject, ObservableObject {
                     print("🆕 判定为新用户 (购买时间 >= 截止时间)")
                     await MainActor.run {
                         self.isLegacyUser = false
-                        self.hasAccess = false
                     }
                 }
             } else {
@@ -337,8 +335,14 @@ class PurchaseManager: NSObject, ObservableObject {
             // 否则，看内购
             if self.isLegacyUser {
                 self.hasAccess = true
+            } else if newPurchasedIDs.contains(IAPPack.unlockGame.rawValue) {
+                self.hasAccess = true
+            } else if newPurchasedIDs.isEmpty &&
+                        UserDefaults.standard.bool(forKey: hasAccessCacheKey) {
+                // 离线/未同步时保留本地缓存，避免冷启动误判为未购买
+                self.hasAccess = true
             } else {
-                self.hasAccess = newPurchasedIDs.contains(IAPPack.unlockGame.rawValue)
+                self.hasAccess = false
             }
             
             print("📊 Entitlements Updated. Has Access: \(self.hasAccess)")

@@ -18,6 +18,23 @@ struct SegmentedSelectorView: View {
                         selectedScope = item.scope
                     }
                 } label: {
+                    #if os(watchOS)
+                    Text(item.name)
+                        .font(.callout)
+                        .fontWeight(selectedScope == item.scope ? .semibold : .medium)
+                        .foregroundColor(selectedScope == item.scope ? .white : .secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 3)
+                        .background {
+                          ZStack {
+                              if selectedScope == item.scope {
+                                Capsule()
+                                  .fill(Color.green)
+                                  .matchedGeometryEffect(id: "selection", in: animation)
+                              }
+                          }
+                        }
+                    #else
                     Text(item.name)
                        .font(.subheadline)
                        .fontWeight(selectedScope == item.scope ? .bold : .semibold)
@@ -40,14 +57,23 @@ struct SegmentedSelectorView: View {
                               }
                           }
                         }
+                    #endif
                 }
                 .buttonStyle(.plain)
             }
         }
-      // 适配：容器背景使用系统填充色 (浅色是浅灰，深色是深灰)
+        // 适配：容器背景使用系统填充色 (浅色是浅灰，深色是深灰)
         .padding(4)
+        #if os(iOS)
         .background(Color(UIColor.secondarySystemFill), in: Capsule())
+        #endif
+    
+        #if os(watchOS)
+        .background(Color.white.opacity(0.12), in: Capsule())
+        .frame(maxWidth: .infinity)
+        #else
         .padding(.horizontal)
+        #endif
     }
 
 }
@@ -59,6 +85,36 @@ struct LeaderboardRowView: View {
   let entry: LeaderboardEntry
     
     var body: some View {
+        #if os(watchOS)
+        HStack(spacing: 8) {
+            Text("\(entry.rank)")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(rankColor(for: entry.rank))
+                .frame(width: 25, alignment: .center)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.playerName)
+                    .font(.callout)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                
+                let scoreInt = Int64(entry.score) ?? 0
+                let name = GameLevelManager.shared.getRankDescription(totalScore: scoreInt)
+                Text(name)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .background(Color.white.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        #else
         HStack() { // Align to baseline
             // 排名
             Text("\(entry.rank)")
@@ -111,6 +167,7 @@ struct LeaderboardRowView: View {
         .background(Color(UIColor.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+        #endif
       
     }
     
@@ -164,9 +221,11 @@ struct LeaderboardListView: View {
     var body: some View {
       ZStack {
         
-         // 适配：使用系统分组背景色 (Light是浅灰，Dark是纯黑)
-          Color(UIColor.systemGroupedBackground)
-            .ignoresSafeArea()
+           #if os(iOS)
+           // 适配：使用系统分组背景色 (Light是浅灰，Dark是纯黑)
+            Color(UIColor.systemGroupedBackground)
+              .ignoresSafeArea()
+           #endif
         
             VStack(spacing: 8) {
                 // 分段选择器 + 平台切换
@@ -176,6 +235,7 @@ struct LeaderboardListView: View {
                         selectedScope: $selectedTimeScope
                     )
                     
+                  #if os(iOS)
                     // 平台切换按钮
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -190,7 +250,11 @@ struct LeaderboardListView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
+                  #endif
                 }
+                #if os(watchOS)
+                .frame(maxWidth: .infinity)
+                 #endif
                 .padding(.horizontal)
                   
                 // 列表内容
@@ -226,7 +290,15 @@ struct LeaderboardListView: View {
 
         }
         .onChange(of: selectedTimeScope) { _, newScope in
+       //   loadRealEntries(forceRefresh: true) //手机每次都强制刷新
+          
+        #if os(watchOS)
+          loadRealEntries(forceRefresh: false) //切换榜单先显示缓存
+
+        #else
           loadRealEntries(forceRefresh: true) //手机每次都强制刷新
+        #endif
+          
         }
         .onChange(of: selectedPlatform) { _, _ in
           loadRealEntries(forceRefresh: true) // 切换平台时刷新
@@ -262,6 +334,22 @@ struct LeaderboardListView: View {
             self.entries = []
         }
 
+     
+        #if os(watchOS)
+        // 4. 在手表上：设置超时并发送请求
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            if self.isLoading { // 如果8秒后仍在加载
+                self.isLoading = false
+                self.showTimeoutToast = true
+                // 尝试回退到缓存
+                if let cached = self.cachedEntries[self.selectedTimeScope] {
+                    self.entries = cached
+                }
+            }
+        }
+        print("selectedTimeScope",selectedTimeScope.rawValue)
+        SkySyncManager.shared.requestLeaderboardData(leaderboardID: SkyConstants.GameCenter.Leaderboard.playerLevel.rawValue, timeScope: selectedTimeScope)
+        #else
         // 5. 在 iOS 上：直接请求
         Task {
             // 根据平台选择不同的 leaderboard ID
@@ -283,8 +371,8 @@ struct LeaderboardListView: View {
                 self.isLoading = false
             }
         }
+        #endif
     }
 
     
 }
-
