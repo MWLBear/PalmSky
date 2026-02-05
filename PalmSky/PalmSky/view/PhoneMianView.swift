@@ -35,14 +35,14 @@ struct PhoneMianView: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                     
                       Button {
-                        guard GameCenterManager.shared.isAuthenticated else {
-                          withAnimation {
-                            showToast = true
-                          }
+                        if !GameCenterManager.shared.isAuthenticated {
+                          // 触发登录界面（系统会在需要时弹出）
+                          GameCenterManager.shared.setupAuthenticationHandler()
+                          showGC = true
                           return
                         }
                         
-                        // 点击动作
+                        // 已授权，直接打开 GC 面板
                         showGC = true
                       } label: {
                         // 按钮内容

@@ -7,6 +7,7 @@ struct CultivationRingView: View {
     let primaryColor: Color
     let gradientColors: [Color]
     let isAscended: Bool // 满级状态
+    let animateAscend: Bool
     
     // MARK: - 动态配置 (核心修改)
     // 满级时：0.0 ~ 1.0 (全圆)
@@ -33,7 +34,7 @@ struct CultivationRingView: View {
                 .rotationEffect(.degrees(90))
                 .frame(width: ringSize, height: ringSize)
                 // ✨ 动画：轨道缓慢合拢
-                .animation(closeAnimation, value: isAscended)
+                .animation(animateAscend ? closeAnimation : nil, value: isAscended)
             
            
             let ringGradient = AngularGradient(
@@ -62,7 +63,7 @@ struct CultivationRingView: View {
                 .shadow(color: primaryColor.opacity(isAscended ? 0.8 : 0.6), radius: isAscended ? 15 : 8)
                 .frame(width: ringSize, height: ringSize)
                 // ✨ 动画：进度条缓慢合拢
-                .animation(closeAnimation, value: isAscended)
+                .animation(animateAscend ? closeAnimation : nil, value: isAscended)
                 // 进度本身的动画
                 .animation(.spring(response: 0.5), value: progress)
           

@@ -62,7 +62,7 @@ class GameManager: ObservableObject {
         // 这一段在测试完后记得删除或注释掉
 //        if debugAscended {
 //            self.player.level = 143 // 设定为满级前一级
-//            self.player.currentQi = 9999999_999999 // 给无限灵气
+//            self.player.currentQi = 999999999_999999 // 给无限灵气
 //            // 👆👆👆【测试代码】结束 👆👆👆
 //        }
       
@@ -316,18 +316,26 @@ class GameManager: ObservableObject {
         guard showBreakButton else { return false }
         
         let successRate = levelManager.breakSuccess(level: player.level)
+        let isPitySuccess = player.consecutiveBreakFailures >= 3
         let roll = Double.random(in: 0...1)
         let previousLevel = player.level
         let cost = levelManager.breakCost(level: previousLevel)
         
-        if roll <= successRate {
+        if isPitySuccess || roll <= successRate {
           
             // ✨ 埋点：记录突破行为
-            RecordManager.shared.trackBreak(success: true, successRate: successRate, currentRealmName: getRealmShort())
+            let effectiveRate = isPitySuccess ? 1.0 : successRate
+            RecordManager.shared.trackBreak(success: true, successRate: effectiveRate, currentRealmName: getRealmShort())
         
             // Success
             player.level += 1
             player.currentQi = max(0, player.currentQi - cost)
+            player.consecutiveBreakFailures = 0
+            if isPitySuccess {
+              DispatchQueue.main.async {
+                self.offlineToastMessage = "道心不屈，天道垂青"
+              }
+            }
             
             // 成功消除所有 Debuff
             showBreakButton = false
@@ -342,6 +350,7 @@ class GameManager: ObservableObject {
           // ✨ 1. 记录累计失败次数 (无论是否有护身符，只要判定输了就算)
           // 或者你可以决定：用了护身符不算失败成就？通常算比较好，因为你确实脸黑。
           player.totalFailures += 1
+          player.consecutiveBreakFailures += 1
           
           RecordManager.shared.trackBreak(success: false, successRate: successRate, currentRealmName: getRealmShort())
           

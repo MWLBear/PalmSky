@@ -9,6 +9,10 @@ public class SkyAudio {
   private var backgroundMusicPlayer: AVAudioPlayer?
   private var soundEffectPlayer: AVAudioPlayer?
   private var soundEffectPlayers: [AVAudioPlayer] = [] // 音效池
+  private var effectCache: [String: [AVAudioPlayer]] = [:]
+  private var lastEffectPlayTime: [String: TimeInterval] = [:]
+  private let maxPlayersPerEffect = 2
+  private let effectCooldown: TimeInterval = 0.12
 
   private init() {} // 私有初始化，防止外部创建实例
   
@@ -78,33 +82,61 @@ public class SkyAudio {
   // MARK: - 音效播放池（支持并发）
   public func playSoundEffects(_ filename: String) {
     guard isSoundEnabled else { return }
+    let now = Date().timeIntervalSince1970
+    if let lastTime = lastEffectPlayTime[filename], now - lastTime < effectCooldown {
+      return
+    }
+    lastEffectPlayTime[filename] = now
+    
     guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3") else {
       print("Could not find file: \(filename).mp3")
       return
     }
     
     do {
-      let player = try AVAudioPlayer(contentsOf: url)
+      let player: AVAudioPlayer
+      if var pool = effectCache[filename], let reusable = pool.first(where: { !$0.isPlaying }) {
+        player = reusable
+      } else {
+        player = try AVAudioPlayer(contentsOf: url)
+        player.numberOfLoops = 0
+        player.prepareToPlay()
+        if effectCache[filename] != nil {
+          if effectCache[filename]!.count < maxPlayersPerEffect {
+            effectCache[filename]?.append(player)
+          }
+        } else {
+          effectCache[filename] = [player]
+        }
+      }
       player.numberOfLoops = 0
       player.prepareToPlay()
       player.play()
-      
-      // 保存到池子里，避免被释放
-      soundEffectPlayers.append(player)
-      
-      // 播放完自动移除
-      DispatchQueue.main.asyncAfter(deadline: .now() + player.duration) { [weak self, weak player] in
-          guard let self = self, let player = player else { return }
-          if self.soundEffectPlayers.contains(where: { $0 == player }) {
-              self.soundEffectPlayers.removeAll { $0 == player }
-          }
-      }
-
-      
     } catch {
       print("Could not create sound effect player: \(error.localizedDescription)")
     }
   }
+
+  // MARK: - 预加载音效，减少首次播放卡顿
+  public func preloadSoundEffects(_ filenames: [String]) {
+    guard isSoundEnabled else { return }
+    for name in filenames {
+      if let pool = effectCache[name], !pool.isEmpty { continue }
+      guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
+        print("Could not find file: \(name).mp3")
+        continue
+      }
+      do {
+        let player = try AVAudioPlayer(contentsOf: url)
+        player.numberOfLoops = 0
+        player.prepareToPlay()
+        effectCache[name] = [player]
+      } catch {
+        print("Could not create sound effect player: \(error.localizedDescription)")
+      }
+    }
+  }
+
   
   
   /// 停止背景音乐

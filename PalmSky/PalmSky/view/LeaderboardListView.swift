@@ -20,11 +20,10 @@ struct SegmentedSelectorView: View {
                 } label: {
                     #if os(watchOS)
                     Text(item.name)
-                        .font(.callout)
                         .fontWeight(selectedScope == item.scope ? .semibold : .medium)
                         .foregroundColor(selectedScope == item.scope ? .white : .secondary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 3)
+                        .padding(.vertical, 4)
                         .background {
                           ZStack {
                               if selectedScope == item.scope {
@@ -95,8 +94,6 @@ struct LeaderboardRowView: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.playerName)
-                    .font(.callout)
-                    .fontWeight(.medium)
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
@@ -104,7 +101,6 @@ struct LeaderboardRowView: View {
                 let name = GameLevelManager.shared.getRankDescription(totalScore: scoreInt)
                 Text(name)
                     .font(.caption2)
-                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
             }
             
@@ -113,7 +109,7 @@ struct LeaderboardRowView: View {
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
         .background(Color.white.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         #else
         HStack() { // Align to baseline
             // 排名

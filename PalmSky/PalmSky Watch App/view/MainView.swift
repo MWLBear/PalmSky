@@ -221,6 +221,7 @@ struct MainView: View {
     
    //✨ 新增：专门控制圆环闭合的视觉状态
     @State private var visualIsAscended = false
+    @State private var allowAscendAnimation = false
   
    // ✨ 新增：控制境界详情页显示
    @State private var showRealmDetail = false
@@ -270,7 +271,8 @@ struct MainView: View {
                   progress: gameManager.getCurrentProgress(),
                   primaryColor: primaryColor,
                   gradientColors: [colors.first ?? primaryColor, primaryColor],
-                  isAscended: visualIsAscended
+                  isAscended: visualIsAscended,
+                  animateAscend: allowAscendAnimation
                 )
                 .offset(y: visualIsAscended ? 0 : visualOffsetY)
            
@@ -378,11 +380,15 @@ struct MainView: View {
       
         .onAppear {
             gameManager.startGame()
-            // ✨ 修复：如果玩家已经满级，立即设置圆环为合上状态（无动画）
-            if gameManager.isAscended {
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) {
+            // 已满级时直接合上（无动画）
+            visualIsAscended = gameManager.isAscended
+            allowAscendAnimation = false
+        }
+        .onChange(of: gameManager.isAscended) { _, isAscended in
+            if isAscended {
+                // 第一次达成满级时才动画合拢
+                allowAscendAnimation = true
+                withAnimation(.easeInOut(duration: 3.0)) {
                     visualIsAscended = true
                 }
             }
@@ -403,9 +409,8 @@ struct MainView: View {
           if !isShowing {
             if gameManager.isAscended {
               DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(.easeInOut(duration: 3.0)) {
-                  visualIsAscended = true
-                }
+                // 不强制动画，避免重复合拢
+                visualIsAscended = true
               }
             }
           }

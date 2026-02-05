@@ -123,13 +123,20 @@
 				view/CultivationRingView.swift,
 				view/EventView.swift,
 				view/game/GameGuideView.swift,
-				view/game/images/KnifeHit.mp3,
-				view/game/images/KnifeHitFail.mp3,
-				view/game/images/kunai.png,
-				view/game/images/lightning.mp3,
-				view/game/images/timber.png,
+				view/game/images/MindGame/KnifeHit.mp3,
+				view/game/images/MindGame/KnifeHitFail.mp3,
+				view/game/images/MindGame/kunai.png,
+				view/game/images/MindGame/lightning.mp3,
+				view/game/images/MindGame/timber.png,
+				view/game/images/SwordGame/attack.mp3,
+				view/game/images/SwordGame/lightning.png,
+				view/game/images/SwordGame/sword.png,
+				view/game/images/SwordGame/taiChi1.png,
+				view/game/InscriptionGameView.swift,
 				view/game/MindDemonScene.swift,
 				view/game/MiniGameContainer.swift,
+				"view/game/SKScene+AmbientLightning.swift",
+				"view/game/SKScene+LightningEffect.swift",
 				view/game/SwordDefenseScene.swift,
 				view/LifeReviewView.swift,
 				view/MainView.swift,
@@ -595,7 +602,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -635,7 +642,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -681,7 +688,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -726,7 +733,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -762,7 +769,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -797,7 +804,7 @@
 					"@executable_path/../../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.palmsky.watchkitapp.sky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

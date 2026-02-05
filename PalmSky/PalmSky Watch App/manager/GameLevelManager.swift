@@ -234,25 +234,23 @@ extension GameLevelManager {
             return .none // 平时只播动画，走概率
         }
     
-        return .mindDemon
-      
-      // 渡劫小游戏,先添加一个,以后备用
+    //   return .swordDefense
       
         // 获取当前大境界索引 (0-15)
-//        let stageIdx = stage(for: level)
-//        
-//        switch stageIdx {
-//        case 0...3:  // 筑基 - 辟谷
-//            return .mindDemon
-//        case 4...7:  // 金丹 - 分神
-//            return .swordDefense
-//        case 8...11: // 合体 - 地仙
-//            return .inscription
-//        case 12...15: // 天仙 - 九天
-//            return .skyRush
-//        default:
-//            return .mindDemon
-//        }
+        let stageIdx = stage(for: level)
+        
+        switch stageIdx {
+        case 0...3:  // 筑基 - 辟谷
+            return .mindDemon
+        case 4...7:  // 金丹 - 分神
+            return .swordDefense
+        case 8...11: // 合体 - 地仙
+            return .inscription
+        case 12...15: // 天仙 - 九天
+            return .mindDemon
+        default:
+            return .mindDemon
+        }
     }
     
     // 3. 获取游戏难度 (0.5 - 1.5)

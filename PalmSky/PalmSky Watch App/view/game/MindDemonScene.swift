@@ -72,8 +72,10 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.contactDelegate = self
         physicsWorld.gravity = .zero
         
+        self.preloadSoundEffect()
        // setupGame()
         print("Scene loaded. Size: \(size)")
+        print("Scene loaded. anchorPoint: ",anchorPoint)
     }
     
     func setupGame() {
@@ -94,7 +96,10 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         spawnReadyPin()
       
         setupBackgroundParticles()
-        startAmbientLightning() // ⚡️ 启动环境雷特效
+        startAmbientLightning(
+            shouldContinue: { [weak self] in self?.isGameOverState == false },
+            trigger: { [weak self] in self?.triggerLightningEffect(playSound: true) }
+        ) // ⚡️ 启动环境雷特效
     }
   
     private func setupBackgroundParticles() {
@@ -115,27 +120,6 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         addChild(emitter)
     }
     
-    // ⚡️ 启动环境雷电循环
-    private func startAmbientLightning() {
-        let randomDelay = Double.random(in: 2.0...5.0)
-        run(SKAction.sequence([
-            SKAction.wait(forDuration: randomDelay),
-            SKAction.run { [weak self] in
-                guard let self = self, !self.isGameOverState else { return }
-                
-                // 30% 概率触发大雷，70% 只是背景闪
-                // 这里简单点，直接触发我们在 file bottom 定义的 triggerLightning
-                // 为了不干扰视线，我们可以把 alpha 调低一点，或者在 createLightningBolt 里改
-                self.triggerLightning()
-                
-                // Audio feedback (optional, maybe quieter)
-                // SkyAudio.shared.playSoundEffects("thunder") 
-                
-                // Recursive loop
-                self.startAmbientLightning()
-            }
-        ]), withKey: "ambientLightning")
-    }
     
         
     private func setupWheel() {
@@ -467,8 +451,8 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
           
             // ⚡️ 失败特效：雷劫降临
              run(SKAction.repeat(SKAction.sequence([
-                 SKAction.run { self.triggerLightning() },
-                 SKAction.wait(forDuration: 0.1)
+                SKAction.run { self.triggerLightningEffect(playSound: true) },
+                SKAction.wait(forDuration: 0.1)
              ]), count: 3))
         } else {
              // Win effect: shatter
@@ -485,7 +469,7 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         
         // ⚡️ 成功特效：天雷破阵
          run(SKAction.repeat(SKAction.sequence([
-             SKAction.run { self.triggerLightning() },
+             SKAction.run { self.triggerLightningEffect(playSound: true) },
              SKAction.wait(forDuration: 0.15)
          ]), count: 4))
       
@@ -606,63 +590,4 @@ class MindDemonScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     // MARK: - ⚡️ Lightning Effect (Pure Code)
-    
-    /// 触发一道随机闪电
-    private func triggerLightning() {
-        // 随机起点和终点
-        let start = CGPoint(x: CGFloat.random(in: 0...size.width), y: size.height)
-        let end = CGPoint(x: CGFloat.random(in: 0...size.width), y: 0)
-        
-        createLightningBolt(from: start, to: end)
-      
-        SkyAudio.shared.playSoundEffects("lightning")
-
-    }
-    
-    /// 创建闪电节点
-    private func createLightningBolt(from start: CGPoint, to end: CGPoint) {
-        let path = CGMutablePath()
-        path.move(to: start)
-        
-        let dist = hypot(end.x - start.x, end.y - start.y)
-        let stepCount = Int(dist / 10) // 每10个点一段
-        
-        let dx = (end.x - start.x) / CGFloat(stepCount)
-        let dy = (end.y - start.y) / CGFloat(stepCount)
-        
-        for i in 0..<stepCount {
-            // 基础推进
-            var nextPoint = CGPoint(x: start.x + dx * CGFloat(i), y: start.y + dy * CGFloat(i))
-            
-            // 随机抖动 (Jaggedness)
-            let jitter: CGFloat = 15.0
-            if i != 0 && i != stepCount - 1 { // 头尾不抖
-                nextPoint.x += CGFloat.random(in: -jitter...jitter)
-                nextPoint.y += CGFloat.random(in: -jitter...jitter)
-            }
-            
-            path.addLine(to: nextPoint)
-        }
-        path.addLine(to: end) // 确保连到终点
-        
-        // 绘制
-        let bolt = SKShapeNode(path: path)
-        bolt.strokeColor = .white
-        bolt.lineWidth = 2.0
-        bolt.glowWidth = 4.0 // 发光效果
-        bolt.alpha = 0.8
-        bolt.zPosition = 5 // 在 Label 下面，Wheel 上面
-        bolt.lineCap = .round
-        
-        addChild(bolt)
-        
-        // 动画：闪烁后消失
-        let fade = SKAction.sequence([
-            SKAction.fadeOut(withDuration: 0.1),
-            SKAction.fadeIn(withDuration: 0.05),
-            SKAction.fadeOut(withDuration: 0.2),
-            SKAction.removeFromParent()
-        ])
-        bolt.run(fade)
-    }
 }

@@ -76,11 +76,13 @@ struct Player: Codable {
     var reincarnationCount: Int = 0
    // ✨ 新增：累计失败次数 (用于成就)
     var totalFailures: Int = 0
+    // ✨ 连续突破失败次数 (保底机制)
+    var consecutiveBreakFailures: Int = 0
     
     // 🚨 必须手动添加 CodingKeys
     enum CodingKeys: String, CodingKey {
         case id, level, click, currentQi, lastLogout, settings, items, debuff
-        case tapBuff, autoBuff, reincarnationCount, totalFailures
+        case tapBuff, autoBuff, reincarnationCount, totalFailures, consecutiveBreakFailures
     }
   
     init(id: String = "default_player") {
@@ -89,6 +91,7 @@ struct Player: Codable {
         self.click = 0
         self.currentQi = 0.0
         self.totalFailures = 0
+        self.consecutiveBreakFailures = 0
         self.lastLogout = Date()
         self.settings = Settings()
         self.items = Items()
@@ -114,6 +117,7 @@ struct Player: Codable {
         // ✨ 新增字段：给予默认值，防删档
         reincarnationCount = try container.decodeIfPresent(Int.self, forKey: .reincarnationCount) ?? 0
         totalFailures = try container.decodeIfPresent(Int.self, forKey: .totalFailures) ?? 0
+        consecutiveBreakFailures = try container.decodeIfPresent(Int.self, forKey: .consecutiveBreakFailures) ?? 0
     }
 }
 

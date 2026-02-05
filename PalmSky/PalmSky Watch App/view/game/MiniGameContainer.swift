@@ -19,6 +19,7 @@ struct MiniGameContainer: View {
     @State private var mindDemonScene: MindDemonScene?
   
     @State private var showGuideText = true
+    @State private var swordDefenseScene: SwordDefenseScene?
 
     var body: some View {
         GeometryReader { geo in
@@ -50,13 +51,37 @@ struct MiniGameContainer: View {
                   
                 case .swordDefense:
                     // 你的旧游戏：御剑挡劫
-                    SpriteView(scene: createSwordScene(size: geo.size))
+                    if let scene = swordDefenseScene {
+//                        #if os(iOS)
+//                        SpriteView(scene: scene, options: [.allowsTransparency], debugOptions: [.showsPhysics])
+//                            .ignoresSafeArea()
+//                            .onTapGesture { location in
+//                               scene.handleDrop(at: location)
+//                            }
+//                        #else
+                      SpriteView(scene: scene)
                         .ignoresSafeArea()
+                        .onTapGesture { location in
+                          scene.handleDrop(at: location)
+                        }
+                        .onDisappear {
+                          cleanupSwordDefenseScene()
+                        }
+                    
+                    } else {
+                        Color.black
+                            .onAppear {
+                                self.swordDefenseScene = createSwordScene(size: geo.size)
+                            }
+                    }
                         
                 case .inscription:
-                    // 记忆游戏 (建议用纯 SwiftUI 写，更容易)
-                    Text("阵法刻画开发中...")
-                        .foregroundColor(.white)
+       
+                  InscriptionGameView(level: level, startWhenReady: !showGuideText) { isWin in
+                    onFinish(isWin)
+                   // isPresented = false
+                  }
+
                         
                 case .skyRush:
                     // 跑酷游戏
@@ -70,6 +95,9 @@ struct MiniGameContainer: View {
                 // 顶部：退出/放弃按钮 (防止玩家卡死)
                 VStack {
                     HStack {
+                      #if os(iOS)
+                      Spacer().frame(width: 8)
+                      #endif
 
                       // ✅ 修改为：Image + onTapGesture
                       Image(systemName: "xmark.circle.fill")
@@ -81,6 +109,7 @@ struct MiniGameContainer: View {
                           // 震动反馈
                           HapticManager.shared.playIfEnabled(.click)
                           cleanupMindDemonScene() // 🔥 退出时也清理
+                          cleanupSwordDefenseScene()
                           isPresented = false
                           // onFinish(false) // 如果需要回调失败逻辑可以加上
                         }
@@ -110,6 +139,8 @@ struct MiniGameContainer: View {
         switch type {
         case .mindDemon: return "斩除心魔"
         case .swordDefense: return "御剑挡劫"
+        case .inscription: return "参悟天机"
+        case .skyRush: return "冲九霄"
         default: return "渡劫开始"
         }
     }
@@ -118,6 +149,7 @@ struct MiniGameContainer: View {
         switch type {
         case .mindDemon: return "点击屏幕 以念破妄"
         case .swordDefense: return "点击屏幕 转换剑阵"
+        case .inscription: return "记忆顺序 循序复刻"
         default: return "点击屏幕"
         }
     }
@@ -126,6 +158,7 @@ struct MiniGameContainer: View {
      func getGuideIcon() -> String {
          switch type {
          case .swordDefense: return "arrow.triangle.2.circlepath" // 旋转图标
+         case .inscription: return "brain.head.profile" // 记忆阵法
          default: return "hand.tap.fill" // 点击图标
          }
      }
@@ -143,9 +176,22 @@ struct MiniGameContainer: View {
           return scene
       }
     
-    func createSwordScene(size: CGSize) -> SKScene {
-        // ... 返回你之前的 SwordDefenseScene ...
-        return SKScene() // 占位
+    #if DEBUG
+    private let debugSwordLevel: Int? = nil // 设置为 4...7 进行调试
+    #endif
+    
+    func createSwordScene(size: CGSize) -> SwordDefenseScene {
+        let scene = SwordDefenseScene(size: size)
+        scene.scaleMode = .aspectFill
+        let stage = (level - 1) / 9
+        #if DEBUG
+        scene.gameLevel = debugSwordLevel ?? stage
+        #else
+        scene.gameLevel = stage
+        #endif
+        scene.applyGameLevel()
+        scene.onGameOver = onFinish
+        return scene
     }
     
     // 🔥 新增：清理 MindDemonScene 的方法
@@ -162,5 +208,15 @@ struct MiniGameContainer: View {
         mindDemonScene = nil
         
         print("MindDemonScene 已清理")
+    }
+  
+    private func cleanupSwordDefenseScene() {
+        guard let scene = swordDefenseScene else { return }
+        
+        scene.removeAllActions()
+        scene.removeAllChildren()
+        swordDefenseScene = nil
+        
+        print("SwordDefenseScene 已清理")
     }
 }
