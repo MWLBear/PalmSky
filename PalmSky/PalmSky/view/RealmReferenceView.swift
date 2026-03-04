@@ -21,7 +21,7 @@ struct RealmReferenceView: View {
                         HStack {
                      
                           // 序号
-                            Text("第 \(index + 1) 境")
+                            Text(String(format: NSLocalizedString("phone_realm_stage_number_format", comment: ""), index + 1))
                             .font(.callout)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.secondary)
@@ -37,7 +37,7 @@ struct RealmReferenceView: View {
                             Spacer()
 
                             // 层数
-                            Text("共九层")
+                            Text(NSLocalizedString("phone_realm_nine_layers", comment: ""))
                                 .font(.footnote)
                                  .fontWeight(.semibold)
                                 .foregroundColor(.secondary)
@@ -45,11 +45,11 @@ struct RealmReferenceView: View {
                         .padding(.vertical, 2)
                     }
                 } header: {
-                    Text("境界 · 修行阶梯")
+                    Text(NSLocalizedString("phone_realm_section_stage_header", comment: ""))
                         .font(.footnote.weight(.semibold))
                         .foregroundColor(.secondary)
                 } footer: {
-                    Text("九天玄仙之后，便是大道尽头。")
+                    Text(NSLocalizedString("phone_realm_section_stage_footer", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -58,7 +58,7 @@ struct RealmReferenceView: View {
                 Section {
                     ForEach(GameConstants.zhuanNames.indices, id: \.self) { index in
                         HStack {
-                            Text("第 \(index + 1) 世")
+                            Text(String(format: NSLocalizedString("phone_realm_life_number_format", comment: ""), index + 1))
                                 .font(.callout)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.secondary)
@@ -67,7 +67,7 @@ struct RealmReferenceView: View {
                             Spacer()
 
                             if index == 0 {
-                                Text("凡躯（无前缀）")
+                                Text(NSLocalizedString("phone_realm_mortal_no_prefix", comment: ""))
                                     .font(.callout)
                                     .fontWeight(.medium)
                                     .foregroundColor(.secondary)
@@ -83,21 +83,21 @@ struct RealmReferenceView: View {
                         .padding(.vertical, 2)
                     }
                 } header: {
-                    Text("轮回 · 前缀一览")
+                    Text(NSLocalizedString("phone_realm_section_cycle_header", comment: ""))
                         .font(.footnote.weight(.semibold))
                         .foregroundColor(.secondary)
                 } footer: {
-                    Text("每一世轮回，修炼速度与机缘感应都会大幅提升。")
+                    Text(NSLocalizedString("phone_realm_section_cycle_footer", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle("天道图鉴")
+            .navigationTitle(NSLocalizedString("watch_realm_nav_title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .listStyle(.insetGrouped) // 保留系统分组样式
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button(NSLocalizedString("phone_common_close", comment: "")) { dismiss() }
                     .foregroundColor(.white)
                 }
             }

@@ -133,17 +133,21 @@ class GameManager: ObservableObject {
               
               let timeStr = effectiveTime.formatTime()
 
-//              DispatchQueue.main.async {
-//                self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
-//              }
-            
               if !isPro && rawTimeDiff > maxOfflineSeconds {
                 DispatchQueue.main.async {
-                  self.offlineToastMessage = "闭关\(timeStr)(上限)，灵气 +\(offlineTotal.xiuxianString)\n解锁契约可延至12小时"
+                  self.offlineToastMessage = String(
+                    format: NSLocalizedString("watch_toast_offline_capped_format", comment: ""),
+                    timeStr,
+                    offlineTotal.xiuxianString
+                  )
                 }
               } else {
                 DispatchQueue.main.async {
-                  self.offlineToastMessage = "闭关\(timeStr)，灵气 +\(offlineTotal.xiuxianString)"
+                  self.offlineToastMessage = String(
+                    format: NSLocalizedString("watch_toast_offline_gain_format", comment: ""),
+                    timeStr,
+                    offlineTotal.xiuxianString
+                  )
                 }
               }
             
@@ -333,7 +337,7 @@ class GameManager: ObservableObject {
             player.consecutiveBreakFailures = 0
             if isPitySuccess {
               DispatchQueue.main.async {
-                self.offlineToastMessage = "道心不屈，天道垂青"
+                self.offlineToastMessage = NSLocalizedString("watch_toast_pity_success", comment: "")
               }
             }
             
@@ -361,7 +365,7 @@ class GameManager: ObservableObject {
             
             // 提示用户
             DispatchQueue.main.async {
-              self.offlineToastMessage = "护身符破碎，免除灵力折损"
+              self.offlineToastMessage = NSLocalizedString("watch_toast_charm_broken", comment: "")
             }
             
             // 必须在此处执行保存并返回 false
@@ -388,7 +392,7 @@ class GameManager: ObservableObject {
               
               // 弹窗提示 (用 Toast)
               DispatchQueue.main.async {
-                self.offlineToastMessage = "道心受损，吸纳效率降低 (持续1小时)"
+                self.offlineToastMessage = NSLocalizedString("watch_toast_debuff_one_hour", comment: "")
               }
             }
             
@@ -500,7 +504,10 @@ class GameManager: ObservableObject {
           HapticManager.shared.playIfEnabled(.success)
 
           DispatchQueue.main.async {
-            self.offlineToastMessage = "险中求胜！灵气 +\(Double(gain).xiuxianString)"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_gamble_win_format", comment: ""),
+              Double(gain).xiuxianString
+            )
           }
         } else {
           // 💀 赌输了！(扣除 50%)
@@ -511,7 +518,10 @@ class GameManager: ObservableObject {
             HapticManager.shared.playIfEnabled(.failure)
             
             DispatchQueue.main.async {
-              self.offlineToastMessage = "灵气流失! 灵气 -\(Double(loss).xiuxianString)"
+              self.offlineToastMessage = String(
+                format: NSLocalizedString("watch_toast_gamble_lose_format", comment: ""),
+                Double(loss).xiuxianString
+              )
             }
           
         }
@@ -530,7 +540,10 @@ class GameManager: ObservableObject {
           
           HapticManager.shared.playIfEnabled(.success)
           DispatchQueue.main.async {
-            self.offlineToastMessage = "点击暴涨 (持续\(Int(duration))秒)"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_tap_boost_format", comment: ""),
+              Int(duration)
+            )
           }
         } else {
           // 💀 药力反噬：获得负面效果
@@ -539,7 +552,7 @@ class GameManager: ObservableObject {
           
           HapticManager.shared.playIfEnabled(.failure)
           DispatchQueue.main.async {
-            self.offlineToastMessage = "经脉受损 点击效果减半"
+            self.offlineToastMessage = NSLocalizedString("watch_toast_tap_debuff", comment: "")
           }
         }
         
@@ -556,7 +569,10 @@ class GameManager: ObservableObject {
           
           HapticManager.shared.playIfEnabled(.success)
           DispatchQueue.main.async {
-            self.offlineToastMessage = "修炼加速 (持续\(Int(duration))秒)"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_auto_boost_format", comment: ""),
+              Int(duration)
+            )
           }
         } else {
           // 💀 走火入魔 (直接上 Debuff)
@@ -565,7 +581,7 @@ class GameManager: ObservableObject {
           
           HapticManager.shared.playIfEnabled(.failure)
           DispatchQueue.main.async {
-            self.offlineToastMessage = "走火入魔 修炼停滞"
+            self.offlineToastMessage = NSLocalizedString("watch_toast_auto_debuff", comment: "")
           }
         }
         
@@ -574,7 +590,10 @@ class GameManager: ObservableObject {
           player.currentQi += value
           // ✨ 新增：设置 Toast 消息，回到主页时自动弹出
           DispatchQueue.main.async {
-            self.offlineToastMessage = "奇遇收获 灵气 +\(Double(value).xiuxianString)"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_event_gain_format", comment: ""),
+              Double(value).xiuxianString
+            )
           }
         }
       case .loseQi:
@@ -582,14 +601,17 @@ class GameManager: ObservableObject {
           player.currentQi = max(0, player.currentQi - value)
           // ✨ 新增：扣除提示
           DispatchQueue.main.async {
-            self.offlineToastMessage = "遭遇意外 灵气 -\(Double(value).xiuxianString)"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_event_lose_format", comment: ""),
+              Double(value).xiuxianString
+            )
           }
         }
       case .grantItem:
         player.items.protectCharm += 1
         // ✨ 新增：获得道具提示
         DispatchQueue.main.async {
-          self.offlineToastMessage = "获得宝物 [护身符]"
+          self.offlineToastMessage = NSLocalizedString("watch_toast_gain_charm", comment: "")
         }
       case .gainTapRatioTemp:
         // 逻辑处理：点击增益 (智能叠加)
@@ -616,7 +638,11 @@ class GameManager: ObservableObject {
           let percent = Int(newBonus * 100)
           
           DispatchQueue.main.async {
-            self.offlineToastMessage = "感悟延续 点击效果 +\(percent)% (剩余\(timeStr))"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_tap_buff_extend_format", comment: ""),
+              percent,
+              timeStr
+            )
           }
         }
         
@@ -645,7 +671,11 @@ class GameManager: ObservableObject {
           let percent = Int(newBonus * 100)
           
           DispatchQueue.main.async {
-            self.offlineToastMessage = "道心稳固 自动修炼 +\(percent)% (剩余\(timeStr))"
+            self.offlineToastMessage = String(
+              format: NSLocalizedString("watch_toast_auto_buff_extend_format", comment: ""),
+              percent,
+              timeStr
+            )
           }
         }
         
@@ -660,9 +690,9 @@ class GameManager: ObservableObject {
     // 辅助方法：格式化时间显示
     private func formatDuration(_ seconds: TimeInterval) -> String {
           if seconds < 60 {
-              return "\(Int(seconds))秒"
+              return String(format: NSLocalizedString("watch_duration_seconds_format", comment: ""), Int(seconds))
           } else {
-              return String(format: "%.1f分", seconds / 60)
+              return String(format: NSLocalizedString("watch_duration_minutes_format", comment: ""), seconds / 60)
           }
       }
   
@@ -884,7 +914,7 @@ extension GameManager {
                   player.items.protectCharm -= 1
                   
                   DispatchQueue.main.async {
-                      self.offlineToastMessage = "渡劫失败，护身符抵消惩罚"
+                      self.offlineToastMessage = NSLocalizedString("watch_toast_break_fail_charm", comment: "")
                   }
                   
                   // 仅震动，不扣灵气
@@ -909,12 +939,18 @@ extension GameManager {
                       player.debuff = DebuffStatus(type: .unstableDao, multiplier: 0.7, expireAt: expireDate)
                       
                       DispatchQueue.main.async {
-                          self.offlineToastMessage = "渡劫失败 道心受损 (灵气 -\(lostQi.xiuxianString))"
+                          self.offlineToastMessage = String(
+                            format: NSLocalizedString("watch_toast_break_fail_debuff_format", comment: ""),
+                            lostQi.xiuxianString
+                          )
                       }
                   } else {
                       // 普通提示
                       DispatchQueue.main.async {
-                          self.offlineToastMessage = "渡劫失败 元气大伤 (灵气 -\(lostQi.xiuxianString))"
+                          self.offlineToastMessage = String(
+                            format: NSLocalizedString("watch_toast_break_fail_normal_format", comment: ""),
+                            lostQi.xiuxianString
+                          )
                       }
                   }
                   

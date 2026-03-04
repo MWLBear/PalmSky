@@ -28,7 +28,7 @@ struct EventView: View {
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text("— 奇遇 —")
+                            Text(NSLocalizedString("watch_event_header", comment: ""))
                                 .font(.caption2.weight(.medium)) // caption2 比 footnote 更精致
                                 .foregroundColor(.gray)
                         }
@@ -109,17 +109,17 @@ struct EventView: View {
   private func getEffectHint(_ effect: EventEffect) -> String? {
           switch effect.type {
           case .gainQi:
-              return "机缘" // 或者 "灵气"
+              return NSLocalizedString("watch_event_hint_gain", comment: "")
           case .loseQi:
-              return "风险" // 或者 "折损"
+              return NSLocalizedString("watch_event_hint_risk", comment: "")
           case .grantItem:
-              return "宝物"
+              return NSLocalizedString("watch_event_hint_item", comment: "")
           case .gainTapRatioTemp, .gainAutoTemp:
-              return "增益"
+              return NSLocalizedString("watch_event_hint_buff", comment: "")
           case .gamble, .gambleTap, .gambleAuto:
-              return "博弈" // 统一处理，干净利落
+              return NSLocalizedString("watch_event_hint_gamble", comment: "")
           case .nothing:
-              return "无事"
+              return NSLocalizedString("watch_event_hint_none", comment: "")
           }
       }
 }

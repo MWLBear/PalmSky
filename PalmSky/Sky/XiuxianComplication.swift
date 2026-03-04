@@ -15,7 +15,7 @@ struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> ComplicationEntry {
       
       let fakeSnapshot = ComplicationSnapshot(
-                 realmName: "筑基",
+                 realmName: NSLocalizedString("widget_realm_placeholder_primary", comment: ""),
                  level: 1,
                  currentQi: 30,
                  targetQi: 100,
@@ -39,7 +39,7 @@ struct Provider: TimelineProvider {
               // 👉 情况 A：用户正在选表盘 (Gallery)
               // 给一个"好看"的假数据，吸引用户添加
               let fakeSnap = ComplicationSnapshot(
-                  realmName: "金丹", // 选个中等境界，好看
+                  realmName: NSLocalizedString("widget_realm_placeholder_preview", comment: ""),
                   level: 37,
                   currentQi: 8800,
                   targetQi: 10000,
@@ -151,14 +151,14 @@ struct XiuxianComplicationEntryView : View {
                     .foregroundColor(.white)
             }
             .widgetLabel {
-                Text("需解锁完整版")
+                Text(NSLocalizedString("widget_lock_need_full", comment: ""))
             }
             
         case .accessoryCorner:
             Image(systemName: "lock.fill")
                 .font(.title3)
                 .widgetLabel {
-                    Text("解锁表盘进度")
+                    Text(NSLocalizedString("widget_lock_unlock_progress", comment: ""))
                 }
             
         case .accessoryRectangular:
@@ -167,10 +167,10 @@ struct XiuxianComplicationEntryView : View {
                     .font(.title2)
                     .foregroundColor(.orange)
                 VStack(alignment: .leading) {
-                    Text("功能已锁定")
+                    Text(NSLocalizedString("widget_lock_feature_locked", comment: ""))
                         .font(.headline)
                         .widgetAccentable()
-                    Text("仅限飞升契约")
+                    Text(NSLocalizedString("widget_lock_contract_only", comment: ""))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -178,7 +178,7 @@ struct XiuxianComplicationEntryView : View {
             }
             
         case .accessoryInline:
-            Text("🔒 需解锁表盘功能")
+            Text(NSLocalizedString("widget_lock_inline", comment: ""))
             
         @unknown default:
             Image(systemName: "lock.fill")
@@ -197,7 +197,7 @@ struct XiuxianComplicationEntryView : View {
             if entry.displayProgress >= 0.99 {
                 // MARK: - 🎉 满级特效状态
                 Gauge(value: 1.0, in: 0...1) {
-                    Text("渡劫")
+                    Text(NSLocalizedString("widget_breakthrough", comment: ""))
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                 } currentValueLabel: {
                     Image(systemName: "bolt.fill")
@@ -246,7 +246,7 @@ struct XiuxianComplicationEntryView : View {
                         .font(.headline)
                         .widgetAccentable()
                     
-                    Text(entry.displayProgress >= 0.9 ? "瓶颈松动" : "修炼中...")
+                    Text(entry.displayProgress >= 0.9 ? NSLocalizedString("widget_status_bottleneck", comment: "") : NSLocalizedString("widget_status_cultivating", comment: ""))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -286,8 +286,8 @@ struct XiuxianComplication: Widget {
                 // ✅ 修正：传入 snapshot 判断跳转
                 .widgetURL(deeplinkURL(isUnlocked: entry.snapshot.isUnlocked, progress: entry.displayProgress))
         }
-        .configurationDisplayName("修炼进度")
-        .description("展示当前的境界与灵气进度")
+        .configurationDisplayName(NSLocalizedString("widget_config_title_progress", comment: ""))
+        .description(NSLocalizedString("widget_config_desc_progress", comment: ""))
         .supportedFamilies([
             .accessoryCircular,
             .accessoryCorner,
@@ -319,7 +319,6 @@ struct XiuxianWidgets: WidgetBundle {
       XiuxianEntranceWidget()
     }
 }
-
 
 
 

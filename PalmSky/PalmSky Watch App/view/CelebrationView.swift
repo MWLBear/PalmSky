@@ -19,7 +19,7 @@ struct CelebrationView: View {
            Color.black.ignoresSafeArea()
             // 中心飘渺文字
             VStack(spacing: 12) {
-                Text("飞升成功")
+                Text(NSLocalizedString("watch_celebration_title", comment: ""))
                     .font(.system(.largeTitle, design: .serif).weight(.bold))
                     .foregroundColor(.white)
                     .shadow(color: .white.opacity(glowOpacity), radius: 15, x: 0, y: 0)
@@ -27,7 +27,7 @@ struct CelebrationView: View {
                     .offset(y: appear ? 0 : floatOffset)
                     .animation(.easeOut(duration: 2.0), value: appear)
 
-                Text("道心圆满，天人合一")
+                Text(NSLocalizedString("watch_celebration_subtitle", comment: ""))
                     .font(.system(.title3, design: .serif).italic())
                     .foregroundColor(.white.opacity(0.8))
                     .opacity(appear ? 1.0 : 0.0)
@@ -75,4 +75,3 @@ struct CelebrationView_Previews: PreviewProvider {
         CelebrationView()
     }
 }
-

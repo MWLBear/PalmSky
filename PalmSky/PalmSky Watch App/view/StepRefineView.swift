@@ -36,7 +36,7 @@ struct StepRefineRow: View {
                 }
                 
                 // 底部：今日步数
-                Text("今日 \(healthManager.todaySteps.formatted()) 步")
+                Text(String(format: NSLocalizedString("watch_step_today_steps_format", comment: ""), healthManager.todaySteps.formatted()))
                     .font(XiuxianFont.caption)
                     .foregroundColor(.secondary)
             }
@@ -59,9 +59,9 @@ struct StepRefineRow: View {
     
     // MARK: - 状态文字
     private var statusText: String {
-        if hasStepsToRefine { return "点击炼化" }
-        if isMaxLimitReached { return "经脉已满" }
-        return healthManager.todaySteps == 0 ? "暂无步数" : "炼化完成"
+        if hasStepsToRefine { return NSLocalizedString("watch_step_status_tap_refine", comment: "") }
+        if isMaxLimitReached { return NSLocalizedString("watch_step_status_maxed", comment: "") }
+        return healthManager.todaySteps == 0 ? NSLocalizedString("watch_step_status_no_steps", comment: "") : NSLocalizedString("watch_step_status_done", comment: "")
     }
     
     // MARK: - 右侧徽章
@@ -86,7 +86,7 @@ struct StepRefineRow: View {
             HStack(spacing: 3) {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 9))
-                Text("已满")
+                Text(NSLocalizedString("watch_step_badge_full", comment: ""))
             }
             .font(.caption2)
             .foregroundColor(.orange.opacity(0.8))
@@ -101,7 +101,7 @@ struct StepRefineRow: View {
                 HStack(spacing: 3) {
                     Image(systemName: "moon.zzz.fill")
                         .font(.system(size: 9))
-                    Text("休憩")
+                    Text(NSLocalizedString("watch_step_badge_rest", comment: ""))
                 }
                 .font(.caption2)
                 .foregroundColor(.secondary.opacity(0.5))
@@ -113,7 +113,7 @@ struct StepRefineRow: View {
                 HStack(spacing: 3) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 9))
-                    Text("已领")
+                    Text(NSLocalizedString("watch_step_badge_claimed", comment: ""))
                 }
                 .font(.caption2)
                 .foregroundColor(.secondary.opacity(0.5))
@@ -131,7 +131,7 @@ struct StepRefineRow: View {
             handleRefineSteps()
         } else if isMaxLimitReached {
             HapticManager.shared.playIfEnabled(.failure)
-            gameManager.offlineToastMessage = "凡胎肉体已达极限，明日再来"
+            gameManager.offlineToastMessage = NSLocalizedString("watch_step_toast_maxed", comment: "")
         }
     }
     

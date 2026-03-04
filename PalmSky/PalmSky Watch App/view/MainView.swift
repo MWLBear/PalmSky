@@ -344,7 +344,7 @@ struct MainView: View {
         .ignoresSafeArea()
       
         #if os(iOS)
-        .navigationTitle("掌上修仙")
+        .navigationTitle(NSLocalizedString("watch_main_nav_title", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
         #endif
       
@@ -397,7 +397,10 @@ struct MainView: View {
         .onChange(of: gameManager.refineEvent) { _, newEvent in
             if let event = newEvent {
                 // 触发通用 Toast
-                gameManager.offlineToastMessage = "步步生莲 +\(event.amount.xiuxianString)"
+                gameManager.offlineToastMessage = String(
+                    format: NSLocalizedString("watch_main_toast_refine_gain_format", comment: ""),
+                    event.amount.xiuxianString
+                )
                 
                 // 震动
                 HapticManager.shared.playIfEnabled(.success)

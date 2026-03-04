@@ -22,8 +22,8 @@ struct SettingsView: View {
             List {
               
                 // MARK: - ✨ 机缘 (步数炼化)
-                Section(header: Text("炼体").foregroundColor(themeColor),
-                        footer: Text("数据来源于HealthKit，仅用于步数兑换灵气，严格保护隐私。")
+                Section(header: Text(NSLocalizedString("watch_settings_section_refine", comment: "")).foregroundColor(themeColor),
+                        footer: Text(NSLocalizedString("watch_settings_refine_footer", comment: ""))
                         .foregroundColor (.secondary)
                 ) {
                   // ✅ 直接调用封装好的组件
@@ -50,7 +50,7 @@ struct SettingsView: View {
                         // 称号区分
                         if purchaseManager.isLegacyUser {
                           // 🌟 老玩家专属
-                          Text("开天道祖")
+                          Text(NSLocalizedString("watch_settings_legacy_title", comment: ""))
                             .foregroundColor(.yellow)
                             .bold()
                             .shadow(color: .orange.opacity(0.8), radius: 5) // 强光晕
@@ -58,7 +58,7 @@ struct SettingsView: View {
                           
                         } else {
                           // 💰 普通付费玩家 (对应飞升契约)
-                          Text("飞升契约")
+                          Text(NSLocalizedString("watch_settings_contract_title", comment: ""))
                             .foregroundColor(.yellow)
                             .bold()
                             .shadow(color: .yellow.opacity(0.3), radius: 2) // 弱光晕
@@ -70,7 +70,7 @@ struct SettingsView: View {
                         Image(systemName: "person.fill")
                             .foregroundColor(themeColor)
                             .font(.title3)
-                        Text("当前境界")
+                        Text(NSLocalizedString("watch_settings_current_realm", comment: ""))
                         Spacer()
                         Text(gameManager.getRealmShort())
                             .foregroundColor(.white)
@@ -81,7 +81,7 @@ struct SettingsView: View {
                         Image(systemName: "bolt.fill")
                             .foregroundColor(themeColor)
                             .font(.title3)
-                        Text("当前灵气")
+                        Text(NSLocalizedString("watch_settings_current_qi", comment: ""))
                         Spacer()
                         Text(gameManager.player.currentQi.xiuxianString)
                             .foregroundColor(.gray)
@@ -92,7 +92,7 @@ struct SettingsView: View {
                     Image(systemName: "shield.fill")
                       .foregroundColor(themeColor)
                       .font(.title3)
-                    Text("护身符")
+                    Text(NSLocalizedString("watch_settings_protect_charm", comment: ""))
                     Spacer()
                     Text("\(gameManager.player.items.protectCharm)")
                       .foregroundColor(.gray)
@@ -103,7 +103,7 @@ struct SettingsView: View {
                     Image(systemName: "trophy.fill")
                       .foregroundColor(themeColor)
                       .font(.title3)
-                    Text("飞升榜")
+                    Text(NSLocalizedString("watch_settings_leaderboard", comment: ""))
                       .foregroundColor(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -117,12 +117,12 @@ struct SettingsView: View {
                   #endif
                   
                 } header: {
-                    Text("道途信息")
+                    Text(NSLocalizedString("watch_settings_section_journey_info", comment: ""))
                         .foregroundColor(themeColor)
                 } footer: {
                   // 🔥 新增：如果是老玩家，显示解释文案
                   if purchaseManager.isLegacyUser {
-                      Text("首发道友纪念 · 绝版身份标识")
+                      Text(NSLocalizedString("watch_settings_legacy_footer", comment: ""))
                           .foregroundColor(.yellow.opacity(0.8)) // 金色小字
                   }
               }
@@ -131,7 +131,7 @@ struct SettingsView: View {
                 Section {
                     // 点击收益
                     HStack {
-                        Text("点击收益")
+                        Text(NSLocalizedString("watch_settings_tap_gain", comment: ""))
                         Spacer()
                         Text("+\(gameManager.getCurrentTapGain().xiuxianString)")
                             .foregroundColor(themeColor) // 跟随主题色
@@ -139,7 +139,7 @@ struct SettingsView: View {
                     
                     // 自动收益
                     HStack {
-                        Text("自动收益/秒")
+                        Text(NSLocalizedString("watch_settings_auto_gain", comment: ""))
                         Spacer()
                         // 使用带Buff计算的真实数值
                         Text("+\(gameManager.getCurrentAutoGain().xiuxianString)")
@@ -148,7 +148,7 @@ struct SettingsView: View {
                     
                     // 成功率
                     HStack {
-                        Text("突破成功率")
+                        Text(NSLocalizedString("watch_settings_break_success_rate", comment: ""))
                         Spacer()
                         let rate = GameLevelManager.shared.breakSuccess(level: gameManager.player.level)
                         Text("\(Int(rate * 100))%")
@@ -156,7 +156,7 @@ struct SettingsView: View {
                             .foregroundColor(rate >= 0.8 ? .green : (rate >= 0.6 ? .yellow : .orange))
                     }
                 } header: {
-                    Text("数值详情")
+                    Text(NSLocalizedString("watch_settings_section_stats", comment: ""))
                         .foregroundColor(themeColor)
                 }
                 
@@ -178,7 +178,7 @@ struct SettingsView: View {
                           
                         // 文字
                         VStack(alignment: .leading, spacing: 2) {
-                          Text("解锁完整版")
+                          Text(NSLocalizedString("watch_settings_unlock_full", comment: ""))
                             .font(.headline)
                             .foregroundColor(.white)
                           
@@ -205,7 +205,7 @@ struct SettingsView: View {
                     }
                   } label: {
                     Label {
-                      Text("恢复契约")
+                      Text(NSLocalizedString("watch_settings_restore_contract", comment: ""))
                         .foregroundColor(.white)
                     } icon: {
                       Image(systemName: "arrow.clockwise")
@@ -215,7 +215,7 @@ struct SettingsView: View {
                   }
                   
                 } header: {
-                  Text("飞升契约") // 霸气的 Section 标题
+                  Text(NSLocalizedString("watch_settings_contract_title", comment: "")) // 霸气的 Section 标题
                     .foregroundColor(themeColor)
                 }
               
@@ -227,7 +227,7 @@ struct SettingsView: View {
                       set: { _ in gameManager.toggleSound() }
                   )) {
                       Label {
-                          Text("声音")
+                          Text(NSLocalizedString("watch_settings_sound", comment: ""))
                       } icon: {
                           Image(systemName: "speaker.wave.2.fill")
                               .foregroundColor(themeColor)
@@ -240,7 +240,7 @@ struct SettingsView: View {
                         set: { _ in gameManager.toggleHaptic() }
                     )) {
                         Label {
-                            Text("震动反馈")
+                            Text(NSLocalizedString("watch_settings_haptic_feedback", comment: ""))
                         } icon: {
                             Image(systemName: "waveform.circle.fill")
                                 .foregroundColor(themeColor)
@@ -253,7 +253,7 @@ struct SettingsView: View {
                         set: { _ in gameManager.toggleAutoGain() }
                     )) {
                         Label {
-                            Text("自动修炼")
+                            Text(NSLocalizedString("watch_settings_auto_cultivate", comment: ""))
                         } icon: {
                             Image(systemName: "sparkles")
                                 .foregroundColor(themeColor)
@@ -268,7 +268,7 @@ struct SettingsView: View {
                             set: { gameManager.toggleAutoBreakthrough($0) }
                         )) {
                             Label {
-                                Text("自动冲关")
+                                Text(NSLocalizedString("watch_settings_auto_breakthrough", comment: ""))
                                 .foregroundColor(.white)
                             } icon: {
                                 Image(systemName: "bolt.horizontal.circle.fill")
@@ -284,7 +284,7 @@ struct SettingsView: View {
                         } label: {
                             HStack {
                                 Label {
-                                    Text("自动冲关")
+                                    Text(NSLocalizedString("watch_settings_auto_breakthrough", comment: ""))
                                     .foregroundColor(.white)
 
                                 } icon: {
@@ -301,7 +301,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("仙府设置")
+                    Text(NSLocalizedString("watch_settings_section_cave", comment: ""))
                         .foregroundColor(themeColor)
                 }
                 
@@ -314,7 +314,7 @@ struct SettingsView: View {
                       } label: {
                         HStack {
                           Spacer()
-                          Label("转世重修", systemImage: "arrow.triangle.2.circlepath")
+                          Label(NSLocalizedString("watch_settings_reincarnate", comment: ""), systemImage: "arrow.triangle.2.circlepath")
                             .foregroundColor(.yellow) // 金色，代表神圣
                             .bold()
                           Spacer()
@@ -325,18 +325,18 @@ struct SettingsView: View {
                       Button(role: .destructive) {
                         showResetAlert = true
                       } label: {
-                        Label("散尽修为 (删档)", systemImage: "trash.fill")
+                        Label(NSLocalizedString("watch_settings_reset_game", comment: ""), systemImage: "trash.fill")
                           .foregroundColor(.red)
                       }
                     
                   }
                 } footer: {
                   VStack(spacing: 5) {
-                         Text("掌上修仙 \(appVersion)")
+                         Text(String(format: NSLocalizedString("watch_settings_app_name_format", comment: ""), appVersion))
                              .font(.footnote)
                              .foregroundColor(.gray.opacity(0.5))
 
-                         Text("此道漫长，不必急行。")
+                         Text(NSLocalizedString("watch_settings_footer_quote", comment: ""))
                              .font(.footnote)
                              .foregroundColor(.white.opacity(0.35))
                      }
@@ -344,7 +344,7 @@ struct SettingsView: View {
                      .padding(.top, 6)
                 }
             }
-            .navigationTitle("设置")
+            .navigationTitle(NSLocalizedString("settings_nav_title", comment: ""))
           // ✨ 挂载付费墙弹窗
             .sheet(isPresented: $showPaywall) {
               PaywallView()
@@ -360,9 +360,9 @@ struct SettingsView: View {
                 if gameManager.isAscended {
                   // 满级转世
                   return Alert(
-                    title: Text("开启新轮回？"),
-                    message: Text("你将保留此生记录，回到凡人境界重新修行。"),
-                    primaryButton: .destructive(Text("转世重修")) {
+                    title: Text(NSLocalizedString("watch_settings_alert_new_cycle_title", comment: "")),
+                    message: Text(NSLocalizedString("watch_settings_alert_new_cycle_message", comment: "")),
+                    primaryButton: .destructive(Text(NSLocalizedString("watch_settings_reincarnate", comment: ""))) {
                 
                       // 直接调用轮回逻辑
                       gameManager.reincarnate()
@@ -375,14 +375,14 @@ struct SettingsView: View {
                       }
                       
                     },
-                    secondaryButton: .cancel(Text("取消"))
+                    secondaryButton: .cancel(Text(NSLocalizedString("watch_common_cancel", comment: "")))
                   )
                 } else {
                   // 未满级重置
                   return Alert(
-                    title: Text("确定删档重来？"),
-                    message: Text("当前所有修为将化为乌有，此操作不可撤销！"),
-                    primaryButton: .destructive(Text("确认重置")) {
+                    title: Text(NSLocalizedString("watch_settings_alert_reset_title", comment: "")),
+                    message: Text(NSLocalizedString("watch_settings_alert_reset_message", comment: "")),
+                    primaryButton: .destructive(Text(NSLocalizedString("watch_settings_alert_reset_confirm", comment: ""))) {
                       gameManager.resetGame()
                       HapticManager.shared.play(.directionUp)
                       // 🚀 核心修改：切回第 0 页 (主页)
@@ -390,7 +390,7 @@ struct SettingsView: View {
                         currentTab = 0
                       }
                     },
-                    secondaryButton: .default(Text("取消"))
+                    secondaryButton: .default(Text(NSLocalizedString("watch_common_cancel", comment: "")))
                   )
                 }
               }
@@ -402,7 +402,7 @@ struct SettingsView: View {
   private var appVersion: String {
     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     let _ = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-    return " v\(version)"
+    return "v\(version)"
   }
   
 }

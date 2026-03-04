@@ -63,8 +63,8 @@ struct XiuxianEntranceWidget: Widget {
         StaticConfiguration(kind: kind, provider: EntranceProvider()) { _ in
             XiuxianEntranceView()
         }
-        .configurationDisplayName("修仙入口")
-        .description("八卦在手，直入修行")
+        .configurationDisplayName(NSLocalizedString("widget_config_title_entry", comment: ""))
+        .description(NSLocalizedString("widget_config_desc_entry", comment: ""))
         .supportedFamilies([.accessoryCircular])
     }
 }

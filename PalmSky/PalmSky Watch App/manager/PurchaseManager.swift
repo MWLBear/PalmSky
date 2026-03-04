@@ -24,13 +24,13 @@ enum PurchaseError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .productNotFound:
-            return NSLocalizedString("找不到该商品", comment: "")
+            return NSLocalizedString("iap_error_product_not_found", comment: "")
         case .purchaseFailed(let reason):
             return reason
         case .verificationFailed:
-            return NSLocalizedString("购买验证失败", comment: "")
+            return NSLocalizedString("iap_error_verification_failed", comment: "")
         case .userCancelled:
-            return NSLocalizedString("购买取消", comment: "") //"User cancelled"
+            return NSLocalizedString("iap_error_user_cancelled", comment: "") //"User cancelled"
         }
     }
 }
@@ -190,21 +190,21 @@ class PurchaseManager: NSObject, ObservableObject {
             if fetchedProducts.isEmpty {
                 print("⚠️ Loaded 0 products. Possible reasons: no network permission, product IDs not configured")
                 await MainActor.run {
-                    self.loadError = "请检查网络权限或稍后重试"
+                    self.loadError = NSLocalizedString("watch_purchase_load_error_check_network", comment: "")
                 }
             }
         } catch {
             if case LoadProductsError.timeout = error {
                 print("⏳ Load products timeout")
                 await MainActor.run {
-                    self.loadError = "连接超时，请重试"
+                    self.loadError = NSLocalizedString("watch_purchase_load_error_timeout", comment: "")
                 }
                 throw error
             }
             
             print("❌ Failed to load products: \(error)")
             await MainActor.run {
-                self.loadError = "网络连接失败，请检查网络"
+                self.loadError = NSLocalizedString("watch_purchase_load_error_failed", comment: "")
             }
             throw error
         }
@@ -265,7 +265,7 @@ class PurchaseManager: NSObject, ObservableObject {
             case .pending:
                 print("⏳ Purchase pending")
                 throw PurchaseError.purchaseFailed(
-                    NSLocalizedString("购买需要确认", comment: "")
+                    NSLocalizedString("iap_error_pending_confirmation", comment: "")
                 )
                 
             case .userCancelled:
@@ -275,7 +275,7 @@ class PurchaseManager: NSObject, ObservableObject {
             @unknown default:
                 print("❓ Unknown purchase result")
                 throw PurchaseError.purchaseFailed(
-                    NSLocalizedString("未知错误", comment: "")
+                    NSLocalizedString("iap_error_unknown", comment: "")
                 )
             }
         } catch {

@@ -36,14 +36,14 @@ class EventPool {
       let validEvents = events.filter { event in
         // A. 检查最低境界限制
         if let minStr = event.minStage,
-           let minIndex = GameConstants.stageNames.firstIndex(of: minStr),
+           let minIndex = GameConstants.stageIndex(for: minStr),
            playerStageIndex < minIndex {
           return false // 玩家境界太低，遇不到
         }
         
         // B. 检查最高境界限制
         if let maxStr = event.maxStage,
-           let maxIndex = GameConstants.stageNames.firstIndex(of: maxStr),
+           let maxIndex = GameConstants.stageIndex(for: maxStr),
            playerStageIndex > maxIndex {
           return false // 玩家境界太高，不再遇到低级事
         }

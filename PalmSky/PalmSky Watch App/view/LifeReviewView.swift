@@ -54,13 +54,13 @@ struct LifeReviewView: View {
                         // 标题单独放
                         if !visibleSections.isEmpty {
                           VStack(spacing: 6) {
-                            Text("此生修行小记")
+                            Text(NSLocalizedString("watch_review_title", comment: ""))
                             // ✅ 规范：总标题 .headline + rounded + semibold
                               .font(.system(.title3, design: .rounded).weight(.semibold))
                               .foregroundColor(.white)
                               .fixedSize(horizontal: false, vertical: true) // 保持高度固定
 
-                            Text("— 掌上修仙 —")
+                            Text(NSLocalizedString("watch_review_subtitle", comment: ""))
                             // ✅ 规范：引言 .caption2 + serif
                               .font(.system(.caption2, design: .serif))
                               .foregroundColor(.gray)
@@ -87,11 +87,11 @@ struct LifeReviewView: View {
                           
                           // ✅ 规范：禅语 .callout + serif + italic (这里稍微用大一点的 callout 撑场面)
                           VStack(spacing: 6) {
-                            Text("此道漫长，不必急行。")
+                            Text(NSLocalizedString("watch_review_footer_quote", comment: ""))
                               .font(.system(.callout, design: .serif).italic())
                               .foregroundColor(.white.opacity(0.9))
                             
-                            Text("—— 你已经走得足够远了")
+                            Text(NSLocalizedString("watch_review_footer_subquote", comment: ""))
                               .font(.system(.caption2, design: .serif))
                               .foregroundColor(.gray)
                           }
@@ -103,7 +103,7 @@ struct LifeReviewView: View {
                               HapticManager.shared.playIfEnabled(.click)
 
                           }) {
-                              Text("合上札记")
+                              Text(NSLocalizedString("watch_review_close_note", comment: ""))
                                   .font(.system(.headline, design: .rounded).weight(.semibold))
                                   .foregroundColor(.black)
                                   .frame(maxWidth: .infinity)
@@ -122,7 +122,7 @@ struct LifeReviewView: View {
                             GameManager.shared.reincarnate()
                             onClose?()
                           }) {
-                            Text("转世重修")
+                            Text(NSLocalizedString("watch_review_reincarnate", comment: ""))
                               .font(.system(.footnote, design: .rounded))
                               .foregroundColor(.gray.opacity(0.6))
                               .padding(.vertical, 4)
@@ -196,23 +196,33 @@ struct LifeReviewView: View {
         // 1. 时间
         s.append(ReviewSection(
             icon: "hourglass",
-            title: "岁月",
-            content: "始于 \(dateForamtter.string(from: rec.startDate))\n终于 \(dateForamtter.string(from: rec.finishDate ?? Date()))",
-            highlight: "共修行 \(rec.totalDays) 天",
+            title: NSLocalizedString("watch_review_section_years_title", comment: ""),
+            content: String(
+                format: NSLocalizedString("watch_review_section_years_content_format", comment: ""),
+                dateForamtter.string(from: rec.startDate),
+                dateForamtter.string(from: rec.finishDate ?? Date())
+            ),
+            highlight: String(format: NSLocalizedString("watch_review_section_years_highlight_format", comment: ""), rec.totalDays),
             color: .blue,
             pause: 2.5
         ))
         
         // 2. 苦难
-        var struggleText = "即便天赋异禀，亦有困顿之时。"
+        var struggleText = NSLocalizedString("watch_review_struggle_default", comment: "")
         if let stage = rec.longestStagnationStageName, rec.maxStagnationDays > 0 {
-            struggleText = "最长的一次停滞，你在「\(stage)」停留了 \(rec.maxStagnationDays) 天。"
+            struggleText = String(
+                format: NSLocalizedString("watch_review_struggle_stuck_format", comment: ""),
+                stage,
+                rec.maxStagnationDays
+            )
         }
         s.append(ReviewSection(
             icon: "mountain.2.fill",
-            title: "坚持",
+            title: NSLocalizedString("watch_review_section_persistence_title", comment: ""),
             content: struggleText,
-            highlight: rec.breakFailures > 0 ? "历经 \(rec.breakFailures) 次失败，未曾放弃。" : "道心通明，势如破竹。",
+            highlight: rec.breakFailures > 0
+                ? String(format: NSLocalizedString("watch_review_persistence_failures_format", comment: ""), rec.breakFailures)
+                : NSLocalizedString("watch_review_persistence_no_failures", comment: ""),
             color: .orange,
             pause: 2.5
         ))
@@ -220,8 +230,13 @@ struct LifeReviewView: View {
         // 3. 选择
         s.append(ReviewSection(
             icon: "signpost.right.and.left.fill",
-            title: "机缘",
-            content: "途中遇奇遇 \(rec.eventsTriggered) 次。\n接受 \(rec.eventsAccepted) 次，放弃 \(rec.eventsRejected) 次。",
+            title: NSLocalizedString("watch_review_section_chance_title", comment: ""),
+            content: String(
+                format: NSLocalizedString("watch_review_section_chance_content_format", comment: ""),
+                rec.eventsTriggered,
+                rec.eventsAccepted,
+                rec.eventsRejected
+            ),
             highlight: getEventSummary(),
             color: .purple,
             pause: 2.5
@@ -230,7 +245,7 @@ struct LifeReviewView: View {
         // 4. 性格
         s.append(ReviewSection(
             icon: "person.fill.viewfinder",
-            title: "道心",
+            title: NSLocalizedString("watch_review_section_mind_title", comment: ""),
             content: getPersonalityDescription(),
             highlight: getOverviewText(), // "这一年，你走得很慢..."
             color: .green,
@@ -326,11 +341,11 @@ extension LifeReviewView {
     func getOverviewText() -> String {
         switch getPersonalityType() {
         case .steady:
-            return "这一年，你走得很慢，但从未后退。"
+            return NSLocalizedString("watch_review_overview_steady", comment: "")
         case .risky:
-            return "这一年，你常在未明之时出手。"
+            return NSLocalizedString("watch_review_overview_risky", comment: "")
         case .balanced:
-            return "这一年，你懂得等待，也敢于一搏。"
+            return NSLocalizedString("watch_review_overview_balanced", comment: "")
         }
     }
     
@@ -338,11 +353,11 @@ extension LifeReviewView {
     func getPersonalityDescription() -> String {
         switch getPersonalityType() {
         case .risky:
-            return "当成功率不足六成时，你仍然选择向前。你曾在险境中，押上自己的道心。"
+            return NSLocalizedString("watch_review_personality_risky", comment: "")
         case .steady:
-            return "你很少在胜算不足时出手。你相信时机，而非侥幸。"
+            return NSLocalizedString("watch_review_personality_steady", comment: "")
         case .balanced:
-            return "你既懂得等待，也不惧尝试。你知道，有些关口，必须自己走过去。"
+            return NSLocalizedString("watch_review_personality_balanced", comment: "")
         }
     }
     
@@ -351,11 +366,11 @@ extension LifeReviewView {
         let rec = recordManager.record
         // 简单的比值判断
         if rec.eventsAccepted > Int(Double(rec.eventsRejected) * 1.5) {
-            return "面对未知，你愿意选择相信。"
+            return NSLocalizedString("watch_review_event_summary_accept", comment: "")
         } else if rec.eventsRejected > Int(Double(rec.eventsAccepted) * 1.5) {
-            return "面对诱惑，你更珍惜当下的安稳。"
+            return NSLocalizedString("watch_review_event_summary_reject", comment: "")
         } else {
-            return "你总是在权衡利弊之后，再决定是否前行。"
+            return NSLocalizedString("watch_review_event_summary_balanced", comment: "")
         }
     }
 }

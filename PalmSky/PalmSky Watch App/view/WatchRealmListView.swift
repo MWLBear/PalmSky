@@ -28,9 +28,9 @@ struct WatchRealmListView: View {
                         HStack {
                             Image(systemName: "infinity")
                                 .foregroundColor(.purple)
-                            Text("当前轮回")
+                            Text(NSLocalizedString("watch_realm_current_cycle", comment: ""))
                             Spacer()
-                            Text("第 \(reincarnationCount + 1) 世") // 0世显示第1世
+                            Text(String(format: NSLocalizedString("watch_realm_cycle_number_format", comment: ""), reincarnationCount + 1))
                                 .bold()
                                 .foregroundColor(.white)
                         }
@@ -38,7 +38,7 @@ struct WatchRealmListView: View {
                         // 显示前缀 (如 "真", "玄")
                         if reincarnationCount > 0 {
                             HStack {
-                                Text("获得称号")
+                                Text(NSLocalizedString("watch_realm_gained_title", comment: ""))
                                 Spacer()
                                 let name = GameLevelManager.shared.stageName(for: 1, reincarnation: reincarnationCount)
                                 // 提取前缀 (比如 "真·")
@@ -49,7 +49,7 @@ struct WatchRealmListView: View {
                             }
                         }
                     } header: {
-                        Text("仙途履历")
+                        Text(NSLocalizedString("watch_realm_section_history", comment: ""))
                     }
                    
                     
@@ -105,10 +105,10 @@ struct WatchRealmListView: View {
                 
                     }
                   } header: {
-                    Text("境界一览")
+                    Text(NSLocalizedString("watch_realm_section_list", comment: ""))
                   }
                 }
-                .navigationTitle("天道图鉴")
+                .navigationTitle(NSLocalizedString("watch_realm_nav_title", comment: ""))
                 .navigationBarTitleDisplayMode(.inline)
                 .onAppear {
                     // 自动滚动到当前境界，让玩家一眼看到自己在哪

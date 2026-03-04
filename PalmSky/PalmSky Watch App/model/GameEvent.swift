@@ -31,14 +31,23 @@ struct GameConstants {
     static let COMPLICATION_REFRESH_MINUTES = 30
     static let COMPLICATION_ALERT_THRESHOLD_PCT = 0.90
     
-    // 16 大境界
-    static let stageNames = [
+    // 16 大境界（逻辑层使用简体 canonical，显示层按系统语言切换）
+    static let stageNamesCanonical = [
         "筑基", "开光", "胎息", "辟谷", "金丹", "元婴", "出窍", "分神",
         "合体", "大乘", "渡劫", "地仙", "天仙", "金仙", "大罗金仙", "九天玄仙"
     ]
   
+    private static let stageNamesTraditional = [
+        "築基", "開光", "胎息", "辟穀", "金丹", "元嬰", "出竅", "分神",
+        "合體", "大乘", "渡劫", "地仙", "天仙", "金仙", "大羅金仙", "九天玄仙"
+    ]
+  
+    static var stageNames: [String] {
+      AppLanguage.isTraditionalChinese ? stageNamesTraditional : stageNamesCanonical
+    }
+  
     // 轮回前缀 (0-9世)
-    static let zhuanNames = [
+    static let zhuanNamesCanonical = [
       "",       // 第1世 (reincarnation = 0)
       "真",     // 第2世 (reincarnation = 1)
       "玄",     // 第3世
@@ -50,11 +59,25 @@ struct GameConstants {
       "至",     // 第9世
       "道"      // 第10世+
     ]
+  
+    private static let zhuanNamesTraditional = [
+      "", "真", "玄", "靈", "妙", "元", "太", "上", "至", "道"
+    ]
+  
+    static var zhuanNames: [String] {
+      AppLanguage.isTraditionalChinese ? zhuanNamesTraditional : zhuanNamesCanonical
+    }
         
   // 中文数字映射 (用于层级显示)
     static let cnNumbers = ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
   
     static let MAX_LEVEL = 144
+  
+    static func stageIndex(for stageName: String) -> Int? {
+      if let idx = stageNamesCanonical.firstIndex(of: stageName) { return idx }
+      if let idx = stageNamesTraditional.firstIndex(of: stageName) { return idx }
+      return nil
+    }
 }
 
 // MARK: - Player Model

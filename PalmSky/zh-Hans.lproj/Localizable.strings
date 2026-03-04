@@ -1,12 +1,12 @@
-"游戏说明" = "游戏说明";
-"游戏失败" = "游戏失败";
-"胜利" = "胜利";
+"legacy_game_guide_title" = "游戏说明";
+"legacy_game_failed" = "游戏失败";
+"legacy_game_victory" = "胜利";
 
-"排行榜" = "排行榜";
-"日榜" = "日榜";
-"周榜" = "周榜";
-"总榜" = "总榜";
-"暂无排名" = "暂无排名";
+"legacy_ranking_title" = "排行榜";
+"legacy_ranking_daily" = "日榜";
+"legacy_ranking_weekly" = "周榜";
+"legacy_ranking_alltime" = "总榜";
+"legacy_ranking_none" = "暂无排名";
 
 "career_title" = "生涯统计";
 "career_section_core" = "核心数据";
@@ -26,6 +26,7 @@
 "theme_auto" = "自动";
 "theme_dark" = "深色";
 "theme_light" = "浅色";
+"theme_title" = "主题模式";
 
 "tab_career" = "修行";
 "tab_leaderboard" = "排行";
@@ -71,6 +72,15 @@
 "faq_missing_center_q" = "手表的排行榜没有数据";
 "faq_missing_center_a" = "1.在你的 iPhone 上进入“设置>Game Center”，确认你已登录。\n2. 确保手表和 iPhone 通过蓝牙或同一 Wi-Fi 网络连接。\n3. 重新打开应用并等待几秒钟。";
 
+"faq_data_independent_q" = "手机和手表的数据是独立的吗？";
+"faq_data_independent_a" = "是的，手机版和手表版的游戏进度是完全独立的。您可以在两个平台上分别体验修仙之旅，互不影响。";
+"faq_watch_unlock_q" = "手机购买后，手表没有解锁怎么办？";
+"faq_watch_unlock_a" = "购买是通用的，但可能需要几分钟同步。请尝试：\n1. 在设置中点击「恢复契约」按钮；\n2. 完全关闭并重新打开 App；\n3. 确保手机和手表使用同一个 Apple ID 登录。";
+"faq_leaderboard_source_q" = "排行榜显示的是手机还是手表的成绩？";
+"faq_leaderboard_source_a" = "排行榜可以切换显示。点击排行榜页面右上角的图标（⌚️/📱）即可在手表排行榜和手机排行榜之间切换查看。";
+"faq_data_loss_q" = "游戏数据会丢失吗？";
+"faq_data_loss_a" = "游戏数据保存在设备本地。\n注意：卸载应用会导致所有游戏数据永久丢失，请谨慎操作。\n建议定期通过 iCloud 或 iTunes 备份您的设备。";
+
 /* 产品名称 */
 "product_6755140397_name" = "掌上台球 - 手表游戏";
 "product_6755930349_name" = "掌上斗地主 - 手表游戏";
@@ -91,9 +101,14 @@
 "product_6749309578_subtitle" = "六边形消除小游戏";
 "product_6752029081_subtitle" = "趣味益智小游戏";
 
-"声音" = "声音";
-"震动" = "震动";
+"legacy_sound" = "声音";
+"legacy_haptic" = "震动";
 "GameCenterTip"="请先登录 Game Center";
+"iap_error_product_not_found" = "找不到该商品";
+"iap_error_verification_failed" = "购买验证失败";
+"iap_error_user_cancelled" = "购买取消";
+"iap_error_pending_confirmation" = "购买需要确认";
+"iap_error_unknown" = "未知错误";
 
 "leaderboard.rank" = "排名";
 "leaderboard.player" = "玩家";
@@ -104,3 +119,238 @@
 "leaderboard.alltime" = "总榜";
 "leaderboard.no.rank" = "暂无排名";
 
+/* Watch 通用 */
+"watch_common_tip" = "提示";
+"watch_common_ok" = "好的";
+"watch_common_cancel" = "取消";
+
+/* Watch 设置 */
+"watch_settings_section_refine" = "炼体";
+"watch_settings_refine_footer" = "数据来源于HealthKit，仅用于步数兑换灵气，严格保护隐私。";
+"watch_settings_legacy_title" = "开天道祖";
+"watch_settings_contract_title" = "飞升契约";
+"watch_settings_current_realm" = "当前境界";
+"watch_settings_current_qi" = "当前灵气";
+"watch_settings_protect_charm" = "护身符";
+"watch_settings_leaderboard" = "飞升榜";
+"watch_settings_section_journey_info" = "道途信息";
+"watch_settings_legacy_footer" = "首发道友纪念 · 绝版身份标识";
+"watch_settings_tap_gain" = "点击收益";
+"watch_settings_auto_gain" = "自动收益/秒";
+"watch_settings_break_success_rate" = "突破成功率";
+"watch_settings_section_stats" = "数值详情";
+"watch_settings_unlock_full" = "解锁完整版";
+"watch_settings_restore_contract" = "恢复契约";
+"watch_settings_sound" = "声音";
+"watch_settings_haptic_feedback" = "震动反馈";
+"watch_settings_auto_cultivate" = "自动修炼";
+"watch_settings_auto_breakthrough" = "自动冲关";
+"watch_settings_section_cave" = "仙府设置";
+"watch_settings_reincarnate" = "转世重修";
+"watch_settings_reset_game" = "散尽修为 (删档)";
+"watch_settings_app_name_format" = "掌上修仙 %@";
+"watch_settings_footer_quote" = "此道漫长，不必急行。";
+"watch_settings_alert_new_cycle_title" = "开启新轮回？";
+"watch_settings_alert_new_cycle_message" = "你将保留此生记录，回到凡人境界重新修行。";
+"watch_settings_alert_reset_title" = "确定删档重来？";
+"watch_settings_alert_reset_message" = "当前所有修为将化为乌有，此操作不可撤销！";
+"watch_settings_alert_reset_confirm" = "确认重置";
+
+/* Watch 付费墙 */
+"watch_paywall_title" = "飞升契约";
+"watch_paywall_subtitle" = "打破凡尘桎梏 · 证得无上大道";
+"watch_paywall_benefit_realm_title" = "境界解封";
+"watch_paywall_benefit_realm_subtitle" = "突破炼气，筑基成仙";
+"watch_paywall_benefit_auto_break_title" = "自动冲关";
+"watch_paywall_benefit_auto_break_subtitle" = "解放双手，快速升级";
+"watch_paywall_benefit_offline_title" = "闭关延时";
+"watch_paywall_benefit_offline_subtitle" = "离线挂机，十二小时";
+"watch_paywall_benefit_steps_title" = "肉身成圣";
+"watch_paywall_benefit_steps_subtitle" = "单日炼化，四万步数";
+"watch_paywall_benefit_widget_watch_title" = "表盘显化";
+"watch_paywall_benefit_widget_watch_subtitle" = "表盘组件，实时进度";
+"watch_paywall_benefit_widget_ios_title" = "腕上天机";
+"watch_paywall_benefit_widget_ios_subtitle" = "Apple Watch，专属表盘";
+"watch_paywall_benefit_reincarnation_title" = "百世轮回";
+"watch_paywall_benefit_reincarnation_subtitle" = "开启转世，继承天赋";
+"watch_paywall_one_purchase" = "✨ 一次购买，双端通用";
+"watch_paywall_connecting" = "正在连接...";
+"watch_paywall_buy_button_format" = "结成契约 %@";
+"watch_paywall_retry_connect" = "重试连接";
+"watch_paywall_connecting_service" = "正在连接天道...";
+"watch_paywall_restore_existing" = "恢复已有契约";
+"watch_paywall_restore_success" = "恢复成功";
+"watch_paywall_restore_not_found" = "未发现记录";
+
+/* Watch 购买 */
+"watch_purchase_load_error_check_network" = "请检查网络权限或稍后重试";
+"watch_purchase_load_error_timeout" = "连接超时，请重试";
+"watch_purchase_load_error_failed" = "网络连接失败，请检查网络";
+
+/* Watch Toast */
+"watch_toast_offline_capped_format" = "闭关%@ (上限)，灵气 +%@\n解锁契约可延至12小时";
+"watch_toast_offline_gain_format" = "闭关%@，灵气 +%@";
+"watch_toast_pity_success" = "道心不屈，天道垂青";
+"watch_toast_charm_broken" = "护身符破碎，免除灵力折损";
+"watch_toast_debuff_one_hour" = "道心受损，吸纳效率降低 (持续1小时)";
+"watch_toast_gamble_win_format" = "险中求胜！灵气 +%@";
+"watch_toast_gamble_lose_format" = "灵气流失！灵气 -%@";
+"watch_toast_tap_boost_format" = "点击暴涨 (持续%d秒)";
+"watch_toast_tap_debuff" = "经脉受损 点击效果减半";
+"watch_toast_auto_boost_format" = "修炼加速 (持续%d秒)";
+"watch_toast_auto_debuff" = "走火入魔 修炼停滞";
+"watch_toast_event_gain_format" = "奇遇收获 灵气 +%@";
+"watch_toast_event_lose_format" = "遭遇意外 灵气 -%@";
+"watch_toast_gain_charm" = "获得宝物 [护身符]";
+"watch_toast_tap_buff_extend_format" = "感悟延续 点击效果 +%d%% (剩余%@)";
+"watch_toast_auto_buff_extend_format" = "道心稳固 自动修炼 +%d%% (剩余%@)";
+"watch_toast_break_fail_charm" = "渡劫失败，护身符抵消惩罚";
+"watch_toast_break_fail_debuff_format" = "渡劫失败 道心受损 (灵气 -%@)";
+"watch_toast_break_fail_normal_format" = "渡劫失败 元气大伤 (灵气 -%@)";
+
+/* Watch 时间格式 */
+"watch_duration_seconds_format" = "%d秒";
+"watch_duration_minutes_format" = "%.1f分";
+
+/* Watch 主界面与突破 */
+"watch_main_nav_title" = "掌上修仙";
+"watch_main_toast_refine_gain_format" = "步步生莲 +%@";
+"watch_common_done" = "完成";
+"watch_break_status_gathering" = "天地灵气汇聚中...";
+"watch_break_status_resonance_format" = "共鸣率 %d%%";
+"watch_break_button_breaking" = "突破中...";
+"watch_break_button_auto" = "自动冲关";
+"watch_break_button_manual" = "逆天改命";
+"watch_break_result_success" = "突破成功";
+"watch_break_result_failure" = "突破失败";
+"watch_break_result_penalty_format" = "道心受损 -%d%%";
+"watch_break_auto_countdown_format" = "闭关冲击中 %@s";
+
+/* Watch 炼体 */
+"watch_step_today_steps_format" = "今日 %@ 步";
+"watch_step_status_tap_refine" = "点击炼化";
+"watch_step_status_maxed" = "经脉已满";
+"watch_step_status_no_steps" = "暂无步数";
+"watch_step_status_done" = "炼化完成";
+"watch_step_badge_full" = "已满";
+"watch_step_badge_rest" = "休憩";
+"watch_step_badge_claimed" = "已领";
+"watch_step_toast_maxed" = "凡胎肉体已达极限，明日再来";
+
+/* Watch 奇遇 */
+"watch_event_header" = "— 奇遇 —";
+"watch_event_hint_gain" = "机缘";
+"watch_event_hint_risk" = "风险";
+"watch_event_hint_item" = "宝物";
+"watch_event_hint_buff" = "增益";
+"watch_event_hint_gamble" = "博弈";
+"watch_event_hint_none" = "无事";
+
+/* Watch 小游戏引导 */
+"watch_game_skyrush_dev" = "冲九霄开发中...";
+"watch_game_guide_title_mind" = "斩除心魔";
+"watch_game_guide_title_sword" = "御剑挡劫";
+"watch_game_guide_title_inscription" = "参悟天机";
+"watch_game_guide_title_rush" = "冲九霄";
+"watch_game_guide_title_default" = "渡劫开始";
+"watch_game_guide_subtitle_mind" = "点击屏幕 以念破妄";
+"watch_game_guide_subtitle_sword" = "点击屏幕 转换剑阵";
+"watch_game_guide_subtitle_inscription" = "记忆顺序 循序复刻";
+"watch_game_guide_subtitle_default" = "点击屏幕";
+
+/* Watch 人生回顾 */
+"watch_review_title" = "此生修行小记";
+"watch_review_subtitle" = "— 掌上修仙 —";
+"watch_review_footer_quote" = "此道漫长，不必急行。";
+"watch_review_footer_subquote" = "—— 你已经走得足够远了";
+"watch_review_close_note" = "合上札记";
+"watch_review_reincarnate" = "转世重修";
+"watch_review_section_years_title" = "岁月";
+"watch_review_section_years_content_format" = "始于 %@\n终于 %@";
+"watch_review_section_years_highlight_format" = "共修行 %d 天";
+"watch_review_struggle_default" = "即便天赋异禀，亦有困顿之时。";
+"watch_review_struggle_stuck_format" = "最长的一次停滞，你在「%@」停留了 %d 天。";
+"watch_review_section_persistence_title" = "坚持";
+"watch_review_persistence_failures_format" = "历经 %d 次失败，未曾放弃。";
+"watch_review_persistence_no_failures" = "道心通明，势如破竹。";
+"watch_review_section_chance_title" = "机缘";
+"watch_review_section_chance_content_format" = "途中遇奇遇 %d 次。\n接受 %d 次，放弃 %d 次。";
+"watch_review_section_mind_title" = "道心";
+"watch_review_overview_steady" = "这一年，你走得很慢，但从未后退。";
+"watch_review_overview_risky" = "这一年，你常在未明之时出手。";
+"watch_review_overview_balanced" = "这一年，你懂得等待，也敢于一搏。";
+"watch_review_personality_risky" = "当成功率不足六成时，你仍然选择向前。你曾在险境中，押上自己的道心。";
+"watch_review_personality_steady" = "你很少在胜算不足时出手。你相信时机，而非侥幸。";
+"watch_review_personality_balanced" = "你既懂得等待，也不惧尝试。你知道，有些关口，必须自己走过去。";
+"watch_review_event_summary_accept" = "面对未知，你愿意选择相信。";
+"watch_review_event_summary_reject" = "面对诱惑，你更珍惜当下的安稳。";
+"watch_review_event_summary_balanced" = "你总是在权衡利弊之后，再决定是否前行。";
+
+/* Watch 铭文小游戏 */
+"watch_inscription_status_initial" = "阵法推演";
+"watch_inscription_status_observe" = "观灵光流转";
+"watch_inscription_status_repeat" = "循序复刻";
+"watch_inscription_status_matched" = "阵纹契合";
+"watch_inscription_status_success" = "渡劫成功";
+"watch_inscription_status_fail" = "阵法崩塌";
+
+/* Watch 底部与状态 */
+"watch_bottom_break_now" = "立即突破";
+"watch_bottom_qi_unit" = "灵气";
+"watch_buff_tap_positive_title" = "机缘 · 顿悟";
+"watch_buff_tap_negative_title" = "劫难 · 虚弱";
+"watch_buff_tap_positive_desc_format" = "点击收益提升 %d%%";
+"watch_buff_tap_negative_desc_format" = "点击收益降低 %d%%";
+"watch_buff_auto_title" = "天地 · 灵气";
+"watch_buff_auto_desc_format" = "自动修炼速度 +%d%%";
+"watch_buff_debuff_title" = "劫难 · 心魔";
+"watch_buff_debuff_desc_format" = "所有收益折损 %d%%";
+"watch_buff_empty_state" = "当前道心通明\n无增益亦无杂念";
+"watch_buff_nav_title" = "状态详情";
+"watch_buff_status_unstable" = "道心不稳";
+"watch_celebration_title" = "飞升成功";
+"watch_celebration_subtitle" = "道心圆满，天人合一";
+"watch_swipe_tutorial" = "左滑进入设置";
+"watch_notification_full_title" = "道友，灵气已溢出！";
+"watch_notification_full_body" = "闭关已达上限，速速归来突破瓶颈！";
+"watch_time_hours_format" = "%d小时";
+"watch_time_minutes_format" = "%d分钟";
+
+/* Watch 境界与图鉴 */
+"watch_realm_nav_title" = "天道图鉴";
+"watch_realm_current_cycle" = "当前轮回";
+"watch_realm_cycle_number_format" = "第 %d 世";
+"watch_realm_gained_title" = "获得称号";
+"watch_realm_section_history" = "仙途履历";
+"watch_realm_section_list" = "境界一览";
+"watch_realm_unknown" = "未知境界";
+"watch_realm_layer_cn_format" = "%@层";
+"watch_realm_layer_num_format" = "%d层";
+"watch_realm_placeholder_stage" = "筑基";
+
+/* Phone 图鉴 */
+"phone_realm_stage_number_format" = "第 %d 境";
+"phone_realm_nine_layers" = "共九层";
+"phone_realm_section_stage_header" = "境界 · 修行阶梯";
+"phone_realm_section_stage_footer" = "九天玄仙之后，便是大道尽头。";
+"phone_realm_life_number_format" = "第 %d 世";
+"phone_realm_mortal_no_prefix" = "凡躯（无前缀）";
+"phone_realm_section_cycle_header" = "轮回 · 前缀一览";
+"phone_realm_section_cycle_footer" = "每一世轮回，修炼速度与机缘感应都会大幅提升。";
+"phone_common_close" = "关闭";
+
+/* Widget */
+"widget_realm_placeholder_primary" = "筑基";
+"widget_realm_placeholder_preview" = "金丹";
+"widget_lock_need_full" = "需解锁完整版";
+"widget_lock_unlock_progress" = "解锁表盘进度";
+"widget_lock_feature_locked" = "功能已锁定";
+"widget_lock_contract_only" = "仅限飞升契约";
+"widget_lock_inline" = "🔒 需解锁表盘功能";
+"widget_breakthrough" = "渡劫";
+"widget_status_bottleneck" = "瓶颈松动";
+"widget_status_cultivating" = "修炼中...";
+"widget_config_title_progress" = "修炼进度";
+"widget_config_desc_progress" = "展示当前的境界与灵气进度";
+"widget_config_title_entry" = "修仙入口";
+"widget_config_desc_entry" = "八卦在手，直入修行";

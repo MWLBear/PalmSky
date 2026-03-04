@@ -29,8 +29,8 @@ class NotificationManager {
         cancelNotifications()
         
         let content = UNMutableNotificationContent()
-        content.title = "道友，灵气已溢出！"
-        content.body = "闭关已达上限，速速归来突破瓶颈！"
+        content.title = NSLocalizedString("watch_notification_full_title", comment: "")
+        content.body = NSLocalizedString("watch_notification_full_body", comment: "")
         content.sound = .default
         
         // --- 🌙 智能时间计算 ---

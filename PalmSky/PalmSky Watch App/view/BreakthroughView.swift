@@ -402,7 +402,7 @@ struct BreakthroughVisualsView: View {
             }
                       
           // C. 底部信息位 (共鸣率 / 状态提示)
-            Text(isAttempting ? "天地灵气汇聚中..." : "共鸣率 \(Int(successRate * 100))%")
+            Text(isAttempting ? NSLocalizedString("watch_break_status_gathering", comment: "") : String(format: NSLocalizedString("watch_break_status_resonance_format", comment: ""), Int(successRate * 100)))
               .font(XiuxianFont.body)
             // 颜色切换：平时灰色，突破时亮色
               .foregroundColor(isAttempting ? primaryColor : .gray)
@@ -489,7 +489,7 @@ struct BreakthroughControlsView: View {
 
           
             BottomActionButton(
-                title: isAttempting ? "突破中..." : (gameManager.player.settings.autoBreakthrough ? "自动冲关" : "逆天改命"),
+                title: isAttempting ? NSLocalizedString("watch_break_button_breaking", comment: "") : (gameManager.player.settings.autoBreakthrough ? NSLocalizedString("watch_break_button_auto", comment: "") : NSLocalizedString("watch_break_button_manual", comment: "")),
                 primaryColor: primaryColor
             ) {
                 action()
@@ -530,7 +530,7 @@ struct BreakthroughResultView: View {
                     .foregroundColor(result == .success ? primaryColor : Color.orange.opacity(0.8))
                     .symbolEffect(.bounce, value: showResultView)
                 
-                Text(result == .success ? "突破成功" : "突破失败")
+                Text(result == .success ? NSLocalizedString("watch_break_result_success", comment: "") : NSLocalizedString("watch_break_result_failure", comment: ""))
                     .font(XiuxianFont.realmResultTitle)
                     .foregroundColor(.white)
                     .minimumScaleFactor(0.8)
@@ -540,7 +540,7 @@ struct BreakthroughResultView: View {
                         .font(XiuxianFont.realmSubtitle)
                         .foregroundColor(primaryColor)
                 } else {
-                    Text("道心受损 -\(gameManager.currentPenaltyPercentage)%")
+                    Text(String(format: NSLocalizedString("watch_break_result_penalty_format", comment: ""), gameManager.currentPenaltyPercentage))
                         .font(XiuxianFont.body)
                         .foregroundColor(.gray)
                 }
@@ -554,7 +554,7 @@ struct BreakthroughResultView: View {
                  VStack(spacing: 4) {
                     ProgressView()
                         .tint(primaryColor)
-                    Text("闭关冲击中 \(String(format: "%.1f", autoCountdown))s")
+                    Text(String(format: NSLocalizedString("watch_break_auto_countdown_format", comment: ""), String(format: "%.1f", autoCountdown)))
                         .font(XiuxianFont.body)
                         .foregroundColor(.gray)
                 }
@@ -564,7 +564,7 @@ struct BreakthroughResultView: View {
                 
             } else {
                 BottomActionButton(
-                    title: "完成",
+                    title: NSLocalizedString("watch_common_done", comment: ""),
                     primaryColor: primaryColor
                 ) {
                     closeView()

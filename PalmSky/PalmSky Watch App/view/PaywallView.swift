@@ -39,11 +39,11 @@ struct PaywallView: View {
                             .shadow(color: .orange.opacity(0.5), radius: 10)
                         
                         VStack(spacing: 4) {
-                            Text("飞升契约")
+                            Text(NSLocalizedString("watch_paywall_title", comment: ""))
                                 .font(XiuxianFont.realmTitle)
                                 .foregroundColor(.white)
                             
-                            Text("打破凡尘桎梏 · 证得无上大道")
+                            Text(NSLocalizedString("watch_paywall_subtitle", comment: ""))
                                 .font(XiuxianFont.body)
                                 .foregroundColor(.gray)
                         }
@@ -55,28 +55,28 @@ struct PaywallView: View {
                         
 //                        BenefitRow(icon: "crown.fill", title: "境界全开", subtitle: "突破金丹，直指九天", color: .yellow)
                       // lV10 付费墙
-                        BenefitRow(icon: "crown.fill", title: "境界解封", subtitle: "突破炼气，筑基成仙", color: .yellow)
+                        BenefitRow(icon: "crown.fill", title: NSLocalizedString("watch_paywall_benefit_realm_title", comment: ""), subtitle: NSLocalizedString("watch_paywall_benefit_realm_subtitle", comment: ""), color: .yellow)
                         Divider()
-                        BenefitRow(icon: "bolt.horizontal.circle.fill", title: "自动冲关", subtitle: "解放双手，快速升级", color: .orange) // ✨ 新增
+                        BenefitRow(icon: "bolt.horizontal.circle.fill", title: NSLocalizedString("watch_paywall_benefit_auto_break_title", comment: ""), subtitle: NSLocalizedString("watch_paywall_benefit_auto_break_subtitle", comment: ""), color: .orange) // ✨ 新增
                         Divider()
-                        BenefitRow(icon: "clock.fill", title: "闭关延时", subtitle: "离线挂机，十二小时", color: .blue)
+                        BenefitRow(icon: "clock.fill", title: NSLocalizedString("watch_paywall_benefit_offline_title", comment: ""), subtitle: NSLocalizedString("watch_paywall_benefit_offline_subtitle", comment: ""), color: .blue)
                         Divider()
-                        BenefitRow(icon: "figure.walk", title: "肉身成圣", subtitle: "单日炼化，四万步数", color: .green)
+                        BenefitRow(icon: "figure.walk", title: NSLocalizedString("watch_paywall_benefit_steps_title", comment: ""), subtitle: NSLocalizedString("watch_paywall_benefit_steps_subtitle", comment: ""), color: .green)
                         Divider()
                       
                         #if os(watchOS)
-                        BenefitRow( icon: "applewatch.watchface",  title: "表盘显化",subtitle: "表盘组件，实时进度",color: .cyan)
+                        BenefitRow( icon: "applewatch.watchface",  title: NSLocalizedString("watch_paywall_benefit_widget_watch_title", comment: ""),subtitle: NSLocalizedString("watch_paywall_benefit_widget_watch_subtitle", comment: ""),color: .cyan)
                         #elseif os(iOS)
-                        BenefitRow( icon: "applewatch.watchface",  title: "腕上天机",subtitle: "Apple Watch，专属表盘",color: .cyan)
+                        BenefitRow( icon: "applewatch.watchface",  title: NSLocalizedString("watch_paywall_benefit_widget_ios_title", comment: ""),subtitle: NSLocalizedString("watch_paywall_benefit_widget_ios_subtitle", comment: ""),color: .cyan)
                         #endif
         
                         Divider()
-                        BenefitRow(icon: "infinity", title: "百世轮回", subtitle: "开启转世，继承天赋", color: .purple)
+                        BenefitRow(icon: "infinity", title: NSLocalizedString("watch_paywall_benefit_reincarnation_title", comment: ""), subtitle: NSLocalizedString("watch_paywall_benefit_reincarnation_subtitle", comment: ""), color: .purple)
                         Divider()
                       
                          HStack {
                              Spacer()
-                             Text("✨ 一次购买，双端通用")
+                             Text(NSLocalizedString("watch_paywall_one_purchase", comment: ""))
                                  .font(XiuxianFont.caption)
                                  .foregroundColor(.gray)
                                  .padding(.top, 8)
@@ -119,13 +119,13 @@ struct PaywallView: View {
                                 .scaleEffect(0.8) // 稍微调小一点适配高度
                                 .frame(width: 15, height: 15)
                               
-                              Text("正在连接...")
+                              Text(NSLocalizedString("watch_paywall_connecting", comment: ""))
                                 .font(XiuxianFont.secondaryButton)
                                 .foregroundColor(.white)
                             }
                           } else {
                             // 状态 B: 正常价格
-                            Text("结成契约 \(product.displayPrice ?? "...")")
+                            Text(String(format: NSLocalizedString("watch_paywall_buy_button_format", comment: ""), product.displayPrice ?? "..."))
                               .font(XiuxianFont.secondaryButton)
                               .foregroundColor(.white)
                           }
@@ -148,7 +148,7 @@ struct PaywallView: View {
                           Button {
                             Task { try? await purchaseManager.loadProducts() }
                           } label: {
-                            Text("重试连接")
+                            Text(NSLocalizedString("watch_paywall_retry_connect", comment: ""))
                               .font(XiuxianFont.secondaryButton)
                               .foregroundColor(.white)
                               .frame(maxWidth: .infinity)
@@ -164,7 +164,7 @@ struct PaywallView: View {
                             .fill(Color.white.opacity(0.1))
                             .frame(height: 40)
                             .overlay(
-                              Text("正在连接天道...")
+                              Text(NSLocalizedString("watch_paywall_connecting_service", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.gray)
                             )
@@ -181,7 +181,7 @@ struct PaywallView: View {
                     }
                     
                     // 4. 恢复购买 (极简)
-                    Button("恢复已有契约") {
+                    Button(NSLocalizedString("watch_paywall_restore_existing", comment: "")) {
                         restore()
                     }
                     .font(XiuxianFont.body)
@@ -192,7 +192,7 @@ struct PaywallView: View {
             }
         }
         .alert(isPresented: $showingAlert) {
-            Alert(title: Text("提示"), message: Text(alertMessage), dismissButton: .default(Text("好的")))
+            Alert(title: Text(NSLocalizedString("watch_common_tip", comment: "")), message: Text(alertMessage), dismissButton: .default(Text(NSLocalizedString("watch_common_ok", comment: ""))))
         }
         .onChange(of: purchaseManager.hasAccess) { _, hasAccess in
             if hasAccess {
@@ -213,7 +213,7 @@ struct PaywallView: View {
         Task {
             do {
                 let hasNew = try await purchaseManager.restorePurchases()
-                alertMessage = hasNew ? "恢复成功" : "未发现记录"
+                alertMessage = hasNew ? NSLocalizedString("watch_paywall_restore_success", comment: "") : NSLocalizedString("watch_paywall_restore_not_found", comment: "")
                 showingAlert = true
             } catch { alertMessage = error.localizedDescription; showingAlert = true }
         }

@@ -55,7 +55,7 @@ struct ComplicationSnapshot: Codable, Equatable {
     
     // 默认空数据
     static let empty = ComplicationSnapshot(
-        realmName: "筑基", level: 1,
+        realmName: NSLocalizedString("widget_realm_placeholder_primary", comment: ""), level: 1,
         currentQi: 30, targetQi: 100, rawGainPerSecond: 0, saveTime: Date(),
         isUnlocked: false // 🔒 默认锁定，防止解码失败时泄露权限
     )

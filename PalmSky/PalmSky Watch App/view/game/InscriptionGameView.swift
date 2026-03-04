@@ -37,7 +37,7 @@ enum RuneType: String, CaseIterable, Identifiable {
 // MARK: - 2. 游戏逻辑引擎 (ViewModel)
 class InscriptionEngine: ObservableObject {
     @Published var activeRune: RuneType? = nil // 当前亮起的符文
-    @Published var statusText: String = "阵法推演" // 中心文字
+    @Published var statusText: String = NSLocalizedString("watch_inscription_status_initial", comment: "") // 中心文字
     @Published var isUserTurn: Bool = false      // 是否允许用户点击
     @Published var errorRune: RuneType? = nil    // 错误符文
     
@@ -76,7 +76,7 @@ class InscriptionEngine: ObservableObject {
         
         userIndex = 0
         isUserTurn = false
-        statusText = "观灵光流转"
+        statusText = NSLocalizedString("watch_inscription_status_observe", comment: "")
         
         // 2. 延迟一点开始演示
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -112,7 +112,7 @@ class InscriptionEngine: ObservableObject {
             if index == sequence.count - 1 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     self.isUserTurn = true
-                    self.statusText = "循序复刻"
+                    self.statusText = NSLocalizedString("watch_inscription_status_repeat", comment: "")
                     HapticManager.shared.play(.directionUp) // 提示用户开始
                 }
             }
@@ -152,7 +152,7 @@ class InscriptionEngine: ObservableObject {
     
     private func roundComplete() {
         isUserTurn = false
-        statusText = "阵纹契合"
+        statusText = NSLocalizedString("watch_inscription_status_matched", comment: "")
         HapticManager.shared.play(.success)
         onRoundComplete?()
         
@@ -189,7 +189,7 @@ class InscriptionEngine: ObservableObject {
     
     private func gameOver(win: Bool) {
         isUserTurn = false
-        statusText = win ? "渡劫成功" : "阵法崩塌"
+        statusText = win ? NSLocalizedString("watch_inscription_status_success", comment: "") : NSLocalizedString("watch_inscription_status_fail", comment: "")
         HapticManager.shared.play(win ? .success : .failure)
         
         // 视觉反馈：红色闪烁

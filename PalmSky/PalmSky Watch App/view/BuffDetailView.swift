@@ -15,8 +15,12 @@ struct BuffDetailView: View {
                         BuffRow(
                             icon: "hand.tap.fill",
                             color: buff.bonusRatio >= 0 ? .orange : .gray,
-                            title: buff.bonusRatio >= 0 ? "机缘 · 顿悟" : "劫难 · 虚弱",
-                            desc: buff.bonusRatio >= 0 ? "点击收益提升 \(Int(buff.bonusRatio * 100))%" : "点击收益降低 \(Int(abs(buff.bonusRatio) * 100))%",
+                            title: buff.bonusRatio >= 0
+                                ? NSLocalizedString("watch_buff_tap_positive_title", comment: "")
+                                : NSLocalizedString("watch_buff_tap_negative_title", comment: ""),
+                            desc: buff.bonusRatio >= 0
+                                ? String(format: NSLocalizedString("watch_buff_tap_positive_desc_format", comment: ""), Int(buff.bonusRatio * 100))
+                                : String(format: NSLocalizedString("watch_buff_tap_negative_desc_format", comment: ""), Int(abs(buff.bonusRatio * 100))),
                             expireAt: buff.expireAt
                         )
                     }
@@ -26,8 +30,8 @@ struct BuffDetailView: View {
                         BuffRow(
                             icon: "leaf.fill",
                             color: .green,
-                            title: "天地 · 灵气",
-                            desc: "自动修炼速度 +\(Int(buff.bonusRatio * 100))%",
+                            title: NSLocalizedString("watch_buff_auto_title", comment: ""),
+                            desc: String(format: NSLocalizedString("watch_buff_auto_desc_format", comment: ""), Int(buff.bonusRatio * 100)),
                             expireAt: buff.expireAt
                         )
                     }
@@ -37,8 +41,8 @@ struct BuffDetailView: View {
                         BuffRow(
                             icon: "heart.slash.fill",
                             color: .red,
-                            title: "劫难 · 心魔", // 文案修饰一下
-                            desc: "所有收益折损 \(Int((1.0 - debuff.multiplier) * 100))%",
+                            title: NSLocalizedString("watch_buff_debuff_title", comment: ""),
+                            desc: String(format: NSLocalizedString("watch_buff_debuff_desc_format", comment: ""), Int((1.0 - debuff.multiplier) * 100)),
                             expireAt: debuff.expireAt
                         )
                     }
@@ -50,7 +54,7 @@ struct BuffDetailView: View {
                             Image(systemName: "wind")
                                 .font(.system(size: 40))
                                 .foregroundColor(.gray.opacity(0.5))
-                            Text("当前道心通明\n无增益亦无杂念")
+                            Text(NSLocalizedString("watch_buff_empty_state", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
@@ -62,7 +66,7 @@ struct BuffDetailView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 10)
             }
-            .navigationTitle("状态详情")
+            .navigationTitle(NSLocalizedString("watch_buff_nav_title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .background(Color.black.ignoresSafeArea()) // 纯黑底
         }

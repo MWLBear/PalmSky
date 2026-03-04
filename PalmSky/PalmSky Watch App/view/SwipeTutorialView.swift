@@ -31,7 +31,7 @@ struct SwipeTutorialView: View {
                 }
                 
                 // 提示文字
-                Text("左滑进入设置")
+                Text(NSLocalizedString("watch_swipe_tutorial", comment: ""))
                     .font(.caption)
                     .fontWeight(.medium)
             }

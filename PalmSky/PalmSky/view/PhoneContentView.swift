@@ -11,7 +11,7 @@ struct PhoneContentView: View {
                 // 2. 核心八卦容器
                 BaguaContainerView()
             }
-            .navigationTitle("掌上修仙")
+            .navigationTitle(NSLocalizedString("watch_main_nav_title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             // ✨ 保留图鉴入口
             .toolbar {

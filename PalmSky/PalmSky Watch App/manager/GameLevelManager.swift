@@ -48,7 +48,7 @@ class GameLevelManager {
         if idx >= 0 && idx < GameConstants.stageNames.count {
           baseName = GameConstants.stageNames[idx]
         } else {
-          baseName = "未知境界"
+          baseName = NSLocalizedString("watch_realm_unknown", comment: "")
         }
       
       // 2. ✨ 添加轮回前缀 (New)
@@ -69,9 +69,9 @@ class GameLevelManager {
         let layerIndex = (level - 1) % 9
         let cnNumbers = GameConstants.cnNumbers
         if layerIndex < cnNumbers.count {
-            return "\(cnNumbers[layerIndex])层"
+            return String(format: NSLocalizedString("watch_realm_layer_cn_format", comment: ""), cnNumbers[layerIndex])
         }
-        return "\(layerIndex + 1)层"
+        return String(format: NSLocalizedString("watch_realm_layer_num_format", comment: ""), layerIndex + 1)
     }
   
    // ⚠️ 修改：增加 reincarnation 参数，默认为 0
@@ -210,7 +210,7 @@ extension GameLevelManager {
           // 为什么要 -1？因为等级是从 1 开始的，不是 0。
           // 比如 144分 是 0世144级，而不是 1世0级。
           
-          if totalScore <= 0 { return "筑基" }
+          if totalScore <= 0 { return NSLocalizedString("watch_realm_placeholder_stage", comment: "") }
           
           let reincarnation = Int((totalScore - 1) / maxLevel)
           let currentLevel = Int((totalScore - 1) % maxLevel) + 1

@@ -53,7 +53,7 @@ struct BuffStatusBar: View {
             if let debuff = gameManager.player.debuff, Date() < debuff.expireAt {
                 HStack(spacing: 2) {
                     Image(systemName: "heart.slash.fill")
-                    Text("道心不稳")
+                    Text(NSLocalizedString("watch_buff_status_unstable", comment: ""))
                 }
                 .font(XiuxianFont.buffTag)
                 // ✨ 修复高度不一致

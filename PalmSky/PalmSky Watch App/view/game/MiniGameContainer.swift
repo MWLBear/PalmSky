@@ -85,7 +85,7 @@ struct MiniGameContainer: View {
                         
                 case .skyRush:
                     // 跑酷游戏
-                    Text("冲九霄开发中...")
+                    Text(NSLocalizedString("watch_game_skyrush_dev", comment: ""))
                         .foregroundColor(.white)
                         
                 default:
@@ -137,20 +137,20 @@ struct MiniGameContainer: View {
     
     func getGuideTitle() -> String {
         switch type {
-        case .mindDemon: return "斩除心魔"
-        case .swordDefense: return "御剑挡劫"
-        case .inscription: return "参悟天机"
-        case .skyRush: return "冲九霄"
-        default: return "渡劫开始"
+        case .mindDemon: return NSLocalizedString("watch_game_guide_title_mind", comment: "")
+        case .swordDefense: return NSLocalizedString("watch_game_guide_title_sword", comment: "")
+        case .inscription: return NSLocalizedString("watch_game_guide_title_inscription", comment: "")
+        case .skyRush: return NSLocalizedString("watch_game_guide_title_rush", comment: "")
+        default: return NSLocalizedString("watch_game_guide_title_default", comment: "")
         }
     }
     
     func getGuideSubtitle() -> String {
         switch type {
-        case .mindDemon: return "点击屏幕 以念破妄"
-        case .swordDefense: return "点击屏幕 转换剑阵"
-        case .inscription: return "记忆顺序 循序复刻"
-        default: return "点击屏幕"
+        case .mindDemon: return NSLocalizedString("watch_game_guide_subtitle_mind", comment: "")
+        case .swordDefense: return NSLocalizedString("watch_game_guide_subtitle_sword", comment: "")
+        case .inscription: return NSLocalizedString("watch_game_guide_subtitle_inscription", comment: "")
+        default: return NSLocalizedString("watch_game_guide_subtitle_default", comment: "")
         }
     }
   

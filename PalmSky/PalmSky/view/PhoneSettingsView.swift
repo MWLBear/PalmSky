@@ -7,21 +7,21 @@ struct PhoneSettingsView: View {
   
     @State private var faqItems: [SkyFAQItem] = [
         SkyFAQItem(
-            question: "手机和手表的数据是独立的吗？",
-            answer: "是的，手机版和手表版的游戏进度是完全独立的。您可以在两个平台上分别体验修仙之旅，互不影响。"
+            question: NSLocalizedString("faq_data_independent_q", comment: ""),
+            answer: NSLocalizedString("faq_data_independent_a", comment: "")
         ),
         SkyFAQItem(
-            question: "手机购买后，手表没有解锁怎么办？",
-            answer: "购买是通用的，但可能需要几分钟同步。请尝试：\n1. 在设置中点击「恢复契约」按钮；\n2. 完全关闭并重新打开 App；\n3. 确保手机和手表使用同一个 Apple ID 登录。"
+            question: NSLocalizedString("faq_watch_unlock_q", comment: ""),
+            answer: NSLocalizedString("faq_watch_unlock_a", comment: "")
         ),
     
         SkyFAQItem(
-            question: "排行榜显示的是手机还是手表的成绩？",
-            answer: "排行榜可以切换显示。点击排行榜页面右上角的图标（⌚️/📱）即可在手表排行榜和手机排行榜之间切换查看。"
+            question: NSLocalizedString("faq_leaderboard_source_q", comment: ""),
+            answer: NSLocalizedString("faq_leaderboard_source_a", comment: "")
         ),
         SkyFAQItem(
-            question: "游戏数据会丢失吗？",
-            answer: "游戏数据保存在设备本地。\n注意：卸载应用会导致所有游戏数据永久丢失，请谨慎操作。\n建议定期通过 iCloud 或 iTunes 备份您的设备。"
+            question: NSLocalizedString("faq_data_loss_q", comment: ""),
+            answer: NSLocalizedString("faq_data_loss_a", comment: "")
         ),
         SkyFAQItem(
             question: NSLocalizedString("faq_missing_app_q", comment: ""),
@@ -428,4 +428,3 @@ struct SettingsView_Previews: PreviewProvider {
     }
 }
 #endif
-

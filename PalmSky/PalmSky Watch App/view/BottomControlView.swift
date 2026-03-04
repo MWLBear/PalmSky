@@ -10,7 +10,7 @@ struct BottomControlView: View {
         Group {
             if gameManager.showBreakButton {
                 // --- 模式 A: 突破按钮 ---
-                BottomActionButton(title:"立即突破" ,
+                BottomActionButton(title: NSLocalizedString("watch_bottom_break_now", comment: ""),
                                    primaryColor: primaryColor) {
                     
                     // ✨ 逻辑已下沉到 GameManager
@@ -38,7 +38,7 @@ struct BottomControlView: View {
                         .lineLimit(1)
                     
                     // 单位
-                    Text("灵气")
+                    Text(NSLocalizedString("watch_bottom_qi_unit", comment: ""))
                         .font(XiuxianFont.hudValue)
                         .foregroundColor(Color.white.opacity(0.6))
                         .padding(.bottom, 4)

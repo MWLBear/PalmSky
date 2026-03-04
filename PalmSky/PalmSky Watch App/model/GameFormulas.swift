@@ -8,9 +8,12 @@
 import Foundation
 
 extension Double {
+    private static let xiuxianUnitsHans = ["", "万", "亿", "兆", "京", "垓", "秭", "穰", "沟", "涧", "正", "载", "极"]
+    private static let xiuxianUnitsHant = ["", "萬", "億", "兆", "京", "垓", "秭", "穰", "溝", "澗", "正", "載", "極"]
+    
     // 修仙专用数值格式化 (万进法)
     var xiuxianString: String {
-        let units = ["", "万", "亿", "兆", "京", "垓", "秭", "穰", "沟", "涧", "正", "载", "极"]
+        let units = AppLanguage.isTraditionalChinese ? Self.xiuxianUnitsHant : Self.xiuxianUnitsHans
         var value = self
         var index = 0
         
@@ -38,8 +41,8 @@ extension Double {
     func formatTime() -> String {
       let h = Int(self) / 3600
       let m = (Int(self) % 3600) / 60
-      if h > 0 { return "\(h)小时" }
-      return "\(m)分钟"
+      if h > 0 { return String(format: NSLocalizedString("watch_time_hours_format", comment: ""), h) }
+      return String(format: NSLocalizedString("watch_time_minutes_format", comment: ""), m)
     }
     
   }
