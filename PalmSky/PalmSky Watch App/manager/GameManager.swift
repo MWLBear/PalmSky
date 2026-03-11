@@ -10,6 +10,12 @@ let debugAscended = false // 九天玄仙8层-测试开关
 class GameManager: ObservableObject {
     static let shared = GameManager()
     
+    // 护身符商业化提示类型：首次教学 / 中后期提醒
+    enum CharmUpsellPrompt {
+        case intro
+        case reminder
+    }
+    
     @Published var player: Player
     @Published var showBreakButton: Bool = false
     @Published var currentEvent: GameEvent?
@@ -309,6 +315,62 @@ class GameManager: ObservableObject {
             // 放行：执行UI跳转
             onStart()
         }
+    }
+    
+    var currentBreakSuccessRate: Double {
+        levelManager.breakSuccess(level: player.level)
+    }
+    
+    var isMajorBreakthrough: Bool {
+        player.level % 9 == 0
+    }
+    
+    /// 根据当前突破场景决定是否展示护身符商业化提示
+    /// 规则：
+    /// 1. 首次教学延后到胎息一层（19级）
+    /// 2. 只对普通小层突破生效，不打断大境界小游戏
+    /// 3. 成功率进入中后期风险区后，每个 9 级区间最多提醒一次
+    func consumeCharmUpsellPrompt() -> CharmUpsellPrompt? {
+        guard player.items.protectCharm == 0 else { return nil }
+        guard !isMajorBreakthrough else { return nil }
+        
+        // 首次教学延后到胎息一层（19级）之后，避免前期过早打断
+        if !player.hasSeenCharmIntro && player.level >= 19 {
+            player.hasSeenCharmIntro = true
+            savePlayer(forceSyncToPhone: false)
+            return .intro
+        }
+        
+        // 常规提醒只在成功率进入中后期风险区后才触发
+        guard currentBreakSuccessRate <= 0.80 else { return nil }
+        
+        // 以 9 级为一个桶，每个区间最多提醒一次
+        let bucket = (player.level - 1) / 9
+        guard !player.charmPromptBuckets.contains(bucket) else { return nil }
+        
+        player.charmPromptBuckets.append(bucket)
+        savePlayer(forceSyncToPhone: false)
+        return .reminder
+    }
+    
+    /// 发放当前端购买成功的消耗品库存
+    /// 注意：护身符暂不跨端共享，因此 watch / iPhone 只增加各自本地库存
+    func grantPurchasedConsumable(kind: ConsumableKind, quantity: Int) {
+        switch kind {
+        case .protectCharm:
+            // 护身符库存只加到当前端，不做跨端共享
+            player.items.protectCharm += quantity
+            offlineToastMessage = String(
+                format: NSLocalizedString("shop_purchase_success_format", comment: ""),
+                quantity
+            )
+        }
+        
+        #if os(watchOS)
+        savePlayer(forceSyncToPhone: false)
+        #else
+        savePlayer()
+        #endif
     }
 
     private func checkBreakCondition() {

@@ -8,29 +8,49 @@
 import Foundation
 import UserNotifications
 
-class NotificationManager {
+final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
     
-    private init() {}
+    private override init() {
+        super.init()
+        configureNotificationCenter()
+    }
+    
+    private func configureNotificationCenter() {
+        UNUserNotificationCenter.current().delegate = self
+    }
     
     // 1. 请求权限 (必须在 App 启动时调用一次)
-      func requestPermission() {
-          UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-              if granted {
-                  print("✅ 通知权限已获取")
-              } else {
-                  print("❌ 通知权限被拒绝")
-              }
-          }
-      }
+    func requestPermission() {
+        configureNotificationCenter()
+        
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("❌ 通知权限请求失败: \(error)")
+                return
+            }
+            
+            if granted {
+                print("✅ 通知权限已获取")
+            } else {
+                print("❌ 通知权限被拒绝")
+            }
+        }
+    }
     
       // 2. 安排"灵气溢出"通知 (带智能防打扰)
       func scheduleFullGainNotification() {
+        configureNotificationCenter()
         cancelNotifications()
         
         let content = UNMutableNotificationContent()
+        #if os(iOS)
+        content.title = NSLocalizedString("ios_notification_full_title", comment: "")
+        content.body = NSLocalizedString("ios_notification_full_body", comment: "")
+        #else
         content.title = NSLocalizedString("watch_notification_full_title", comment: "")
         content.body = NSLocalizedString("watch_notification_full_body", comment: "")
+        #endif
         content.sound = .default
         
         // --- 🌙 智能时间计算 ---
@@ -109,5 +129,19 @@ class NotificationManager {
           
           print("🔕 已清理所有相关的通知")
       }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        return [.banner, .list, .sound]
+    }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        print("🔔 收到通知响应: \(response.notification.request.identifier)")
+    }
   
 }

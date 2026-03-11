@@ -38,6 +38,10 @@ struct BreakthroughView: View {
     // ✨✨✨ 新增：小游戏状态 ✨✨✨
     @State private var showMiniGame = false
     @State private var miniGameType: GameLevelManager.TribulationGameType = .none
+    // ✨ 护身符商业化状态：当前待展示的教学/提醒弹窗
+    @State private var pendingCharmPrompt: GameManager.CharmUpsellPrompt?
+    // ✨ 控制消耗品商店的展示
+    @State private var showConsumableShop = false
   
     #if os(watchOS)
     let visualOffsetY: CGFloat = 15.0
@@ -157,6 +161,21 @@ struct BreakthroughView: View {
             .ignoresSafeArea()
             .onReceive(timer) { _ in
                 updateParticles()
+            }
+            .onAppear {
+                // 只在进入突破页时判一次，避免流程中反复打断
+                scheduleCharmPromptIfNeeded()
+            }
+            .sheet(isPresented: $showConsumableShop) {
+                ConsumableShopView()
+            }
+            .alert(charmPromptTitle, isPresented: charmPromptBinding) {
+                Button(NSLocalizedString("shop_open_button", comment: "")) {
+                    showConsumableShop = true
+                }
+                Button(NSLocalizedString("watch_break_continue_button", comment: ""), role: .cancel) {}
+            } message: {
+                Text(charmPromptMessage)
             }
         }
     }
@@ -329,6 +348,57 @@ struct BreakthroughView: View {
         
         // 3. 移除死粒子 (被吸入丹田)
         particles.removeAll { $0.distance <= 0 || $0.opacity <= 0 }
+    }
+    
+    /// 进入突破页时尝试安排一次护身符提示
+    /// 这里只判一次，避免动画、结果页、小游戏过程中重复打断
+    private func scheduleCharmPromptIfNeeded() {
+        guard !isAttempting, !showMiniGame, !showResultView else { return }
+        guard let prompt = gameManager.consumeCharmUpsellPrompt() else { return }
+        
+        // 稍微延迟，避免突破页刚弹出时就与转场动画冲突
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            pendingCharmPrompt = prompt
+        }
+    }
+    
+    /// 将可选提示状态转换成 SwiftUI 可绑定的布尔值
+    private var charmPromptBinding: Binding<Bool> {
+        Binding(
+            get: { pendingCharmPrompt != nil },
+            set: { isPresented in
+                if !isPresented {
+                    pendingCharmPrompt = nil
+                }
+            }
+        )
+    }
+    
+    /// 根据提示类型返回弹窗标题
+    private var charmPromptTitle: String {
+        switch pendingCharmPrompt {
+        case .intro:
+            return NSLocalizedString("shop_intro_title", comment: "")
+        case .reminder:
+            return NSLocalizedString("shop_prompt_title", comment: "")
+        case nil:
+            return ""
+        }
+    }
+    
+    /// 根据提示类型返回弹窗正文
+    private var charmPromptMessage: String {
+        switch pendingCharmPrompt {
+        case .intro:
+            return NSLocalizedString("shop_intro_message", comment: "")
+        case .reminder:
+            return String(
+                format: NSLocalizedString("shop_prompt_message_format", comment: ""),
+                Int(gameManager.currentBreakSuccessRate * 100)
+            )
+        case nil:
+            return ""
+        }
     }
 }
 
@@ -521,6 +591,7 @@ struct BreakthroughResultView: View {
     // 倒计时状态
     @State private var autoCountdown = 1.5
     @State private var timer: Timer?
+    @State private var showConsumableShop = false
     
     var body: some View {
         VStack {
@@ -563,14 +634,31 @@ struct BreakthroughResultView: View {
                 .onDisappear { stopTimer() }
                 
             } else {
-                BottomActionButton(
-                    title: NSLocalizedString("watch_common_done", comment: ""),
-                    primaryColor: primaryColor
-                ) {
-                    closeView()
+                VStack(spacing: 10) {
+                    // 失败后只给一个补货入口，不再额外强弹商店
+                    if result == .failure && gameManager.player.items.protectCharm == 0 {
+                        Button {
+                            showConsumableShop = true
+                        } label: {
+                            Text(NSLocalizedString("shop_open_button", comment: ""))
+                                .font(XiuxianFont.body)
+                                .foregroundColor(primaryColor)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    BottomActionButton(
+                        title: NSLocalizedString("watch_common_done", comment: ""),
+                        primaryColor: primaryColor
+                    ) {
+                        closeView()
+                    }
                 }
                 .padding(.bottom, 15)
             }
+        }
+        .sheet(isPresented: $showConsumableShop) {
+            ConsumableShopView()
         }
     }
     

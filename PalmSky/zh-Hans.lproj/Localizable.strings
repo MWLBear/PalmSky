@@ -313,6 +313,8 @@
 "watch_swipe_tutorial" = "左滑进入设置";
 "watch_notification_full_title" = "道友，灵气已溢出！";
 "watch_notification_full_body" = "闭关已达上限，速速归来突破瓶颈！";
+"ios_notification_full_title" = "手机端修炼已满";
+"ios_notification_full_body" = "iPhone 端灵气已盈，可继续冲关";
 "watch_time_hours_format" = "%d小时";
 "watch_time_minutes_format" = "%d分钟";
 
@@ -337,6 +339,25 @@
 "phone_realm_mortal_no_prefix" = "凡躯（无前缀）";
 "phone_realm_section_cycle_header" = "轮回 · 前缀一览";
 "phone_realm_section_cycle_footer" = "每一世轮回，修炼速度与机缘感应都会大幅提升。";
+"shop_nav_title" = "洞府宝库";
+"shop_kind_protect_charm_title" = "护身符";
+"shop_kind_protect_charm_subtitle" = "可抵御一次突破失败惩罚";
+"shop_kind_protect_charm_shop_subtitle" = "抵御1次突破失败惩罚";
+"shop_device_scope_watch" = "仅当前 Apple Watch 生效";
+"shop_device_scope_ios" = "仅当前 iPhone 生效";
+"shop_inventory_title" = "当前库存";
+"shop_offer_quantity_format" = "%d个";
+"shop_offer_title_format" = "%d个%@";
+"shop_offer_featured_badge" = "推荐";
+"shop_loading_products" = "正在连接商店…";
+"shop_open_button" = "购买护身符";
+"shop_intro_title" = "护身符";
+"shop_intro_message" = "护身符可抵御一次突破失败惩罚。先了解一下，后面需要时可随时补充。";
+"shop_prompt_title" = "未携带护身符";
+"shop_prompt_message_format" = "当前突破成功率为 %d%%，若失败将承受惩罚。是否先补一些护身符？";
+"shop_purchase_success_format" = "已获得 %d 个护身符";
+"shop_inventory_header_format" = "护身符 %d个";
+"watch_break_continue_button" = "继续突破";
 "phone_common_close" = "关闭";
 
 /* Widget */

@@ -101,11 +101,16 @@ struct Player: Codable {
     var totalFailures: Int = 0
     // ✨ 连续突破失败次数 (保底机制)
     var consecutiveBreakFailures: Int = 0
+    // ✨ 是否已经看过护身符首次教学弹窗
+    var hasSeenCharmIntro: Bool = false
+    // ✨ 已经弹过护身符提醒的 9 级区间桶，防止同一区间重复提醒
+    var charmPromptBuckets: [Int] = []
     
     // 🚨 必须手动添加 CodingKeys
     enum CodingKeys: String, CodingKey {
         case id, level, click, currentQi, lastLogout, settings, items, debuff
         case tapBuff, autoBuff, reincarnationCount, totalFailures, consecutiveBreakFailures
+        case hasSeenCharmIntro, charmPromptBuckets
     }
   
     init(id: String = "default_player") {
@@ -141,6 +146,8 @@ struct Player: Codable {
         reincarnationCount = try container.decodeIfPresent(Int.self, forKey: .reincarnationCount) ?? 0
         totalFailures = try container.decodeIfPresent(Int.self, forKey: .totalFailures) ?? 0
         consecutiveBreakFailures = try container.decodeIfPresent(Int.self, forKey: .consecutiveBreakFailures) ?? 0
+        hasSeenCharmIntro = try container.decodeIfPresent(Bool.self, forKey: .hasSeenCharmIntro) ?? false
+        charmPromptBuckets = try container.decodeIfPresent([Int].self, forKey: .charmPromptBuckets) ?? []
     }
 }
 

@@ -16,6 +16,7 @@ struct XiuxianApp: App {
       let _ = GameCenterManager.shared
       // ✅ 启动时预热 PurchaseManager (触发 checkLegacyAccess)
       _ = PurchaseManager.shared
+      _ = NotificationManager.shared
       SkySyncManager.shared.activate()
       
     }

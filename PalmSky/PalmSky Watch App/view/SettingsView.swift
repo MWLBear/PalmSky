@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var showResetAlert = false
     @State private var showPaywall = false // ✨ 新增：控制付费墙显示
     @State private var showLeaderboard = false
+    // ✨ 控制洞府宝库（消耗品商店）显示
+    @State private var showConsumableShop = false
   
   // ✨ 新增：接收父视图传来的页码绑定
     @Binding var currentTab: Int
@@ -15,6 +17,14 @@ struct SettingsView: View {
     var themeColor: Color {
         let colors = RealmColor.gradient(for: gameManager.player.level)
         return colors.last ?? .green
+    }
+    
+    var consumableScopeFooter: String {
+        #if os(watchOS)
+        return NSLocalizedString("shop_device_scope_watch", comment: "")
+        #else
+        return NSLocalizedString("shop_device_scope_ios", comment: "")
+        #endif
     }
     
     var body: some View {
@@ -36,6 +46,34 @@ struct SettingsView: View {
                           currentTab = 0
                       }
                   }
+                }
+              
+                Section(
+                    header: Text(NSLocalizedString("shop_nav_title", comment: "")).foregroundColor(themeColor),
+                    footer: Text(consumableScopeFooter)
+                        .foregroundColor(.secondary)
+                ) {
+                    // 护身符库存与购买入口统一放在这里，避免和道途信息重复
+                    Button {
+                        showConsumableShop = true
+                        HapticManager.shared.playIfEnabled(.click)
+                    } label: {
+                        HStack {
+                            Image(systemName: "shield.lefthalf.filled")
+                                .foregroundColor(themeColor)
+                                .font(.title3)
+                            Text(NSLocalizedString("shop_kind_protect_charm_title", comment: ""))
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Text("\(gameManager.player.items.protectCharm)")
+                                .foregroundColor(.secondary)
+                                .monospacedDigit()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
               
                 // MARK: - Section 1: 道途信息
@@ -86,17 +124,6 @@ struct SettingsView: View {
                         Text(gameManager.player.currentQi.xiuxianString)
                             .foregroundColor(.gray)
                     }
-                  
-                  // 护身符
-                  HStack {
-                    Image(systemName: "shield.fill")
-                      .foregroundColor(themeColor)
-                      .font(.title3)
-                    Text(NSLocalizedString("watch_settings_protect_charm", comment: ""))
-                    Spacer()
-                    Text("\(gameManager.player.items.protectCharm)")
-                      .foregroundColor(.gray)
-                  }
                   
                  #if os(watchOS)
                   HStack {
@@ -348,6 +375,9 @@ struct SettingsView: View {
           // ✨ 挂载付费墙弹窗
             .sheet(isPresented: $showPaywall) {
               PaywallView()
+            }
+            .sheet(isPresented: $showConsumableShop) {
+              ConsumableShopView()
             }
             .sheet(isPresented: $showLeaderboard) {
               LeaderboardListView()

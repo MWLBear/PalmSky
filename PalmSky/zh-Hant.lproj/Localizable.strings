@@ -313,6 +313,8 @@
 "watch_swipe_tutorial" = "左滑進入設定";
 "watch_notification_full_title" = "道友，靈氣已溢出！";
 "watch_notification_full_body" = "閉關已達上限，速速歸來突破瓶頸！";
+"ios_notification_full_title" = "手機端修煉已滿";
+"ios_notification_full_body" = "iPhone 端靈氣已盈，可繼續衝關";
 "watch_time_hours_format" = "%d小時";
 "watch_time_minutes_format" = "%d分鐘";
 
@@ -337,6 +339,25 @@
 "phone_realm_mortal_no_prefix" = "凡軀（無前綴）";
 "phone_realm_section_cycle_header" = "輪迴 · 前綴一覽";
 "phone_realm_section_cycle_footer" = "每一世輪迴，修煉速度與機緣感應都會大幅提升。";
+"shop_nav_title" = "洞府寶庫";
+"shop_kind_protect_charm_title" = "護身符";
+"shop_kind_protect_charm_subtitle" = "可抵禦一次突破失敗懲罰";
+"shop_kind_protect_charm_shop_subtitle" = "抵禦1次突破失敗懲罰";
+"shop_device_scope_watch" = "僅目前 Apple Watch 生效";
+"shop_device_scope_ios" = "僅目前 iPhone 生效";
+"shop_inventory_title" = "目前庫存";
+"shop_offer_quantity_format" = "%d個";
+"shop_offer_title_format" = "%d個%@";
+"shop_offer_featured_badge" = "推薦";
+"shop_loading_products" = "正在連接商店…";
+"shop_open_button" = "購買護身符";
+"shop_intro_title" = "護身符";
+"shop_intro_message" = "護身符可抵禦一次突破失敗懲罰。先了解一下，後面需要時可隨時補充。";
+"shop_prompt_title" = "未攜帶護身符";
+"shop_prompt_message_format" = "目前突破成功率為 %d%%，若失敗將承受懲罰。是否先補一些護身符？";
+"shop_purchase_success_format" = "已獲得 %d 個護身符";
+"shop_inventory_header_format" = "護身符 %d個";
+"watch_break_continue_button" = "繼續突破";
 "phone_common_close" = "關閉";
 
 /* Widget */

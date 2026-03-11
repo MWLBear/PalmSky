@@ -90,7 +90,7 @@ struct PaywallView: View {
                     Spacer(minLength: 0)
                     
                     // MARK: - 3. 购买按钮
-                    if let product = purchaseManager.products.first {
+                    if let product = purchaseManager.unlockProduct {
                       Button {
                         // 1. 立即震动 (防止审核员觉得没反应)
                         HapticManager.shared.playIfEnabled(.click)
@@ -263,4 +263,211 @@ extension Product {
       return self.price.formatted(self.priceFormatStyle)
   }
   
+}
+
+struct ConsumableShopView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var gameManager: GameManager
+    @ObservedObject private var purchaseManager = PurchaseManager.shared
+    
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    @State private var purchasingProductID: String?
+    
+    private let offerPrimaryFont: Font = .headline
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // 通用消耗品商店：按道具类型分组，后续可继续扩展新品类
+                ForEach(ConsumableKind.allCases, id: \.self) { kind in
+                    let offers = purchaseManager.offers(for: kind)
+                    if !offers.isEmpty {
+                        Section(
+                            header: sectionHeaderView(for: kind),
+                            footer: Text(deviceScopedFooter)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        ) {
+                            ForEach(offers) { offer in
+                                offerRow(for: offer)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(NSLocalizedString("shop_nav_title", comment: ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .task {
+                try? await purchaseManager.loadProducts()
+            }
+            .alert(isPresented: $showingAlert) {
+                Alert(
+                    title: Text(NSLocalizedString("watch_common_tip", comment: "")),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text(NSLocalizedString("watch_common_ok", comment: "")))
+                )
+            }
+        }
+    }
+    
+    /// 单个商品卡片：负责展示数量、主推标记与价格
+    @ViewBuilder
+    private func offerRow(for offer: ConsumableOffer) -> some View {
+        if let product = purchaseManager.product(for: offer) {
+            Button {
+                buy(product)
+            } label: {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 6) {
+                        Text(offerTitle(for: offer))
+                            .font(offerPrimaryFont)
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        
+                        if offer.isFeatured {
+                            Text(NSLocalizedString("shop_offer_featured_badge", comment: ""))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .background(Color.orange.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                        
+                        Spacer(minLength: 0)
+                    }
+                    
+                    HStack {
+                        if purchasingProductID == product.id {
+                            ProgressView()
+                                .controlSize(.small)
+                                .frame(width: 40, alignment: .leading)
+                        } else {
+                            Text(product.displayPrice ?? "...")
+                                .font(offerPrimaryFont)
+                                .foregroundColor(.orange)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(purchaseManager.isPurchasing)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .center, spacing: 6) {
+                    Text(offerTitle(for: offer))
+                        .font(offerPrimaryFont)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    
+                    if offer.isFeatured {
+                        Text(NSLocalizedString("shop_offer_featured_badge", comment: ""))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.orange)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.orange.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                    
+                    Spacer(minLength: 8)
+                }
+                
+                HStack {
+                    if let loadError = purchaseManager.loadError {
+                        Text(loadError)
+                            .font(.caption2)
+                            .foregroundColor(.orange)
+                            .multilineTextAlignment(.trailing)
+                    } else {
+                        ProgressView()
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+    
+    /// 根据当前运行平台返回“库存不互通”的说明文案
+    private var deviceScopedFooter: String {
+        // 文案明确说明库存按设备隔离，避免用户误解为账号互通
+        #if os(watchOS)
+        return NSLocalizedString("shop_device_scope_watch", comment: "")
+        #else
+        return NSLocalizedString("shop_device_scope_ios", comment: "")
+        #endif
+    }
+    
+    /// 读取当前端对应道具的库存
+    private func inventoryCount(for kind: ConsumableKind) -> Int {
+        switch kind {
+        case .protectCharm:
+            return gameManager.player.items.protectCharm
+        }
+    }
+    
+    /// 分组头：库存 + 道具作用说明
+    @ViewBuilder
+    private func sectionHeaderView(for kind: ConsumableKind) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(sectionHeader(for: kind))
+                .font(.headline)
+                .foregroundColor(.primary)
+            Text(NSLocalizedString("shop_kind_protect_charm_shop_subtitle", comment: ""))
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .textCase(nil)
+    }
+    
+    /// 分组标题：直接把库存合并进标题
+    private func sectionHeader(for kind: ConsumableKind) -> String {
+        switch kind {
+        case .protectCharm:
+            return String(
+                format: NSLocalizedString("shop_inventory_header_format", comment: ""),
+                inventoryCount(for: kind)
+            )
+        }
+    }
+    
+    /// 商品主标题：中文顺序改成“数量 + 道具名”，减少小屏截断概率
+    private func offerTitle(for offer: ConsumableOffer) -> String {
+        String(
+            format: NSLocalizedString("shop_offer_title_format", comment: ""),
+            offer.quantity,
+            NSLocalizedString(offer.kind.titleKey, comment: "")
+        )
+    }
+    
+    /// 发起购买；成功后关闭商店，失败则弹错误提示
+    private func buy(_ product: Product) {
+        Task {
+            purchasingProductID = product.id
+            do {
+                try await purchaseManager.purchase(product)
+                // 购买成功后直接关闭商店，回到原场景查看库存变化
+                purchasingProductID = nil
+                dismiss()
+            } catch {
+                purchasingProductID = nil
+                alertMessage = error.localizedDescription
+                showingAlert = true
+            }
+        }
+    }
 }

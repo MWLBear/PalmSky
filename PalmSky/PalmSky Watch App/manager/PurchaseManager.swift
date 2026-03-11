@@ -7,6 +7,71 @@ enum IAPPack: String, CaseIterable {
     case skinFire = "com.palmsky.skin.fire"
 }
 
+enum ConsumableKind: String, CaseIterable, Codable {
+    case protectCharm
+    
+    // 商店中显示的主标题 key
+    var titleKey: String {
+        switch self {
+        case .protectCharm:
+            return "shop_kind_protect_charm_title"
+        }
+    }
+    
+    // 商店中显示的副标题 key
+    var subtitleKey: String {
+        switch self {
+        case .protectCharm:
+            return "shop_kind_protect_charm_subtitle"
+        }
+    }
+}
+
+struct ConsumableOffer: Identifiable, Hashable {
+    let kind: ConsumableKind
+    let quantity: Int
+    let watchProductID: String
+    let iosProductID: String
+    let isFeatured: Bool
+    
+    var id: String { currentProductID }
+    
+    // 当前端实际使用的商品 ID：手表卖手表 SKU，手机卖手机 SKU
+    var currentProductID: String {
+        #if os(watchOS)
+        return watchProductID
+        #else
+        return iosProductID
+        #endif
+    }
+    
+    // 消耗品商店配置表，后续可继续往这里追加加速丹等道具
+    static let allOffers: [ConsumableOffer] = [
+        ConsumableOffer(
+            kind: .protectCharm,
+            quantity: 3,
+            watchProductID: "com.palmsky.watch.charm.pack3",
+            iosProductID: "com.palmsky.ios.charm.pack3",
+            isFeatured: false
+        ),
+        ConsumableOffer(
+            kind: .protectCharm,
+            quantity: 20,
+            watchProductID: "com.palmsky.watch.charm.pack20",
+            iosProductID: "com.palmsky.ios.charm.pack20",
+            isFeatured: true
+        )
+    ]
+    
+    static func offers(for kind: ConsumableKind) -> [ConsumableOffer] {
+        allOffers.filter { $0.kind == kind }
+    }
+    
+    static func offer(for productID: String) -> ConsumableOffer? {
+        allOffers.first { $0.currentProductID == productID }
+    }
+}
+
 // MARK: - Notification Names
 extension Notification.Name {
     static let didPurchaseSuccess = Notification.Name("didPurchaseSuccess")
@@ -39,7 +104,10 @@ class PurchaseManager: NSObject, ObservableObject {
     
     static let shared = PurchaseManager()
     
-    private let productIds: [String] = IAPPack.allCases.map { $0.rawValue }
+    private var productIds: [String] {
+        // 非消耗权益 + 当前端的消耗品 SKU 一起拉取
+        IAPPack.allCases.map(\.rawValue) + ConsumableOffer.allOffers.map(\.currentProductID)
+    }
     
     @Published private(set) var products: [Product] = []
     @Published private(set) var purchasedProductIDs = Set<String>()
@@ -47,6 +115,7 @@ class PurchaseManager: NSObject, ObservableObject {
     // 本地缓存 key (支持离线使用)
     private let hasAccessCacheKey = SkyConstants.UserDefaults.hasAccessCache
     private let isLegacyUserCacheKey = SkyConstants.UserDefaults.isLegacyUserCache
+    private let deliveredTransactionIDsKey = "delivered_transaction_ids"
     
     // 是否拥有完整版权限 (购买了内购 OR 老用户)
     @Published var hasAccess: Bool = false {
@@ -83,10 +152,16 @@ class PurchaseManager: NSObject, ObservableObject {
     
     private var productsLoaded = false
     private var updates: Task<Void, Never>? = nil
+    // ✨ 已发货的交易 ID 集合，防止消耗品因交易回放重复到账
+    private var deliveredTransactionIDs: Set<UInt64> = []
     
     private override init() {
         super.init()
         self.updates = observeTransactionUpdates()
+        if let stored = UserDefaults.standard.array(forKey: deliveredTransactionIDsKey) as? [NSNumber] {
+            // 记录已经发过货的交易，防止 Transaction.updates 重放时重复加库存
+            self.deliveredTransactionIDs = Set(stored.map(\.uint64Value))
+        }
         
         // 🔥 优先从本地缓存恢复状态 (支持离线使用)
         self.hasAccess = UserDefaults.standard.bool(forKey: hasAccessCacheKey)
@@ -100,6 +175,21 @@ class PurchaseManager: NSObject, ObservableObject {
             // 顺便预加载商品信息 (失败也不影响主流程)
             try? await loadProducts()
         }
+    }
+    
+    var unlockProduct: Product? {
+        // 付费墙只关心飞升契约，不混用消耗品
+        products.first { $0.id == IAPPack.unlockGame.rawValue }
+    }
+    
+    /// 返回某个消耗品类型对应的商店配置
+    func offers(for kind: ConsumableKind) -> [ConsumableOffer] {
+        ConsumableOffer.offers(for: kind)
+    }
+    
+    /// 根据当前端 SKU 找到已经加载好的 StoreKit 商品对象
+    func product(for offer: ConsumableOffer) -> Product? {
+        products.first { $0.id == offer.currentProductID }
     }
     
     deinit {
@@ -248,14 +338,12 @@ class PurchaseManager: NSObject, ObservableObject {
             case let .success(.verified(transaction)):
                 print("✅ Purchase successful: \(transaction.productID)")
                 
-                await self.updatePurchasedProducts()
+                await self.handleVerifiedTransaction(transaction)
                 
                 NotificationCenter.default.post(
                     name: .didPurchaseSuccess,
                     object: transaction.productID
                 )
-                
-                await transaction.finish()
                 
             case let .success(.unverified(transaction, error)):
                 print("⚠️ Purchase unverified: \(error)")
@@ -356,9 +444,43 @@ class PurchaseManager: NSObject, ObservableObject {
                 guard case .verified(let transaction) = verificationResult else {
                     continue
                 }
-                await self.updatePurchasedProducts()
-                await transaction.finish()
+                await self.handleVerifiedTransaction(transaction)
             }
         }
+    }
+    
+    /// 统一处理已验证交易：
+    /// 1. 消耗品先发货
+    /// 2. 刷新已购状态
+    /// 3. 最后 finish 交易
+    private func handleVerifiedTransaction(_ transaction: Transaction) async {
+        // 先发放消耗品，再刷新已购状态，保证 UI 读到的是最新库存
+        await grantConsumableIfNeeded(for: transaction)
+        await self.updatePurchasedProducts()
+        await transaction.finish()
+    }
+    
+    /// 如果交易对应的是消耗品，则按当前端配置发货一次
+    /// 通过 transaction.id 去重，避免重复到账
+    private func grantConsumableIfNeeded(for transaction: Transaction) async {
+        guard let offer = ConsumableOffer.offer(for: transaction.productID) else {
+            return
+        }
+        guard deliveredTransactionIDs.insert(transaction.id).inserted else {
+            // 这笔交易已经发过货，直接跳过
+            return
+        }
+        
+        persistDeliveredTransactionIDs()
+        
+        await MainActor.run {
+            GameManager.shared.grantPurchasedConsumable(kind: offer.kind, quantity: offer.quantity)
+        }
+    }
+    
+    /// 持久化已发货交易 ID，保证应用重启后依然能防重
+    private func persistDeliveredTransactionIDs() {
+        let values = deliveredTransactionIDs.map { NSNumber(value: $0) }
+        UserDefaults.standard.set(values, forKey: deliveredTransactionIDsKey)
     }
 }

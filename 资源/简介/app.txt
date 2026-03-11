@@ -1,3 +1,62 @@
+2.2.2
+
+
+ 【洞府宝库 · 护道更新】
+ - 新增 洞府宝库，可购买护身符
+ - 护身符可抵御一次突破失败惩罚，助你护道前行
+ - 优化 Apple Watch 通知显示效果
+ - 修复部分问题，提升稳定性与体验
+
+
+繁体
+【洞府寶庫 · 護道更新】
+- 新增 洞府寶庫，可購買護身符
+- 護身符可抵禦一次突破失敗懲罰，助你護道前進
+- 最佳化 Apple Watch 通知顯示效果
+- 修復部分問題，提升穩定性與體驗
+
+
+增加了购买护身符的逻辑:
+
+  1. com.palmsky.watch.charm.pack3
+
+  - Reference Name：手表护身符3个
+  - Display Name（简体）：护身符3个
+  - Description（简体）：抵御一次突破失败惩罚
+  - Display Name（繁体）：護身符3個
+  - Description（繁体）：抵禦一次突破失敗懲罰
+
+  2. com.palmsky.watch.charm.pack20
+
+  - Reference Name：手表护身符20个
+  - Display Name（简体）：护身符20个
+  - Description（简体）：多备一些，护道更稳
+  - Display Name（繁体）：護身符20個
+  - Description（繁体）：多備一些，護道更穩
+
+  3. com.palmsky.ios.charm.pack3
+
+  - Reference Name：手机护身符3个
+  - Display Name（简体）：护身符3个
+  - Description（简体）：抵御一次突破失败惩罚
+  - Display Name（繁体）：護身符3個
+  - Description（繁体）：抵禦一次突破失敗懲罰
+
+  4. com.palmsky.ios.charm.pack20
+
+  - Reference Name：手机护身符20个
+  - Display Name（简体）：护身符20个
+  - Description（简体）：多备一些，护道更稳
+  - Display Name（繁体）：護身符20個
+  - Description（繁体）：多備一些，護道更穩
+
+  价格
+
+  - 3个：¥1
+  - 20个：¥6
+
+
+
 
 2.1.1
 

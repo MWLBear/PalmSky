@@ -28,6 +28,66 @@
       "productID" : "com.palmsky.jindan",
       "referenceName" : "unlockGame",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1",
+      "familyShareable" : false,
+      "internalID" : "B1A9C103",
+      "localizations" : [
+        {
+          "description" : "当前设备专属库存",
+          "displayName" : "护身符 x3（手表）",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "com.palmsky.watch.charm.pack3",
+      "referenceName" : "watchCharmPack3",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "6",
+      "familyShareable" : false,
+      "internalID" : "C8F2247D",
+      "localizations" : [
+        {
+          "description" : "当前设备专属库存",
+          "displayName" : "护身符 x20（手表）",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "com.palmsky.watch.charm.pack20",
+      "referenceName" : "watchCharmPack20",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1",
+      "familyShareable" : false,
+      "internalID" : "D4E53A9F",
+      "localizations" : [
+        {
+          "description" : "当前设备专属库存",
+          "displayName" : "护身符 x3（手机）",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "com.palmsky.ios.charm.pack3",
+      "referenceName" : "iosCharmPack3",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "6",
+      "familyShareable" : false,
+      "internalID" : "E7B18D42",
+      "localizations" : [
+        {
+          "description" : "当前设备专属库存",
+          "displayName" : "护身符 x20（手机）",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "com.palmsky.ios.charm.pack20",
+      "referenceName" : "iosCharmPack20",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
