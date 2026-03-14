@@ -162,10 +162,6 @@ struct BreakthroughView: View {
             .onReceive(timer) { _ in
                 updateParticles()
             }
-            .onAppear {
-                // 只在进入突破页时判一次，避免流程中反复打断
-                scheduleCharmPromptIfNeeded()
-            }
             .sheet(isPresented: $showConsumableShop) {
                 ConsumableShopView()
             }
@@ -173,7 +169,11 @@ struct BreakthroughView: View {
                 Button(NSLocalizedString("shop_open_button", comment: "")) {
                     showConsumableShop = true
                 }
-                Button(NSLocalizedString("watch_break_continue_button", comment: ""), role: .cancel) {}
+                // 用户已确认继续突破，此处应直接衔接原本的突破流程，而不是仅关闭弹窗
+                Button(NSLocalizedString("watch_break_continue_button", comment: "")) {
+                    pendingCharmPrompt = nil
+                    performBreakthrough()
+                }
             } message: {
                 Text(charmPromptMessage)
             }
@@ -182,9 +182,20 @@ struct BreakthroughView: View {
     
     // MARK: - ✨ 粒子与动画逻辑
     private func startBreakthrough() {
-      
-       HapticManager.shared.playIfEnabled(.click)
+        HapticManager.shared.playIfEnabled(.click)
 
+        guard !isAttempting, !showMiniGame, !showResultView else { return }
+
+        if let prompt = gameManager.consumeCharmUpsellPrompt() {
+            pendingCharmPrompt = prompt
+            return
+        }
+
+        performBreakthrough()
+    }
+
+    /// 真正执行突破流程：若需要小游戏则进小游戏，否则走普通动画
+    private func performBreakthrough() {
       // 判断当前等级是否需要玩游戏
         let type = GameLevelManager.shared.getTribulationGameType(for: gameManager.player.level)
         
@@ -318,9 +329,10 @@ struct BreakthroughView: View {
     
     // 每帧刷新粒子
     private func updateParticles() {
-        guard isAttempting else { return }
+        guard isAttempting, !showMiniGame, !showResultView else { return }
         
         // 1. 生成新粒子 (从屏幕边缘生成)
+        var updatedParticles = particles
         for _ in 0..<3 { // 每帧生成3个
             let angle = Double.random(in: 0...(2 * .pi))
             let p = QiParticle(
@@ -330,36 +342,25 @@ struct BreakthroughView: View {
                 size: CGFloat.random(in: 2...4),
                 opacity: 0.0
             )
-            particles.append(p)
+            updatedParticles.append(p)
         }
         
         // 2. 更新现有粒子
-        for i in particles.indices {
-            particles[i].distance -= particles[i].speed // 向中心移动
-            particles[i].speed += 0.2 // 加速被吸入
+        for i in updatedParticles.indices {
+            updatedParticles[i].distance -= updatedParticles[i].speed // 向中心移动
+            updatedParticles[i].speed += 0.2 // 加速被吸入
             
             // 透明度变化：出生渐显 -> 靠近中心渐隐
-            if particles[i].distance > 100 {
-                particles[i].opacity = min(1.0, particles[i].opacity + 0.1)
-            } else if particles[i].distance < 20 {
-                particles[i].opacity -= 0.2
+            if updatedParticles[i].distance > 100 {
+                updatedParticles[i].opacity = min(1.0, updatedParticles[i].opacity + 0.1)
+            } else if updatedParticles[i].distance < 20 {
+                updatedParticles[i].opacity -= 0.2
             }
         }
         
         // 3. 移除死粒子 (被吸入丹田)
-        particles.removeAll { $0.distance <= 0 || $0.opacity <= 0 }
-    }
-    
-    /// 进入突破页时尝试安排一次护身符提示
-    /// 这里只判一次，避免动画、结果页、小游戏过程中重复打断
-    private func scheduleCharmPromptIfNeeded() {
-        guard !isAttempting, !showMiniGame, !showResultView else { return }
-        guard let prompt = gameManager.consumeCharmUpsellPrompt() else { return }
-        
-        // 稍微延迟，避免突破页刚弹出时就与转场动画冲突
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            pendingCharmPrompt = prompt
-        }
+        updatedParticles.removeAll { $0.distance <= 0 || $0.opacity <= 0 }
+        particles = updatedParticles
     }
     
     /// 将可选提示状态转换成 SwiftUI 可绑定的布尔值

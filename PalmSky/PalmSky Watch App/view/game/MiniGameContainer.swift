@@ -20,6 +20,7 @@ struct MiniGameContainer: View {
   
     @State private var showGuideText = true
     @State private var swordDefenseScene: SwordDefenseScene?
+    @State private var skyRushScene: SkyRushScene?
 
     var body: some View {
         GeometryReader { geo in
@@ -84,9 +85,21 @@ struct MiniGameContainer: View {
 
                         
                 case .skyRush:
-                    // 跑酷游戏
-                    Text(NSLocalizedString("watch_game_skyrush_dev", comment: ""))
-                        .foregroundColor(.white)
+                    if let scene = skyRushScene {
+                        SpriteView(scene: scene)
+                            .ignoresSafeArea()
+                            .onTapGesture { location in
+                                scene.handleTap(at: location, viewSize: geo.size)
+                            }
+                            .onDisappear {
+                                cleanupSkyRushScene()
+                            }
+                    } else {
+                        Color.black
+                            .onAppear {
+                                self.skyRushScene = createSkyRushScene(size: geo.size)
+                            }
+                    }
                         
                 default:
                     EmptyView()
@@ -110,6 +123,7 @@ struct MiniGameContainer: View {
                           HapticManager.shared.playIfEnabled(.click)
                           cleanupMindDemonScene() // 🔥 退出时也清理
                           cleanupSwordDefenseScene()
+                          cleanupSkyRushScene()
                           isPresented = false
                           // onFinish(false) // 如果需要回调失败逻辑可以加上
                         }
@@ -150,6 +164,7 @@ struct MiniGameContainer: View {
         case .mindDemon: return NSLocalizedString("watch_game_guide_subtitle_mind", comment: "")
         case .swordDefense: return NSLocalizedString("watch_game_guide_subtitle_sword", comment: "")
         case .inscription: return NSLocalizedString("watch_game_guide_subtitle_inscription", comment: "")
+        case .skyRush: return NSLocalizedString("watch_game_guide_subtitle_rush", comment: "")
         default: return NSLocalizedString("watch_game_guide_subtitle_default", comment: "")
         }
     }
@@ -159,6 +174,7 @@ struct MiniGameContainer: View {
          switch type {
          case .swordDefense: return "arrow.triangle.2.circlepath" // 旋转图标
          case .inscription: return "brain.head.profile" // 记忆阵法
+         case .skyRush: return "arrow.left.and.right"
          default: return "hand.tap.fill" // 点击图标
          }
      }
@@ -178,6 +194,7 @@ struct MiniGameContainer: View {
     
     #if DEBUG
     private let debugSwordLevel: Int? = nil // 设置为 4...7 进行调试
+    private let debugSkyRushLevel: Int? = nil // 设置为 117/126/135/144 调试飞升关
     #endif
     
     func createSwordScene(size: CGSize) -> SwordDefenseScene {
@@ -191,6 +208,19 @@ struct MiniGameContainer: View {
         #endif
         scene.applyGameLevel()
         scene.onGameOver = onFinish
+        return scene
+    }
+
+    func createSkyRushScene(size: CGSize) -> SkyRushScene {
+        let scene = SkyRushScene(size: size)
+        scene.scaleMode = .aspectFill
+        #if DEBUG
+        scene.gameLevel = debugSkyRushLevel ?? level
+        #else
+        scene.gameLevel = level
+        #endif
+        scene.onGameOver = onFinish
+        scene.setupGame()
         return scene
     }
     
@@ -218,5 +248,15 @@ struct MiniGameContainer: View {
         swordDefenseScene = nil
         
         print("SwordDefenseScene 已清理")
+    }
+
+    private func cleanupSkyRushScene() {
+        guard let scene = skyRushScene else { return }
+
+        scene.removeAllActions()
+        scene.removeAllChildren()
+        skyRushScene = nil
+
+        print("SkyRushScene 已清理")
     }
 }

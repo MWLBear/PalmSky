@@ -256,6 +256,7 @@
 "watch_game_guide_subtitle_mind" = "点击屏幕 以念破妄";
 "watch_game_guide_subtitle_sword" = "点击屏幕 转换剑阵";
 "watch_game_guide_subtitle_inscription" = "记忆顺序 循序复刻";
+"watch_game_guide_subtitle_rush" = "点击天阶 切换轨道";
 "watch_game_guide_subtitle_default" = "点击屏幕";
 
 /* Watch 人生回顾 */

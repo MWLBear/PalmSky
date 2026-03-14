@@ -318,46 +318,51 @@ struct ConsumableShopView: View {
             Button {
                 buy(product)
             } label: {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .center, spacing: 6) {
-                        Text(offerTitle(for: offer))
-                            .font(offerPrimaryFont)
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                        
-                        if offer.isFeatured {
-                            Text(NSLocalizedString("shop_offer_featured_badge", comment: ""))
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.orange)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .background(Color.orange.opacity(0.12))
-                                .clipShape(Capsule())
-                        }
-                        
-                        Spacer(minLength: 0)
-                    }
-                    
-                    HStack {
-                        if purchasingProductID == product.id {
-                            ProgressView()
-                                .controlSize(.small)
-                                .frame(width: 40, alignment: .leading)
-                        } else {
-                            Text(product.displayPrice ?? "...")
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .center, spacing: 6) {
+                            Text(offerTitle(for: offer))
                                 .font(offerPrimaryFont)
-                                .foregroundColor(.orange)
+                                .foregroundColor(.primary)
                                 .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .minimumScaleFactor(0.75)
+                            
+                            if offer.isFeatured {
+                                Text(NSLocalizedString("shop_offer_featured_badge", comment: ""))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.orange)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1)
+                                    .background(Color.orange.opacity(0.12))
+                                    .clipShape(Capsule())
+                            }
+                            
+                            Spacer(minLength: 0)
                         }
+                        
+                        HStack {
+                            if purchasingProductID == product.id {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .frame(width: 40, alignment: .leading)
+                            } else {
+                                Text(product.displayPrice ?? "...")
+                                    .font(offerPrimaryFont)
+                                    .foregroundColor(.orange)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                            }
 
-                        Spacer(minLength: 0)
+                            Spacer(minLength: 0)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Spacer(minLength: 0)
                 }
                 .padding(.vertical, 4)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

@@ -72,6 +72,8 @@ struct SettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
+                        .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }

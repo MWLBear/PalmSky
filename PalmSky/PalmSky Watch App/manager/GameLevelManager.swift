@@ -247,7 +247,7 @@ extension GameLevelManager {
         case 8...11: // 合体 - 地仙
             return .inscription
         case 12...15: // 天仙 - 九天
-            return .mindDemon
+            return .skyRush
         default:
             return .mindDemon
         }

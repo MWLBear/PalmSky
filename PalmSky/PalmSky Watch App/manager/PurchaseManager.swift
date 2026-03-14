@@ -4,7 +4,7 @@ import StoreKit
 enum IAPPack: String, CaseIterable {
     case unlockGame = "com.palmsky.jindan"
     // 新增皮肤商品
-    case skinFire = "com.palmsky.skin.fire"
+    //case skinFire = "com.palmsky.skin.fire"
 }
 
 enum ConsumableKind: String, CaseIterable, Codable {
@@ -107,6 +107,12 @@ class PurchaseManager: NSObject, ObservableObject {
     private var productIds: [String] {
         // 非消耗权益 + 当前端的消耗品 SKU 一起拉取
         IAPPack.allCases.map(\.rawValue) + ConsumableOffer.allOffers.map(\.currentProductID)
+    }
+    
+    /// 当前端要求必须成功加载到的商品 ID。
+    /// 只有这些商品都拿到，才认为本次商品加载真正成功。
+    private var requiredProductIDs: Set<String> {
+        Set(productIds)
     }
     
     @Published private(set) var products: [Product] = []
@@ -258,30 +264,37 @@ class PurchaseManager: NSObject, ObservableObject {
     
     // MARK: - Load Products
     func loadProducts() async throws {
-        // 如果已经加载到商品了，就不重复加载
-        guard !self.productsLoaded || self.products.isEmpty else { return }
+        // 只有在“必需商品都已加载完成”时，才跳过重复请求。
+        // 如果之前只是部分加载成功（例如只拿到契约，没拿到护身符），这里仍然允许重新拉取。
+        guard !self.productsLoaded || !hasLoadedAllRequiredProducts(self.products) else { return }
         
         // 清除之前的错误
         await MainActor.run { self.loadError = nil }
         
         do {
             let fetchedProducts = try await fetchProductsWithTimeout()
+            let hasAllRequiredProducts = hasLoadedAllRequiredProducts(fetchedProducts)
+            let missingProductIDs = missingRequiredProductIDs(from: fetchedProducts)
             await MainActor.run {
                 self.products = fetchedProducts
-                // 只有加载到商品才标记为已加载
-                if !fetchedProducts.isEmpty {
+                // 只有当前端需要展示的商品全部到齐，才标记为已加载成功
+                if hasAllRequiredProducts {
                     self.productsLoaded = true
+                    self.loadError = nil
+                } else {
+                    self.productsLoaded = false
+                    self.loadError = fetchedProducts.isEmpty
+                        ? NSLocalizedString("watch_purchase_load_error_check_network", comment: "")
+                        : NSLocalizedString("watch_purchase_load_error_failed", comment: "")
                 }
-                self.loadError = nil
             }
-            print("✅ Products loaded successfully: \(self.products.count) products")
+            print("✅ Products fetched: \(fetchedProducts.count) products, complete: \(hasAllRequiredProducts)")
             
-            // 如果加载到 0 个商品，提示可能的原因
+            // 如果加载为空或加载不完整，记录缺失商品，便于定位 App Store Connect 配置问题
             if fetchedProducts.isEmpty {
                 print("⚠️ Loaded 0 products. Possible reasons: no network permission, product IDs not configured")
-                await MainActor.run {
-                    self.loadError = NSLocalizedString("watch_purchase_load_error_check_network", comment: "")
-                }
+            } else if !missingProductIDs.isEmpty {
+                print("⚠️ Products loaded incompletely. Missing: \(missingProductIDs.sorted())")
             }
         } catch {
             if case LoadProductsError.timeout = error {
@@ -298,6 +311,18 @@ class PurchaseManager: NSObject, ObservableObject {
             }
             throw error
         }
+    }
+
+    /// 判断一批 StoreKit 商品是否已经覆盖当前端全部必需商品
+    private func hasLoadedAllRequiredProducts(_ products: [Product]) -> Bool {
+        let fetchedIDs = Set(products.map(\.id))
+        return requiredProductIDs.isSubset(of: fetchedIDs)
+    }
+    
+    /// 找出当前批次仍未加载到的必需商品 ID，便于日志排查
+    private func missingRequiredProductIDs(from products: [Product]) -> Set<String> {
+        let fetchedIDs = Set(products.map(\.id))
+        return requiredProductIDs.subtracting(fetchedIDs)
     }
 
     private func fetchProductsWithTimeout(
