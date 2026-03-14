@@ -377,7 +377,16 @@ class GameManager: ObservableObject {
         let cost = levelManager.breakCost(level: player.level)
         showBreakButton = player.currentQi >= cost && player.level < GameConstants.MAX_LEVEL
     }
-    
+  
+    //  - 小境界突破
+    //      - 概率判定
+    //      - 有保底
+    //      - 防止连续脸黑
+    //  - 大境界渡劫
+    //      - 小游戏判定
+    //      - 无保底
+    //      - 看玩家操作
+  
     func attemptBreak() -> Bool {
         guard showBreakButton else { return false }
         
@@ -508,7 +517,10 @@ class GameManager: ObservableObject {
     
     private func triggerRandomEvent() {
         // Get random event from pool
-        if let event = EventPool.shared.randomEvent(playerLevel: player.level) {
+        if let event = EventPool.shared.randomEvent(
+            playerLevel: player.level,
+            protectCharmCount: player.items.protectCharm
+        ) {
           
             // ✅ 打乱 choices 顺序（只影响当前展示）
             let shuffledEvent = GameEvent(

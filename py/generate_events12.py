@@ -241,6 +241,20 @@ def calculate_qi_gain(stage_idx):
         growth = 2.4
     
     val = base * math.pow(growth, stage_idx)
+    
+    # 中期（分神 ~ 大乘 ~ 渡劫前）原先推进感偏弱，
+    # 这里补一段中期系数，让事件奖励不至于在 60~90 级明显失去存在感。
+    if 7 <= stage_idx <= 9:
+        mid_game_bonus = math.pow(2.2, stage_idx - 6)
+        val *= mid_game_bonus
+    
+    # 大后期（天仙以后）突破成本增长很快，
+    # 这里额外补一层递增系数，保证奇遇直接给的灵气在高境界仍有体感，
+    # 但又不会高到喧宾夺主，目标大致维持在突破需求的 1% 左右。
+    if stage_idx >= 12:
+        late_game_bonus = math.pow(1.8, stage_idx - 12)
+        val *= late_game_bonus
+
     final_val = int(val * random.uniform(0.8, 1.2))
     
     if final_val > 10000:
