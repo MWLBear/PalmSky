@@ -5,7 +5,7 @@ class EventPool {
     static let shared = EventPool()
     private(set) var events: [GameEvent] = []
     // 护身符库存过高时，不再继续从奇遇中免费投放，避免冲淡付费价值
-    private let charmEventBlockThreshold = 20
+    private let charmEventBlockThreshold = 50
 
     private init() {
          loadEvents()
