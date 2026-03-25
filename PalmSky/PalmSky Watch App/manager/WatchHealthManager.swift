@@ -24,6 +24,7 @@ class WatchHealthManager: ObservableObject {
     
     // MARK: - 状态数据
     @Published var todaySteps: Int = 0
+    @Published var lastNightSleepHours: Double = 0
     
     // MARK: - 持久化数据
     // 记录哪天的数据 (格式: yyyy-MM-dd)
@@ -64,17 +65,86 @@ class WatchHealthManager: ObservableObject {
         checkDateReset()
     }
     
+    // MARK: - 睡眠闭关数据
+    
+    /// 睡眠时长对应的离线收益倍率
+    var sleepBonusMultiplier: Double {
+        switch lastNightSleepHours {
+        case 7.5...:
+            return 1.25
+        case 6.5..<7.5:
+            return 1.15
+        case 5.5..<6.5:
+            return 1.08
+        default:
+            return 1.0
+        }
+    }
+    
+    /// 睡眠档位文案
+    var sleepTierTitle: String {
+        guard lastNightSleepHours > 0 else {
+            return NSLocalizedString("watch_sleep_unavailable", comment: "")
+        }
+        switch lastNightSleepHours {
+        case 7.5...:
+            return NSLocalizedString("watch_sleep_tier_best", comment: "")
+        case 6.5..<7.5:
+            return NSLocalizedString("watch_sleep_tier_good", comment: "")
+        case 5.5..<6.5:
+            return NSLocalizedString("watch_sleep_tier_ok", comment: "")
+        default:
+            return NSLocalizedString("watch_sleep_tier_low", comment: "")
+        }
+    }
+    
+    /// 展示用的昨夜睡眠时长
+    var lastNightSleepDisplay: String {
+        guard lastNightSleepHours > 0 else {
+            return NSLocalizedString("watch_sleep_unavailable", comment: "")
+        }
+        let totalMinutes = Int((lastNightSleepHours * 60).rounded())
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        return String(
+            format: NSLocalizedString("watch_sleep_duration_format", comment: ""),
+            hours,
+            minutes
+        )
+    }
+    
+    /// 展示用的睡眠离线加成
+    var sleepBonusDisplay: String {
+        guard lastNightSleepHours > 0 else {
+            return NSLocalizedString("watch_sleep_unavailable", comment: "")
+        }
+        let percent = Int(round((sleepBonusMultiplier - 1.0) * 100))
+        return "+\(percent)%"
+    }
+    
     // MARK: - 1. 权限请求
-    func requestPermission() {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+    func requestPermission(completion: (() -> Void)? = nil) {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            DispatchQueue.main.async {
+                completion?()
+            }
+            return
+        }
         
         let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
         
         // 只需要读取权限，不需要写入
-        healthStore.requestAuthorization(toShare: [], read: [stepType]) { success, error in
-            if success {
-                DispatchQueue.main.async {
-                    self.fetchTodaySteps()
+        healthStore.requestAuthorization(toShare: [], read: [stepType, sleepType]) { success, error in
+            DispatchQueue.main.async {
+                guard success else {
+                    completion?()
+                    print("requestAuthorization error")
+                    return
+                }
+                self.fetchTodaySteps()
+                self.fetchLastNightSleep {
+                    completion?()
                 }
             }
         }
@@ -110,6 +180,84 @@ class WatchHealthManager: ObservableObject {
                 self.checkDateReset()
             }
         }
+        healthStore.execute(query)
+    }
+    
+    // MARK: - 读取昨夜睡眠
+    func fetchLastNightSleep(completion: (() -> Void)? = nil) {
+      
+//        #if targetEnvironment(simulator)
+//        DispatchQueue.main.async {
+//            // 模拟器调试：切不同测试值，方便验证睡眠档位与离线加成
+////             self.lastNightSleepHours = 5.0  // 养神不足：+0%
+//             self.lastNightSleepHours = 6.0  // 气息初稳：+8%
+//            // self.lastNightSleepHours = 7.0  // 闭关有成：+15%
+//            //self.lastNightSleepHours = 7.8     // 神完气足：+25%
+//            completion?()
+//        }
+//        return
+//        #endif
+      
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            DispatchQueue.main.async {
+                completion?()
+            }
+            return
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard
+            let start = calendar.date(byAdding: .hour, value: -6, to: startOfToday),
+            let noon = calendar.date(byAdding: .hour, value: 12, to: startOfToday)
+        else {
+            DispatchQueue.main.async {
+                completion?()
+            }
+            return
+        }
+        
+        let end = min(now, noon)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: [])
+        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        
+        let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sort]) { _, samples, _ in
+            let clippedIntervals = (samples as? [HKCategorySample] ?? [])
+                .filter { self.isAsleepCategoryValue($0.value) }
+                .map { sample in
+                    (
+                        start: max(sample.startDate, start),
+                        end: min(sample.endDate, end)
+                    )
+                }
+                .filter { $0.end > $0.start }
+                .sorted { $0.start < $1.start }
+            
+            var mergedIntervals: [(start: Date, end: Date)] = []
+            for interval in clippedIntervals {
+                guard let last = mergedIntervals.last else {
+                    mergedIntervals.append(interval)
+                    continue
+                }
+                
+                if interval.start <= last.end {
+                    mergedIntervals[mergedIntervals.count - 1].end = max(last.end, interval.end)
+                } else {
+                    mergedIntervals.append(interval)
+                }
+            }
+            
+            let totalSeconds = mergedIntervals.reduce(0.0) { partial, interval in
+                partial + interval.end.timeIntervalSince(interval.start)
+            }
+            
+            DispatchQueue.main.async {
+                self.lastNightSleepHours = totalSeconds / 3600
+                completion?()
+            }
+        }
+        
         healthStore.execute(query)
     }
     
@@ -162,5 +310,18 @@ class WatchHealthManager: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
+    }
+    
+    /// 兼容旧版与新版睡眠分类，统一判断是否属于“入睡”状态
+    private func isAsleepCategoryValue(_ value: Int) -> Bool {
+        if #available(iOS 16.0, watchOS 9.0, *) {
+            return value == HKCategoryValueSleepAnalysis.asleep.rawValue ||
+                value == HKCategoryValueSleepAnalysis.asleepCore.rawValue ||
+                value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue ||
+                value == HKCategoryValueSleepAnalysis.asleepREM.rawValue ||
+                value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
+        } else {
+            return value == HKCategoryValueSleepAnalysis.asleep.rawValue
+        }
     }
 }

@@ -164,8 +164,32 @@ struct DebuffStatus: Codable {
 
 // 1. 定义 Buff 状态结构
 struct BuffStatus: Codable {
+    enum Source: String, Codable {
+        case event
+        case sleep
+        case subscription
+    }
+    
     var bonusRatio: Double // 增益比例 (例如 0.5 代表 +50%)
     var expireAt: Date     // 过期时间
+    var source: Source = .event
+    
+    enum CodingKeys: String, CodingKey {
+        case bonusRatio, expireAt, source
+    }
+    
+    init(bonusRatio: Double, expireAt: Date, source: Source = .event) {
+        self.bonusRatio = bonusRatio
+        self.expireAt = expireAt
+        self.source = source
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        bonusRatio = try container.decode(Double.self, forKey: .bonusRatio)
+        expireAt = try container.decode(Date.self, forKey: .expireAt)
+        source = try container.decodeIfPresent(Source.self, forKey: .source) ?? .event
+    }
 }
 
 

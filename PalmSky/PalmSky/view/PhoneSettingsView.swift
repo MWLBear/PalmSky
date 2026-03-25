@@ -56,6 +56,14 @@ struct PhoneSettingsView: View {
     private let products: [SkyProductItem] = [
       
         SkyProductItem(
+            id: "6742131931",
+            name: NSLocalizedString("product_6742131931_name", comment: "产品名称"),
+            subtitle: NSLocalizedString("product_6742131931_subtitle", comment: "产品副标题"),
+            iconName: "logo2",
+            color: Color.tabColor
+        ),
+      
+        SkyProductItem(
             id: "6755930349",
             name: NSLocalizedString("product_6755930349_name", comment: "产品名称"),
             subtitle: NSLocalizedString("product_6755930349_subtitle", comment: "产品副标题"),
@@ -70,6 +78,15 @@ struct PhoneSettingsView: View {
             iconName: "logo0",
             color: Color.tabColor
         ),
+
+        SkyProductItem(
+            id: "6760839297",
+            name: NSLocalizedString("product_6760839297_name", comment: "产品名称"),
+            subtitle: NSLocalizedString("product_6760839297_subtitle", comment: "产品副标题"),
+            iconName: "logo8",
+            color: Color.tabColor
+        ),
+        
         
         SkyProductItem(
             id: "6743487416",
@@ -78,13 +95,7 @@ struct PhoneSettingsView: View {
             iconName: "logo1",
             color: Color.tabColor
         ),
-        SkyProductItem(
-            id: "6742131931",
-            name: NSLocalizedString("product_6742131931_name", comment: "产品名称"),
-            subtitle: NSLocalizedString("product_6742131931_subtitle", comment: "产品副标题"),
-            iconName: "logo2",
-            color: Color.tabColor
-        ),
+        
         SkyProductItem(
             id: "6744266001",
             name: NSLocalizedString("product_6744266001_name", comment: "产品名称"),

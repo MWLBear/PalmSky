@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var gameManager: GameManager
     @ObservedObject var purchaseManager = PurchaseManager.shared // ✨ 监听购买状态
+    @ObservedObject var healthManager = WatchHealthManager.shared
     @Environment(\.dismiss) var dismiss
     @State private var showResetAlert = false
     @State private var showPaywall = false // ✨ 新增：控制付费墙显示
@@ -46,6 +47,42 @@ struct SettingsView: View {
                           currentTab = 0
                       }
                   }
+                }
+                
+                Section(
+                    header: Text(NSLocalizedString("watch_settings_section_sleep", comment: "")).foregroundColor(themeColor),
+                    footer: Text(NSLocalizedString("watch_settings_sleep_footer", comment: ""))
+                        .foregroundColor(.secondary)
+                ) {
+                    HStack {
+                        Text(NSLocalizedString("watch_settings_sleep_last_night", comment: ""))
+                        Spacer()
+                        Text(healthManager.lastNightSleepDisplay)
+                            .foregroundColor(.secondary)
+                            .monospacedDigit()
+                    }
+                    
+                    HStack {
+                        Text(NSLocalizedString("watch_settings_sleep_quality", comment: ""))
+                        Spacer()
+                        Text(healthManager.sleepTierTitle)
+                            .foregroundColor(themeColor)
+                    }
+                    
+                    HStack {
+                        Text(NSLocalizedString("watch_settings_sleep_bonus", comment: ""))
+                        Spacer()
+                        Text(healthManager.sleepBonusDisplay)
+                            .foregroundColor(themeColor)
+                            .monospacedDigit()
+                    }
+                    
+                    HStack {
+                        Text(NSLocalizedString("watch_settings_sleep_status", comment: ""))
+                        Spacer()
+                        Text(gameManager.sleepBonusStatusText)
+                            .foregroundColor(.secondary)
+                    }
                 }
               
                 Section(

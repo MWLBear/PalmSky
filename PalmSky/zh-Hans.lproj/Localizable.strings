@@ -79,7 +79,7 @@
 "faq_leaderboard_source_q" = "排行榜显示的是手机还是手表的成绩？";
 "faq_leaderboard_source_a" = "排行榜可以切换显示。点击排行榜页面右上角的图标（⌚️/📱）即可在手表排行榜和手机排行榜之间切换查看。";
 "faq_data_loss_q" = "游戏数据会丢失吗？";
-"faq_data_loss_a" = "游戏数据保存在设备本地。\n注意：卸载应用会导致所有游戏数据永久丢失，请谨慎操作。\n建议定期通过 iCloud 或 iTunes 备份您的设备。";
+"faq_data_loss_a" = "游戏进度默认保存在当前设备本地，并会通过 iCloud 做同平台的兜底备份。\n如果本地没有存档，重新安装后可能会提示恢复云端进度。\n注意：这不是实时云同步，手机和手表的进度仍然是彼此独立的。";
 
 /* 产品名称 */
 "product_6755140397_name" = "掌上台球 - 手表游戏";
@@ -90,6 +90,7 @@
 "product_6744744278_name" = "抓娃娃手表版";
 "product_6749309578_name" = "HexaCombo";
 "product_6752029081_name" = "手表游戏 - 颜色连线";
+"product_6760839297_name" = "掌上跳一跳 - 手表游戏";
 
 /* 产品副标题 */
 "product_6755140397_subtitle" = "在手表上打台球";
@@ -100,6 +101,7 @@
 "product_6744744278_subtitle" = "随时随地都能抓";
 "product_6749309578_subtitle" = "六边形消除小游戏";
 "product_6752029081_subtitle" = "趣味益智小游戏";
+"product_6760839297_subtitle" = "跳一跳 for Watch";
 
 "legacy_sound" = "声音";
 "legacy_haptic" = "震动";
@@ -134,7 +136,17 @@
 "watch_settings_protect_charm" = "护身符";
 "watch_settings_leaderboard" = "飞升榜";
 "watch_settings_section_journey_info" = "道途信息";
+"watch_settings_section_sleep" = "闭关养神";
 "watch_settings_legacy_footer" = "首发道友纪念 · 绝版身份标识";
+"watch_settings_sleep_last_night" = "昨夜睡眠";
+"watch_settings_sleep_quality" = "养神境界";
+"watch_settings_sleep_bonus" = "本次离线加成";
+"watch_settings_sleep_status" = "今日状态";
+"watch_settings_sleep_status_done" = "已生效";
+"watch_settings_sleep_status_waiting" = "待触发";
+"watch_settings_sleep_status_unqualified" = "未达标";
+"watch_settings_sleep_status_unavailable" = "未授权/无数据";
+"watch_settings_sleep_footer" = "睡眠越安稳，今日首次有效闭关结算加成越高。";
 "watch_settings_tap_gain" = "点击收益";
 "watch_settings_auto_gain" = "自动收益/秒";
 "watch_settings_break_success_rate" = "突破成功率";
@@ -153,7 +165,7 @@
 "watch_settings_alert_new_cycle_title" = "开启新轮回？";
 "watch_settings_alert_new_cycle_message" = "你将保留此生记录，回到凡人境界重新修行。";
 "watch_settings_alert_reset_title" = "确定删档重来？";
-"watch_settings_alert_reset_message" = "当前所有修为将化为乌有，此操作不可撤销！";
+"watch_settings_alert_reset_message" = "当前所有修为将化为乌有，并同时删除本地与 iCloud 云端修炼进度，此操作不可撤销！";
 "watch_settings_alert_reset_confirm" = "确认重置";
 
 /* Watch 付费墙 */
@@ -190,6 +202,8 @@
 /* Watch Toast */
 "watch_toast_offline_capped_format" = "闭关%@ (上限)，灵气 +%@\n解锁契约可延至12小时";
 "watch_toast_offline_gain_format" = "闭关%@，灵气 +%@";
+"watch_toast_sleep_bonus_format" = "\n%@，离线额外 +%d%%";
+"watch_toast_sleep_auto_buff_format" = "，自动修炼 +%d%%（持续%@）";
 "watch_toast_pity_success" = "道心不屈，天道垂青";
 "watch_toast_charm_broken" = "护身符破碎，免除灵力折损";
 "watch_toast_debuff_one_hour" = "道心受损，吸纳效率降低 (持续1小时)";
@@ -207,6 +221,17 @@
 "watch_toast_break_fail_charm" = "渡劫失败，护身符抵消惩罚";
 "watch_toast_break_fail_debuff_format" = "渡劫失败 道心受损 (灵气 -%@)";
 "watch_toast_break_fail_normal_format" = "渡劫失败 元气大伤 (灵气 -%@)";
+"watch_sleep_tier_best" = "神完气足";
+"watch_sleep_tier_good" = "闭关有成";
+"watch_sleep_tier_ok" = "气息初稳";
+"watch_sleep_tier_low" = "养神不足";
+"watch_sleep_unavailable" = "--";
+"watch_sleep_duration_format" = "%d小时%02d分";
+"cloud_restore_alert_title" = "发现云端存档";
+"cloud_restore_alert_message_format" = "检测到 iCloud 云端备份（%@），是否恢复这份修炼进度？";
+"cloud_restore_alert_confirm" = "恢复云端";
+"cloud_restore_alert_decline" = "重新开始";
+"cloud_restore_unknown_realm" = "未知境界";
 
 /* Watch 时间格式 */
 "watch_duration_seconds_format" = "%d秒";
@@ -303,6 +328,8 @@
 "watch_buff_tap_positive_desc_format" = "点击收益提升 %d%%";
 "watch_buff_tap_negative_desc_format" = "点击收益降低 %d%%";
 "watch_buff_auto_title" = "天地 · 灵气";
+"watch_buff_sleep_title" = "养神 · 闭关";
+"watch_buff_subscription_title" = "月俸 · 仙资";
 "watch_buff_auto_desc_format" = "自动修炼速度 +%d%%";
 "watch_buff_debuff_title" = "劫难 · 心魔";
 "watch_buff_debuff_desc_format" = "所有收益折损 %d%%";

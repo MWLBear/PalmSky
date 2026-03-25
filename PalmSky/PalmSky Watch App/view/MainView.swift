@@ -128,6 +128,7 @@ struct RootPagerView: View {
             }
         }
         .onAppear {
+            WatchHealthManager.shared.requestPermission()
             // 首次进入且未看过提示，延迟3秒显示
             if !hasSeenSwipeTutorial {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
@@ -155,10 +156,8 @@ struct RootPagerView: View {
                 // 1. 回到前台，取消之前的通知 (因为我已经上线了，不用再提醒我了)
                 NotificationManager.shared.cancelNotifications()
                 
-                // 2. 刷新步数
-                WatchHealthManager.shared.fetchTodaySteps()
-              
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // 2. 先刷新健康数据，再结算离线收益，避免睡眠查询慢返回导致加成丢失
+                WatchHealthManager.shared.requestPermission {
                     gameManager.calculateOfflineGain()
                 }
             } else if newPhase == .background {
@@ -169,6 +168,7 @@ struct RootPagerView: View {
               
                 gameManager.player.lastLogout = Date() // 更新时间
                 gameManager.savePlayer()
+                gameManager.flushCloudBackup()
               
               // 2. ✨ 切后台，埋下一颗 12小时后的"闹钟"
               // 只有未满级才需要提醒
@@ -417,6 +417,24 @@ struct MainView: View {
               }
             }
           }
+        }
+        .alert(
+            NSLocalizedString("cloud_restore_alert_title", comment: ""),
+            isPresented: $gameManager.showCloudRestorePrompt
+        ) {
+            Button(NSLocalizedString("cloud_restore_alert_confirm", comment: "")) {
+                gameManager.restoreFromCloudBackup()
+            }
+            Button(NSLocalizedString("cloud_restore_alert_decline", comment: ""), role: .cancel) {
+                gameManager.declineCloudRestore()
+            }
+        } message: {
+            Text(
+                String(
+                    format: NSLocalizedString("cloud_restore_alert_message_format", comment: ""),
+                    gameManager.pendingCloudRestoreRealmSummary
+                )
+            )
         }
         // ✨ 修复转世重修后圆环不打开的 Bug
         .onChange(of: gameManager.player.level) { oldLevel, newLevel in

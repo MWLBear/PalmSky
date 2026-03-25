@@ -16,17 +16,22 @@ struct ToastView: View {
   
     var body: some View {
         VStack {
-            HStack(spacing: 6) {
+            HStack(alignment: .top, spacing: 6) {
                 Image(systemName: "leaf.fill")
                     .foregroundColor(.green)
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
+                    .padding(.top, 1)
                 
                 Text(message)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineSpacing(1)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: 156, alignment: .leading)
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             .background(.ultraThinMaterial)
             .background(Color.black.opacity(0.4))
             .clipShape(Capsule())

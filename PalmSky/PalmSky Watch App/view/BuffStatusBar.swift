@@ -2,6 +2,17 @@ import SwiftUI
 
 struct BuffStatusBar: View {
     @EnvironmentObject var gameManager: GameManager
+    
+    private func autoBuffAppearance(for source: BuffStatus.Source) -> (icon: String, foreground: Color, background: Color) {
+        switch source {
+        case .event:
+            return ("leaf.fill", .black, Color.green.opacity(0.8))
+        case .sleep:
+            return ("bed.double.fill", .white, Color.cyan.opacity(0.8))
+        case .subscription:
+            return ("sparkles", .black, Color.yellow.opacity(0.85))
+        }
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -35,16 +46,17 @@ struct BuffStatusBar: View {
             
             // 2. 自动增益 (Auto Buff)
             if let buff = gameManager.player.autoBuff, Date() < buff.expireAt {
+                let appearance = autoBuffAppearance(for: buff.source)
                 HStack(spacing: 4) {
-                    Image(systemName: "leaf.fill")
+                    Image(systemName: appearance.icon)
                     Text("+\(Int(buff.bonusRatio * 100))%")
                 }
                 .font(XiuxianFont.buffTag)
                 // ✨ 修复高度不一致
                 .frame(height: 15)
-                .foregroundColor(.black)
+                .foregroundColor(appearance.foreground)
                 .padding(.horizontal, 6)
-                .background(Color.green.opacity(0.8))
+                .background(appearance.background)
                 .clipShape(Capsule())
                 .transition(.scale)
             }

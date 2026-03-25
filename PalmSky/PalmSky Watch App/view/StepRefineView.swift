@@ -45,7 +45,6 @@ struct StepRefineRow: View {
         .buttonStyle(.plain)
         .disabled(!hasStepsToRefine && !isMaxLimitReached)
         .onAppear {
-            healthManager.requestPermission()
             healthManager.fetchTodaySteps()
         }
     }

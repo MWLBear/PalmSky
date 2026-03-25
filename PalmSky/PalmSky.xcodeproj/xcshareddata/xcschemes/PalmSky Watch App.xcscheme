@@ -71,6 +71,9 @@
             isEnabled = "YES">
          </AdditionalOption>
       </AdditionalOptions>
+      <StoreKitConfigurationFileReference
+         identifier = "../../PalmSky Watch App/PalmSkyProducts.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

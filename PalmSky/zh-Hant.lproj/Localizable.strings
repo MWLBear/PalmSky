@@ -79,7 +79,7 @@
 "faq_leaderboard_source_q" = "排行榜顯示的是手機還是手錶的成績？";
 "faq_leaderboard_source_a" = "排行榜可以切換顯示。點擊排行榜頁面右上角的圖示（⌚️/📱）即可在手錶排行榜和手機排行榜之間切換查看。";
 "faq_data_loss_q" = "遊戲資料會遺失嗎？";
-"faq_data_loss_a" = "遊戲資料保存在裝置本機。\n注意：卸載 App 會導致所有遊戲資料永久遺失，請謹慎操作。\n建議定期透過 iCloud 或 iTunes 備份您的裝置。";
+"faq_data_loss_a" = "遊戲進度預設保存在目前裝置本機，並會透過 iCloud 做同平台的兜底備份。\n如果本地沒有存檔，重新安裝後可能會提示恢復雲端進度。\n注意：這不是即時雲端同步，手機與手錶的進度仍然彼此獨立。";
 
 /* 产品名称 */
 "product_6755140397_name" = "掌上台球 - 手錶遊戲";
@@ -90,6 +90,7 @@
 "product_6744744278_name" = "抓娃娃手錶版";
 "product_6749309578_name" = "HexaCombo";
 "product_6752029081_name" = "手錶遊戲 - 顏色連線";
+"product_6760839297_name" = "掌上跳一跳 - 手錶遊戲";
 
 /* 产品副标题 */
 "product_6755140397_subtitle" = "在手錶上打檯球";
@@ -100,6 +101,7 @@
 "product_6744744278_subtitle" = "隨時隨地都能抓";
 "product_6749309578_subtitle" = "六邊形消除小遊戲";
 "product_6752029081_subtitle" = "趣味益智小遊戲";
+"product_6760839297_subtitle" = "跳一跳 for Watch";
 
 "legacy_sound" = "聲音";
 "legacy_haptic" = "震動";
@@ -134,7 +136,17 @@
 "watch_settings_protect_charm" = "護身符";
 "watch_settings_leaderboard" = "飛升榜";
 "watch_settings_section_journey_info" = "道途資訊";
+"watch_settings_section_sleep" = "閉關養神";
 "watch_settings_legacy_footer" = "首發道友紀念 · 絕版身份標識";
+"watch_settings_sleep_last_night" = "昨夜睡眠";
+"watch_settings_sleep_quality" = "養神境界";
+"watch_settings_sleep_bonus" = "本次離線加成";
+"watch_settings_sleep_status" = "今日狀態";
+"watch_settings_sleep_status_done" = "已生效";
+"watch_settings_sleep_status_waiting" = "待觸發";
+"watch_settings_sleep_status_unqualified" = "未達標";
+"watch_settings_sleep_status_unavailable" = "未授權/無資料";
+"watch_settings_sleep_footer" = "睡眠越安穩，今日首次有效閉關結算加成越高。";
 "watch_settings_tap_gain" = "點擊收益";
 "watch_settings_auto_gain" = "自動收益/秒";
 "watch_settings_break_success_rate" = "突破成功率";
@@ -153,7 +165,7 @@
 "watch_settings_alert_new_cycle_title" = "開啟新輪迴？";
 "watch_settings_alert_new_cycle_message" = "你將保留此生記錄，回到凡人境界重新修行。";
 "watch_settings_alert_reset_title" = "確定刪除存檔並重來？";
-"watch_settings_alert_reset_message" = "當前所有修為將化為烏有，此操作不可撤銷！";
+"watch_settings_alert_reset_message" = "當前所有修為將化為烏有，並同時刪除本地與 iCloud 雲端修煉進度，此操作不可撤銷！";
 "watch_settings_alert_reset_confirm" = "確認重來";
 
 /* Watch 付费墙 */
@@ -190,6 +202,8 @@
 /* Watch Toast */
 "watch_toast_offline_capped_format" = "閉關%@ (上限)，靈氣 +%@\n解鎖契約可延至12小時";
 "watch_toast_offline_gain_format" = "閉關%@，靈氣 +%@";
+"watch_toast_sleep_bonus_format" = "\n%@，離線額外 +%d%%";
+"watch_toast_sleep_auto_buff_format" = "，自動修煉 +%d%%（持續%@）";
 "watch_toast_pity_success" = "道心不屈，天道垂青";
 "watch_toast_charm_broken" = "護身符破碎，免除靈力折損";
 "watch_toast_debuff_one_hour" = "道心受損，吸納效率降低 (持續1小時)";
@@ -207,6 +221,17 @@
 "watch_toast_break_fail_charm" = "渡劫失敗，護身符抵消懲罰";
 "watch_toast_break_fail_debuff_format" = "渡劫失敗 道心受損 (靈氣 -%@)";
 "watch_toast_break_fail_normal_format" = "渡劫失敗 元氣大傷 (靈氣 -%@)";
+"watch_sleep_tier_best" = "神完氣足";
+"watch_sleep_tier_good" = "閉關有成";
+"watch_sleep_tier_ok" = "氣息初穩";
+"watch_sleep_tier_low" = "養神不足";
+"watch_sleep_unavailable" = "--";
+"watch_sleep_duration_format" = "%d小時%02d分";
+"cloud_restore_alert_title" = "發現雲端存檔";
+"cloud_restore_alert_message_format" = "偵測到 iCloud 雲端備份（%@），是否恢復這份修煉進度？";
+"cloud_restore_alert_confirm" = "恢復雲端";
+"cloud_restore_alert_decline" = "重新開始";
+"cloud_restore_unknown_realm" = "未知境界";
 
 /* Watch 时间格式 */
 "watch_duration_seconds_format" = "%d秒";
@@ -303,6 +328,8 @@
 "watch_buff_tap_positive_desc_format" = "點擊收益提升 %d%%";
 "watch_buff_tap_negative_desc_format" = "點擊收益降低 %d%%";
 "watch_buff_auto_title" = "天地 · 靈氣";
+"watch_buff_sleep_title" = "養神 · 閉關";
+"watch_buff_subscription_title" = "月俸 · 仙資";
 "watch_buff_auto_desc_format" = "自動修煉速度 +%d%%";
 "watch_buff_debuff_title" = "劫難 · 心魔";
 "watch_buff_debuff_desc_format" = "所有收益折損 %d%%";

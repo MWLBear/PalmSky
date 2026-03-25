@@ -5,6 +5,17 @@ struct BuffDetailView: View {
     @EnvironmentObject var gameManager: GameManager
     @Environment(\.dismiss) var dismiss
     
+    private func autoBuffAppearance(for source: BuffStatus.Source) -> (icon: String, color: Color, titleKey: String) {
+        switch source {
+        case .event:
+            return ("leaf.fill", .green, "watch_buff_auto_title")
+        case .sleep:
+            return ("bed.double.fill", .cyan, "watch_buff_sleep_title")
+        case .subscription:
+            return ("sparkles", .yellow, "watch_buff_subscription_title")
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -27,10 +38,11 @@ struct BuffDetailView: View {
                     
                     // 2. 自动增益
                     if let buff = gameManager.player.autoBuff, Date() < buff.expireAt {
+                        let appearance = autoBuffAppearance(for: buff.source)
                         BuffRow(
-                            icon: "leaf.fill",
-                            color: .green,
-                            title: NSLocalizedString("watch_buff_auto_title", comment: ""),
+                            icon: appearance.icon,
+                            color: appearance.color,
+                            title: NSLocalizedString(appearance.titleKey, comment: ""),
                             desc: String(format: NSLocalizedString("watch_buff_auto_desc_format", comment: ""), Int(buff.bonusRatio * 100)),
                             expireAt: buff.expireAt
                         )

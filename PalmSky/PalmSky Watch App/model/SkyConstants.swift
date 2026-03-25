@@ -32,6 +32,7 @@ struct SkyConstants {
   struct UserDefaults {
     
     static let userDefaultsKey = "savedPlayer"
+    static let sleepBonusConsumedDateKey = "sleep_bonus_consumed_date_v1"
     
     static let recordKey = "cultivation_life_record_v1"
     static let recordHistoryKey = "cultivation_history_v1" // 新的 Key
@@ -46,6 +47,14 @@ struct SkyConstants {
     static let isLegacyUserCache = "com.palmsky.isLegacyUserCache"
     /// 当前使用的皮肤ID
     static let currentSkinID = "current_skin_id"
+    
+    #if os(watchOS)
+    /// iCloud 备份：手表端独立玩家存档
+    static let iCloudPlayerBackupKey = "icloud.watch.player.v1"
+    #else
+    /// iCloud 备份：手机端独立玩家存档
+    static let iCloudPlayerBackupKey = "icloud.ios.player.v1"
+    #endif
     
   }
   

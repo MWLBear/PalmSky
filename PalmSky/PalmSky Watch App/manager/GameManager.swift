@@ -9,6 +9,7 @@ let debugAscended = false // 九天玄仙8层-测试开关
 // MARK: - Game Manager
 class GameManager: ObservableObject {
     static let shared = GameManager()
+    private let cloudStore = NSUbiquitousKeyValueStore.default
     
     // 护身符商业化提示类型：首次教学 / 中后期提醒
     enum CharmUpsellPrompt {
@@ -20,6 +21,7 @@ class GameManager: ObservableObject {
     @Published var showBreakButton: Bool = false
     @Published var currentEvent: GameEvent?
     @Published var showEventView: Bool = false
+    @Published var showCloudRestorePrompt: Bool = false
     
     @Published var offlineToastMessage: String? = nil
 
@@ -46,6 +48,9 @@ class GameManager: ObservableObject {
     private var mainLoopTickCount: Int = 0
     private var lastEventCheck: Date = Date()
     private var cancellables = Set<AnyCancellable>()
+    private var pendingCloudBackupWorkItem: DispatchWorkItem?
+    private var pendingCloudRestorePlayer: Player?
+    private var isAwaitingCloudRestoreChoice = false
     
     // ⚡ 修复：跟踪 App 是否处于活跃状态，避免息屏时弹出事件
     var isAppActive: Bool = true
@@ -56,10 +61,17 @@ class GameManager: ObservableObject {
     private var lastPhoneSyncTime: Date = .distantPast
   
     private init() {
+      cloudStore.synchronize()
+        
         // Load saved player or create new
       if let data = UserDefaults.standard.data(forKey: SkyConstants.UserDefaults.userDefaultsKey),
            let decoded = try? JSONDecoder().decode(Player.self, from: data) {
             self.player = decoded
+        } else if let restored = Self.loadPlayerFromCloudBackup() {
+            self.player = Player()
+            self.pendingCloudRestorePlayer = restored
+            self.showCloudRestorePrompt = true
+            self.isAwaitingCloudRestoreChoice = true
         } else {
             self.player = Player()
         }
@@ -80,6 +92,159 @@ class GameManager: ObservableObject {
         
         // ✨ 同步震动设置到 HapticManager
         HapticManager.shared.isEnabled = self.player.settings.hapticEnabled
+    }
+    
+    // MARK: - iCloud 备份（本地优先）
+    
+    /// 本地无存档时，尝试从 iCloud 备份恢复玩家数据
+    private static func loadPlayerFromCloudBackup() -> Player? {
+        let cloudStore = NSUbiquitousKeyValueStore.default
+        guard let data = cloudStore.data(forKey: SkyConstants.UserDefaults.iCloudPlayerBackupKey),
+              let player = try? JSONDecoder().decode(Player.self, from: data) else {
+            return nil
+        }
+        return player
+    }
+    
+    /// 玩家确认后恢复云端备份，作为当前本地主存档
+    func restoreFromCloudBackup() {
+        guard let restored = pendingCloudRestorePlayer else {
+            declineCloudRestore()
+            return
+        }
+        player = restored
+        pendingCloudRestorePlayer = nil
+        isAwaitingCloudRestoreChoice = false
+        showCloudRestorePrompt = false
+        checkBreakCondition()
+        savePlayer(forceSyncToPhone: false)
+    }
+    
+    /// 恢复弹框里展示云端存档的境界摘要，避免玩家误恢复错误进度
+    var pendingCloudRestoreRealmSummary: String {
+        guard let pendingCloudRestorePlayer else {
+            return NSLocalizedString("cloud_restore_unknown_realm", comment: "")
+        }
+        return levelManager.stageName(
+            for: pendingCloudRestorePlayer.level,
+            reincarnation: pendingCloudRestorePlayer.reincarnationCount
+        )
+    }
+    
+    /// 玩家拒绝恢复云端备份，继续使用新的本地初始存档
+    func declineCloudRestore() {
+        pendingCloudRestorePlayer = nil
+        isAwaitingCloudRestoreChoice = false
+        showCloudRestorePrompt = false
+        savePlayer(forceSyncToPhone: false)
+    }
+    
+    /// 低频触发 iCloud 备份，避免每次保存都立即写云端
+    private func scheduleCloudBackup() {
+        pendingCloudBackupWorkItem?.cancel()
+        let snapshot = player
+        let workItem = DispatchWorkItem { [snapshot] in
+            self.backupPlayerToCloud(snapshot)
+        }
+        pendingCloudBackupWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 12, execute: workItem)
+    }
+    
+    /// 进入后台前主动冲刷一次待写入的云备份，避免应用挂起前丢失关键进度
+    func flushCloudBackup() {
+        pendingCloudBackupWorkItem?.cancel()
+        backupPlayerToCloud(player)
+        cloudStore.synchronize()
+    }
+    
+    /// 将玩家主存档写入 iCloud Key-Value，作为卸载后的兜底恢复
+    private func backupPlayerToCloud(_ snapshot: Player) {
+        guard let encoded = try? JSONEncoder().encode(snapshot) else { return }
+        cloudStore.set(encoded, forKey: SkyConstants.UserDefaults.iCloudPlayerBackupKey)
+    }
+    
+    /// 删档时同步清空 iCloud 备份，避免下次又被恢复回来
+    private func clearCloudBackup() {
+        cloudStore.removeObject(forKey: SkyConstants.UserDefaults.iCloudPlayerBackupKey)
+    }
+    
+    // MARK: - 睡眠闭关状态
+    
+    /// 今日睡眠闭关加成是否已经在离线收益里生效过
+    var hasConsumedSleepBonusToday: Bool {
+        UserDefaults.standard.string(forKey: SkyConstants.UserDefaults.sleepBonusConsumedDateKey) == todayString()
+    }
+    
+    /// 设置页展示用：睡眠奖励状态分为未达标 / 待触发 / 已生效
+    var sleepBonusStatusText: String {
+        guard WatchHealthManager.shared.lastNightSleepHours > 0 else {
+            return NSLocalizedString("watch_settings_sleep_status_unavailable", comment: "")
+        }
+        if hasConsumedSleepBonusToday {
+            return NSLocalizedString("watch_settings_sleep_status_done", comment: "")
+        }
+        if WatchHealthManager.shared.sleepBonusMultiplier > 1.0 {
+            return NSLocalizedString("watch_settings_sleep_status_waiting", comment: "")
+        }
+        return NSLocalizedString("watch_settings_sleep_status_unqualified", comment: "")
+    }
+    
+    /// 记录今日睡眠闭关加成已使用，确保每天只强化一次离线结算
+    private func markSleepBonusConsumed(for date: Date) {
+        UserDefaults.standard.set(dateString(date), forKey: SkyConstants.UserDefaults.sleepBonusConsumedDateKey)
+    }
+    
+    /// 只有今日首次有效离线结算才吃睡眠加成，避免来回切后台反复刷奖励
+    private func consumeSleepBonusIfNeeded(on date: Date) -> (multiplier: Double, tierTitle: String)? {
+        guard !hasConsumedSleepBonusToday else { return nil }
+        let multiplier = WatchHealthManager.shared.sleepBonusMultiplier
+        guard multiplier > 1.0 else { return nil }
+        markSleepBonusConsumed(for: date)
+        return (multiplier, WatchHealthManager.shared.sleepTierTitle)
+    }
+    
+    /// 睡眠系统与境界轻关联：中后期在优质睡眠时额外赠送短时自动修炼增益
+    private func applySleepRealmAutoBuffIfNeeded(sleepMultiplier: Double, now: Date) -> String? {
+        let autoBuffConfig: (bonusRatio: Double, duration: TimeInterval)?
+        
+        switch player.level {
+        case 25...72 where sleepMultiplier >= 1.15:
+            autoBuffConfig = (0.10, 30 * 60)
+        case 73...Int.max where sleepMultiplier >= 1.25:
+            autoBuffConfig = (0.15, 45 * 60)
+        default:
+            autoBuffConfig = nil
+        }
+        
+        guard let autoBuffConfig else { return nil }
+        
+        var newExpireDate = now.addingTimeInterval(autoBuffConfig.duration)
+        var newBonus = autoBuffConfig.bonusRatio
+        
+        if let oldBuff = player.autoBuff, now < oldBuff.expireAt {
+            let remainingTime = oldBuff.expireAt.timeIntervalSince(now)
+            newExpireDate = now.addingTimeInterval(remainingTime + autoBuffConfig.duration)
+            newBonus = max(oldBuff.bonusRatio, autoBuffConfig.bonusRatio)
+        }
+        
+        player.autoBuff = BuffStatus(bonusRatio: newBonus, expireAt: newExpireDate, source: .sleep)
+        
+        return String(
+            format: NSLocalizedString("watch_toast_sleep_auto_buff_format", comment: ""),
+            Int(autoBuffConfig.bonusRatio * 100),
+            formatDuration(autoBuffConfig.duration)
+        )
+    }
+    
+    /// 统一的 yyyy-MM-dd 日期键，用于睡眠奖励按天消费
+    private func dateString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    private func todayString() -> String {
+        dateString(Date())
     }
     
   // 在 init() 或者应用启动时调用
@@ -126,7 +291,12 @@ class GameManager: ObservableObject {
           let gainPerSec = levelManager.autoGain(level: player.level,reincarnation: player.reincarnationCount)
           
           // 4. 离线打折 (0.8)
-          let offlineTotal = gainPerSec * effectiveTime * 0.8
+          let offlineBaseTotal = gainPerSec * effectiveTime * 0.8
+          let sleepBonus = consumeSleepBonusIfNeeded(on: now)
+          _ = sleepBonus.flatMap { bonus in
+              applySleepRealmAutoBuffIfNeeded(sleepMultiplier: bonus.multiplier, now: now)
+          }
+          let offlineTotal = offlineBaseTotal * (sleepBonus?.multiplier ?? 1.0)
           
           if offlineTotal > 0 {
               player.currentQi += offlineTotal
@@ -141,19 +311,37 @@ class GameManager: ObservableObject {
 
               if !isPro && rawTimeDiff > maxOfflineSeconds {
                 DispatchQueue.main.async {
-                  self.offlineToastMessage = String(
+                  var message = String(
                     format: NSLocalizedString("watch_toast_offline_capped_format", comment: ""),
                     timeStr,
                     offlineTotal.xiuxianString
                   )
+                  if let sleepBonus {
+                      let sleepPercent = Int(round((sleepBonus.multiplier - 1.0) * 100))
+                      message += String(
+                        format: NSLocalizedString("watch_toast_sleep_bonus_format", comment: ""),
+                        sleepBonus.tierTitle,
+                        sleepPercent
+                      )
+                  }
+                  self.offlineToastMessage = message
                 }
               } else {
                 DispatchQueue.main.async {
-                  self.offlineToastMessage = String(
+                  var message = String(
                     format: NSLocalizedString("watch_toast_offline_gain_format", comment: ""),
                     timeStr,
                     offlineTotal.xiuxianString
                   )
+                  if let sleepBonus {
+                      let sleepPercent = Int(round((sleepBonus.multiplier - 1.0) * 100))
+                      message += String(
+                        format: NSLocalizedString("watch_toast_sleep_bonus_format", comment: ""),
+                        sleepBonus.tierTitle,
+                        sleepPercent
+                      )
+                  }
+                  self.offlineToastMessage = message
                 }
               }
             
@@ -826,6 +1014,7 @@ class GameManager: ObservableObject {
     func resetGame() {
       // 1. 停止当前的所有计时器 (防止旧逻辑干扰)
       mainLoopTimer?.invalidate()  // ⚡ 优化：使用统一主循环
+      pendingCloudBackupWorkItem?.cancel()
       
       // 2. 重置玩家数据 (回到 0 世，Lv 1)
       // Player 的 init() 默认 reincarnationCount = 0
@@ -841,10 +1030,13 @@ class GameManager: ObservableObject {
       // 4. 🚨 关键：通知史官重置当前记录
       // 删档意味着“这一世白活了”，所以要清空当前的 Record
       RecordManager.shared.resetCurrentRecord()
+      UserDefaults.standard.removeObject(forKey: SkyConstants.UserDefaults.sleepBonusConsumedDateKey)
+      UserDefaults.standard.removeObject(forKey: SkyConstants.UserDefaults.userDefaultsKey)
+      clearCloudBackup()
       
       // 5. 重新启动游戏循环
       startGame()
-      savePlayer()
+      savePlayer(saveToCloud: false)
       
       // 6. 震动反馈 (像是系统重启的感觉)
       HapticManager.shared.playIfEnabled(.directionDown)
@@ -855,9 +1047,13 @@ class GameManager: ObservableObject {
     // ⚡ 性能优化：setupAutoSave 已被合并到 startMainLoop 中
     // 自动保存现在每 60 秒执行一次（原先 30 秒）
     
-    func savePlayer(forceSyncToPhone: Bool = true) {
+    func savePlayer(forceSyncToPhone: Bool = true, saveToCloud: Bool = true) {
+        guard !isAwaitingCloudRestoreChoice else { return }
         if let encoded = try? JSONEncoder().encode(player) {
             UserDefaults.standard.set(encoded, forKey: SkyConstants.UserDefaults.userDefaultsKey)
+        }
+        if saveToCloud {
+            scheduleCloudBackup()
         }
       
         // 2. ✨ 保存 Widget 快照 (仅 Watch 端或者是共享容器支持时)
