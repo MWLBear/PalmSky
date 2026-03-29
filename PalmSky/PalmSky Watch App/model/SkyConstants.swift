@@ -103,9 +103,17 @@ struct SkyConstants {
     // MARK: - Actions (Value of "action" key)
     /// 同步核心游戏数据的动作
     static let syncGameData = "syncGameData"
+    /// 手动用手表进度覆盖手机本地存档
+    static let manualOverwritePhoneProgress = "manualOverwritePhoneProgress"
+    /// 手动用手机进度覆盖手表本地存档
+    static let manualOverwriteWatchProgress = "manualOverwriteWatchProgress"
     
     /// 消息中包含的核心游戏数据
     static let gameData = "gameData"
+    /// 手动覆盖动作的执行结果
+    static let overwriteResult = "overwriteResult"
+    /// 手动覆盖动作返回给发起端的提示文案
+    static let overwriteMessage = "overwriteMessage"
     
     static let fetchLeaderboard = "fetchLeaderboard"
     

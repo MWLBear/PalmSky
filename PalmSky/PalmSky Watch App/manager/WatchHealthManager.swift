@@ -13,6 +13,12 @@ class WatchHealthManager: ObservableObject {
     static let shared = WatchHealthManager()
     private let healthStore = HKHealthStore()
     
+    enum SleepDataStatus {
+        case unauthorized
+        case noData
+        case available
+    }
+    
     // MARK: - 配置常量
     // 🔥 核心修改：动态上限
     var MAX_DAILY_STEPS: Int {
@@ -31,6 +37,8 @@ class WatchHealthManager: ObservableObject {
     @AppStorage("health_last_record_date") private var lastRecordDate: String = ""
     // 今日已经炼化了多少步
     @AppStorage("health_refined_steps") var refinedStepsToday: Int = 0
+    // 产品态展示用：区分“尚未进入睡眠授权流程”和“已请求但暂无数据”
+    @AppStorage("health_sleep_permission_requested") private var hasRequestedSleepPermission: Bool = false
     
     // MARK: - 计算属性
     
@@ -122,6 +130,26 @@ class WatchHealthManager: ObservableObject {
         return "+\(percent)%"
     }
     
+    /// 区分“未授权”和“无数据”，供设置页状态展示使用。
+    var sleepDataStatus: SleepDataStatus {
+        guard HKHealthStore.isHealthDataAvailable(),
+              HKObjectType.categoryType(forIdentifier: .sleepAnalysis) != nil
+        else {
+            return .unauthorized
+        }
+
+        // HealthKit 不会稳定提供“只读睡眠权限是否被拒绝”的精确状态。
+        // 这里采用产品态语义：
+        // - 还没走过睡眠授权流程 -> 未授权
+        // - 已请求过权限但没查到样本 -> 无数据
+        // - 查到样本 -> 有数据
+        guard hasRequestedSleepPermission else {
+            return .unauthorized
+        }
+
+        return lastNightSleepHours > 0 ? .available : .noData
+    }
+    
     // MARK: - 1. 权限请求
     func requestPermission(completion: (() -> Void)? = nil) {
         guard HKHealthStore.isHealthDataAvailable() else {
@@ -137,6 +165,7 @@ class WatchHealthManager: ObservableObject {
         // 只需要读取权限，不需要写入
         healthStore.requestAuthorization(toShare: [], read: [stepType, sleepType]) { success, error in
             DispatchQueue.main.async {
+                self.hasRequestedSleepPermission = true
                 guard success else {
                     completion?()
                     print("requestAuthorization error")

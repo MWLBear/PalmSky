@@ -156,3 +156,416 @@
   - `doc/AI_DEV_LOG.md`
 - 备注:
   - 本次为发布流程文档补充，不涉及业务代码改动。
+
+## 2026-03-25
+
+- 修改内容:
+  - 更新版本路线与发布说明文档。
+  - 将版本 3「神游太虚」从开发中状态整理为当前版本记录。
+  - 在发布说明中补录版本号 `2.3.0`，并将版本 3 正式排在版本 4 之前。
+- 涉及文件:
+  - `doc/ROADMAP.md`
+  - `doc/RELEASE_NOTES.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为版本文档收口，不涉及业务代码改动。
+
+## 2026-03-25
+
+- 修改内容:
+  - 调整版本路线顺序。
+  - 将“手动数据覆盖系统”提前为版本 4「两仪同修」。
+  - 原版本 4「仙家法宝」顺延为版本 5。
+- 涉及文件:
+  - `doc/ROADMAP.md`
+  - `doc/RELEASE_NOTES.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅调整规划顺序，不涉及业务代码改动。
+
+## 2026-03-25
+
+- 修改内容:
+  - 同步更新项目规则文档中的当前开发阶段描述。
+  - 将 `Agents.md` 中的“当前开发”从睡眠系统调整为版本 4「两仪同修」手动数据覆盖系统。
+- 涉及文件:
+  - `Agents.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 当前线上版本仍记为版本 3「神游太虚」，本次仅同步后续开发方向。
+
+## 2026-03-25
+
+- 修改内容:
+  - 新增手动数据覆盖系统实现设计文档。
+  - 明确版本 4 第一阶段只实现“手表覆盖手机”。
+  - 细化覆盖字段白名单、WatchConnectivity 通讯方案、设置页入口与失败场景处理。
+- 涉及文件:
+  - `doc/DATA_OVERRIDE_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅输出实现设计，不涉及业务代码改动。
+
+## 2026-03-25
+
+- 修改内容:
+  - 补充手动数据覆盖系统的双端入口文案规则。
+  - 明确 `SettingsView.swift` 为公用入口，按平台显示“手表覆盖手机”或“手机覆盖手表”。
+  - 明确第一阶段只开放手表端可执行入口，iPhone 端如需提前露出仅作为说明或占位。
+- 涉及文件:
+  - `doc/DATA_OVERRIDE_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为交互设计补充，不涉及业务代码改动。
+
+## 2026-03-27
+
+- 修改内容:
+  - 按 `DATA_OVERRIDE_DESIGN` 开始实现第一阶段“手表覆盖手机”。
+  - 新增 WatchConnectivity 手动覆盖 action 与结果回传字段。
+  - 新增手机侧白名单进度覆盖逻辑，保留护身符、设置与本地存档身份。
+  - 在 watch 设置页新增“数据校准”入口、确认弹窗与结果提示。
+  - 新增相关多语言文案，并在系统设计文档中补充手动数据覆盖系统摘要。
+- 涉及文件:
+  - `PalmSky Watch App/model/SkyConstants.swift`
+  - `PalmSky Watch App/manager/GameManager.swift`
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `PalmSky Watch App/view/SettingsView.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/SYSTEM_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 当前只实现第一阶段“手表覆盖手机”，手机覆盖手表仍保留在后续版本 4 规划中。
+
+## 2026-03-27
+
+- 修改内容:
+  - 修正 `SettingsView` 的平台编译边界。
+  - 将 `beginPhoneProgressOverwrite()` 与对应的覆盖确认弹窗一并限定为 `watchOS` 编译，避免 iPhone 端引用不到手表专属逻辑。
+- 涉及文件:
+  - `PalmSky Watch App/view/SettingsView.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为第一阶段手表覆盖手机功能的编译修正，不改变业务行为。
+
+## 2026-03-27
+
+- 修改内容:
+  - 调整手动覆盖入口在设置页中的位置。
+  - 将该 Section 从前部移动到“仙府设置”之后。
+  - 相关文案一度尝试调整为更修仙语境的表达，后续已回退为更直白清晰的“数据校准 / 手表覆盖手机”。
+- 涉及文件:
+  - `PalmSky Watch App/view/SettingsView.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次主要调整 UI 位置，不改变手动覆盖功能逻辑。
+
+## 2026-03-27
+
+- 修改内容:
+  - 调整手动覆盖入口 footer 文案。
+  - 明确提示玩家需保持手机与手表同时在前台打开，并确保连接正常。
+  - 删除“当前阶段仅支持手表覆盖手机”的阶段性限制文案，为后续补充手机覆盖手表保留空间。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅优化文案提示，不涉及业务逻辑改动。
+
+## 2026-03-27
+
+- 修改内容:
+  - 为“手表覆盖手机”补充手机端轻提示反馈。
+  - 手机端在成功接收并应用手表进度后，通过现有 iPhone Toast 组件提示“手机进度已更新”。
+- 涉及文件:
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `PalmSky/view/PhoneMianView.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅增加目标端反馈，不改变手动覆盖主流程。
+
+## 2026-03-27
+
+- 修改内容:
+  - 为 `SkySyncManager` 中本次新增的手动覆盖相关类型、状态和方法补充中文注释。
+- 涉及文件:
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅补充代码可读性注释，不涉及业务逻辑改动。
+
+## 2026-03-27
+
+- 修改内容:
+  - 为 `GameManager.applyProgressOverrideFromWatch(_:)` 增加 `iOS` 平台编译边界。
+  - 明确该方法仅供 iPhone 端消费手表覆盖请求使用。
+- 涉及文件:
+  - `PalmSky Watch App/manager/GameManager.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅强化平台职责边界，不改变手动覆盖逻辑。
+
+## 2026-03-27
+
+- 修改内容:
+  - 对称补齐“手机覆盖手表”链路。
+  - 新增 phone -> watch 的手动覆盖 action、iPhone 端发起方法与手表端接收处理。
+  - 新增手表侧按白名单应用手机进度的方法，并在手表端落地后补充轻提示。
+  - 在 `PhoneSettingsView` 中加入“手机覆盖手表”入口、确认弹窗与结果提示。
+  - 同步更新双端覆盖相关文案与系统设计文档。
+- 涉及文件:
+  - `PalmSky Watch App/model/SkyConstants.swift`
+  - `PalmSky Watch App/manager/GameManager.swift`
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `PalmSky/view/PhoneSettingsView.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/SYSTEM_DESIGN.md`
+  - `doc/DATA_OVERRIDE_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 当前双端手动覆盖已具备对称能力，仍保持“本地独立 + 玩家主动校准”的设计边界。
+
+## 2026-03-27
+
+- 修改内容:
+  - 调整双端手动覆盖的通用错误提示文案。
+  - 将“当前设备不可达”错误改为中性表述，避免在双向覆盖场景下提示对象混淆。
+- 涉及文件:
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅优化双向覆盖错误提示文案，不改变同步逻辑。
+
+## 2026-03-27
+
+- 修改内容:
+  - 调整“手机覆盖手表”入口位置。
+  - 将该入口从 `PhoneSettingsView` 回迁到公用 `SettingsView`，按平台分支显示。
+  - 清理 `PhoneSettingsView` 中为手动覆盖临时加入的状态、弹窗与触发逻辑。
+- 涉及文件:
+  - `PalmSky Watch App/view/SettingsView.swift`
+  - `PalmSky/view/PhoneSettingsView.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 当前双端手动覆盖入口统一收口到公用设置页，避免双套入口分散。
+
+## 2026-03-28
+
+- 修改内容:
+  - 更新 `PhoneSettingsView` 中 `faq_missing_data_q / faq_missing_data_a` 对应的 FAQ 文案。
+  - 将内容从旧的“数据没有同步到手机”排查说明，改为当前双端手动覆盖与数据校准机制说明。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅更新 FAQ 文案，不涉及业务逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 微调数据同步 FAQ 的表述顺序。
+  - 将说明从“先强调不是实时同步”调整为“先说明如何手动覆盖，再补充同步边界”。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅优化 FAQ 语气与阅读顺序，不涉及业务逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 精简 `faq_data_loss_a` 文案。
+  - 保留“本地优先、iCloud 兜底、双端独立”三项关键信息，去掉冗余说明。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅压缩 FAQ 文案长度，不涉及业务逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 修正睡眠系统状态展示语义。
+  - 为 `WatchHealthManager` 增加睡眠数据状态判断，区分“未授权”和“无数据”。
+  - 调整 `GameManager.sleepBonusStatusText`，不再继续使用合并态“未授权/无数据”。
+- 涉及文件:
+  - `PalmSky Watch App/manager/WatchHealthManager.swift`
+  - `PalmSky Watch App/manager/GameManager.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/SYSTEM_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅修正睡眠状态展示，不改动睡眠收益结算逻辑。
+
+## 2026-03-28
+
+- 修改内容:
+  - 清理睡眠状态拆分后遗留的旧合并态代码与文案。
+  - 删除未使用的 `sleepStatusDisplayText` 计算属性。
+  - 删除不再使用的 `watch_settings_sleep_status_unavailable` 本地化 key。
+- 涉及文件:
+  - `PalmSky Watch App/manager/WatchHealthManager.swift`
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为无行为变化的清理，保持新的“未授权 / 无数据”双态展示口径。
+
+## 2026-03-28
+
+- 修改内容:
+  - 将双端手动覆盖入口的 Section 标题从“数据校准”调整为“数据同步”。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅调整入口标题文案，不涉及按钮行为与同步逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 调整 `faq_missing_data_q` 的问句表述。
+  - 将“同步进度”改为更贴近当前入口命名的“同步数据”。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅微调 FAQ 问句文案，不涉及业务逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 为双端“数据同步”入口 footer 补充手动同步说明。
+  - 明确提示“默认不会自动同步，需手动发起覆盖”。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅增强同步规则提示，不涉及业务逻辑改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 清理未使用的 `settings_data_override_footer` 本地化 key。
+  - 当前公用设置页实际使用的是 `watch_settings_data_override_footer`。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为无行为变化的文案清理。
+
+## 2026-03-27
+
+- 修改内容:
+  - 调整 iPhone 端成功覆盖后的提示承载方式。
+  - 不再通过 `PhoneMianView` 单独监听中转，而是直接复用 `GameManager.offlineToastMessage` 作为手机端提示出口。
+- 涉及文件:
+  - `PalmSky Watch App/manager/SkySyncManager.swift`
+  - `PalmSky/view/PhoneMianView.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅收敛提示路径，不改变双向覆盖主流程。
+
+## 2026-03-28
+
+- 修改内容:
+  - 统一手动数据覆盖系统的文档口径。
+  - 修正 `SYSTEM_DESIGN.md` 中仍停留在单向第一阶段的旧描述。
+  - 将入口职责收口为 `SettingsView` 按平台承载，避免继续保留与当前实现不一致的双页表述。
+- 涉及文件:
+  - `doc/SYSTEM_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅修正文档描述，不涉及业务代码改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 补充 `SettingsView.swift` 与 `PhoneSettingsView.swift` 的职责分工说明。
+  - 在项目架构文档中明确 `SettingsView.swift` 为双端共用的游戏内设置页。
+  - 在手动数据覆盖设计文档中明确 `PhoneSettingsView.swift` 不作为数据同步功能主入口。
+- 涉及文件:
+  - `doc/PROJECT_ARCH.md`
+  - `doc/DATA_OVERRIDE_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅补充分工约定，避免后续继续混淆两个设置页职责。
+
+## 2026-03-28
+
+- 修改内容:
+  - 补充双端设置入口链路说明。
+  - 在架构文档中明确 watch 与 iPhone 分别如何进入 `SettingsView.swift`。
+  - 在数据覆盖设计文档中补充本功能相关的实际入口链路，避免后续只按文件名判断页面归属。
+- 涉及文件:
+  - `doc/PROJECT_ARCH.md`
+  - `doc/DATA_OVERRIDE_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅补充文档说明，不涉及业务代码改动。
+
+## 2026-03-28
+
+- 修改内容:
+  - 调整手动数据覆盖中“正在处理云端恢复”错误的提示文案。
+  - 将原本指向“手机当前”的表述改为中性的“目标端当前”，避免双向覆盖时提示对象混淆。
+- 涉及文件:
+  - `zh-Hans.lproj/Localizable.strings`
+  - `zh-Hant.lproj/Localizable.strings`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅调整错误提示文案，不涉及覆盖逻辑改动。
+
+## 2026-03-29
+
+- 修改内容:
+  - 修正睡眠状态展示中“已授权但无数据”被误判为“未授权”的问题。
+  - 调整 `WatchHealthManager.sleepDataStatus` 判断逻辑，不再将只读睡眠权限强依赖 `sharingAuthorized`。
+  - 新增“已请求过睡眠权限”的本地标记，用于更稳定地区分“未授权”和“无数据”。
+- 涉及文件:
+  - `PalmSky Watch App/manager/WatchHealthManager.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次仅修正睡眠状态展示判断，不改动睡眠收益与离线结算逻辑。
+
+## 2026-03-29
+
+- 修改内容:
+  - 清理上一条睡眠状态修正中遗留的冗余本地标记变量。
+  - 删除未实际参与判断的 `hasRequestedSleepPermission`，保持实现最小化。
+- 涉及文件:
+  - `PalmSky Watch App/manager/WatchHealthManager.swift`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为无行为变化的代码清理。
+
+## 2026-03-29
+
+- 修改内容:
+  - 将睡眠状态展示改为方案 B 的产品态判断。
+  - 重新启用“是否已进入睡眠授权流程”的本地标记，用于区分“未授权”和“无数据”。
+  - `sleepDataStatus` 现调整为：
+    - 未请求过权限时显示“未授权”
+    - 已请求过权限但无样本时显示“无数据”
+    - 查询到睡眠样本时显示“有数据”
+- 涉及文件:
+  - `PalmSky Watch App/manager/WatchHealthManager.swift`
+  - `doc/SYSTEM_DESIGN.md`
+  - `doc/AI_DEV_LOG.md`
+- 备注:
+  - 本次为产品态展示语义调整，不代表系统层可以精确识别“用户明确拒绝读取睡眠权限”。

@@ -33,6 +33,7 @@
 "tab_settings" = "设置";
 
 "settings_section_connection" = "连接状态";
+"settings_section_data_override" = "数据同步";
 "settings_section_faq" = "常见问题";
 "settings_section_about" = "关于";
 
@@ -45,6 +46,17 @@
 "phone_service" = "手机连接服务";
 "watch_app_status" = "手表 App 安装状态";
 "reachability_status" = "后台通信状态";
+"settings_overwrite_watch" = "手机覆盖手表";
+"settings_overwrite_watch_alert_title" = "手机覆盖手表？";
+"settings_overwrite_watch_alert_message" = "将以当前手机修为覆盖手表本地进度。护身符与设备设置不会同步。";
+"settings_overwrite_watch_confirm" = "确认覆盖";
+"settings_overwrite_success_title" = "覆盖完成";
+"settings_overwrite_failure_title" = "覆盖失败";
+"settings_overwrite_watch_success_message" = "手表进度已按当前手机修为更新。";
+"settings_overwrite_error_decode" = "数据解析失败，请稍后重试。";
+"settings_overwrite_error_unknown" = "覆盖失败，请稍后重试。";
+"sync_overwrite_error_unreachable" = "另一端当前不可达，请保持连接后重试。";
+"sync_overwrite_error_unknown" = "覆盖失败，请稍后重试。";
 
 "status_on" = "已开启";
 "status_inactive" = "未激活";
@@ -66,8 +78,8 @@
 "faq_missing_sounds_q" = "如何关闭手表的声音";
 "faq_missing_sounds_a" = "1. 打开『设置』App，进入『声音与触感』，将『提示音』调到最小，或开启『静音模式』。\n2. 按下侧边按钮打开 Apple Watch 上的『控制中心』，点击铃铛图标以快速静音，也可以在控制中心找到声音开关进行关闭。";
 
-"faq_missing_data_q" = "手表的数据没有同步到手机";
-"faq_missing_data_a" = "1. 确保手表和 iPhone 通过蓝牙或同一 Wi-Fi 网络连接。\n2. 确认两台设备都安装了最新版本的应用。\n3. 如果问题仍然存在，请尝试重启手表和手机后再次打开应用。";
+"faq_missing_data_q" = "手机和手表如何同步数据？";
+"faq_missing_data_a" = "可通过设置中的「数据同步」手动覆盖进度。请在两端都打开 App、并保持连接正常后发起覆盖。\n注意：这不是实时自动同步，护身符与设备设置仍然保持本地独立，不会随覆盖同步。";
 
 "faq_missing_center_q" = "手表的排行榜没有数据";
 "faq_missing_center_a" = "1.在你的 iPhone 上进入“设置>Game Center”，确认你已登录。\n2. 确保手表和 iPhone 通过蓝牙或同一 Wi-Fi 网络连接。\n3. 重新打开应用并等待几秒钟。";
@@ -79,7 +91,7 @@
 "faq_leaderboard_source_q" = "排行榜显示的是手机还是手表的成绩？";
 "faq_leaderboard_source_a" = "排行榜可以切换显示。点击排行榜页面右上角的图标（⌚️/📱）即可在手表排行榜和手机排行榜之间切换查看。";
 "faq_data_loss_q" = "游戏数据会丢失吗？";
-"faq_data_loss_a" = "游戏进度默认保存在当前设备本地，并会通过 iCloud 做同平台的兜底备份。\n如果本地没有存档，重新安装后可能会提示恢复云端进度。\n注意：这不是实时云同步，手机和手表的进度仍然是彼此独立的。";
+"faq_data_loss_a" = "游戏进度默认保存在当前设备本地，并会通过 iCloud 做同平台兜底备份。\n如果本地没有存档，重新安装后可能会提示恢复云端进度。\n手机和手表的进度仍然彼此独立。";
 
 /* 产品名称 */
 "product_6755140397_name" = "掌上台球 - 手表游戏";
@@ -145,8 +157,22 @@
 "watch_settings_sleep_status_done" = "已生效";
 "watch_settings_sleep_status_waiting" = "待触发";
 "watch_settings_sleep_status_unqualified" = "未达标";
-"watch_settings_sleep_status_unavailable" = "未授权/无数据";
+"watch_settings_sleep_status_unauthorized" = "未授权";
+"watch_settings_sleep_status_no_data" = "无数据";
 "watch_settings_sleep_footer" = "睡眠越安稳，今日首次有效闭关结算加成越高。";
+"watch_settings_section_data_override" = "数据同步";
+"watch_settings_data_override_footer" = "需手动发起覆盖。请保持手机与手表同时在前台打开，并确保连接正常。";
+"watch_settings_overwrite_phone" = "手表覆盖手机";
+"watch_settings_overwrite_phone_alert_title" = "手表覆盖手机？";
+"watch_settings_overwrite_phone_alert_message" = "将以当前手表修为覆盖手机本地进度。护身符与设备设置不会同步。";
+"watch_settings_overwrite_phone_confirm" = "确认覆盖";
+"watch_settings_overwrite_success_title" = "覆盖完成";
+"watch_settings_overwrite_failure_title" = "覆盖失败";
+"watch_settings_overwrite_success_message" = "手机进度已按当前手表修为更新。";
+"watch_settings_overwrite_error_unreachable" = "手机当前不可达，请保持连接后重试。";
+"watch_settings_overwrite_error_decode" = "数据解析失败，请稍后重试。";
+"watch_settings_overwrite_error_cloud_restore" = "目标端当前正在处理存档恢复，请稍后再试。";
+"watch_settings_overwrite_error_unknown" = "覆盖失败，请稍后重试。";
 "watch_settings_tap_gain" = "点击收益";
 "watch_settings_auto_gain" = "自动收益/秒";
 "watch_settings_break_success_rate" = "突破成功率";

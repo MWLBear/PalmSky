@@ -19,6 +19,24 @@ struct CodableLeaderboardEntry: Codable {
     let score: String
 }
 
+/// 手动覆盖类操作的统一错误封装，便于直接回显到手表端。
+enum SkySyncActionError: LocalizedError {
+    case sessionNotActivated
+    case counterpartNotReachable
+    case invalidResponse
+    case operationFailed(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .sessionNotActivated, .counterpartNotReachable:
+            return NSLocalizedString("sync_overwrite_error_unreachable", comment: "")
+        case .invalidResponse:
+            return NSLocalizedString("sync_overwrite_error_unknown", comment: "")
+        case .operationFailed(let message):
+            return message
+        }
+    }
+}
 
 class SkySyncManager: NSObject, WCSessionDelegate, ObservableObject {
     static let shared = SkySyncManager()
@@ -81,6 +99,8 @@ class SkySyncManager: NSObject, WCSessionDelegate, ObservableObject {
               
             case SkyConstants.WatchSync.leaderboardData:
                 handleLeaderboardDataMessage(message)
+            case SkyConstants.WatchSync.manualOverwriteWatchProgress:
+                handleManualOverwriteWatchProgress(message, replyHandler: replyHandler)
             default:
                 print("WatchSync (watchOS): Received unknown action '\(action)'.")
             }
@@ -89,6 +109,8 @@ class SkySyncManager: NSObject, WCSessionDelegate, ObservableObject {
             switch action {
             case SkyConstants.WatchSync.syncGameData:
                 handleSyncGameData(message)
+            case SkyConstants.WatchSync.manualOverwritePhoneProgress:
+                handleManualOverwritePhoneProgress(message, replyHandler: replyHandler)
             case SkyConstants.WatchSync.fetchLeaderboard:
 //                handleFetchLeaderboardRequest(message)
                   handleFetchLeaderboardRequest(message, replyHandler: replyHandler)
@@ -245,6 +267,90 @@ extension SkySyncManager {
         })
       
     }
+    
+    /// 手表端主动发起“手表覆盖手机”请求。
+    /// 该请求只走即时消息，不做离线排队，要求手机当前可达。
+    func requestPhoneProgressOverwrite(player: Player, completion: @escaping (Result<String, Error>) -> Void) {
+        guard activationState == .activated else {
+            DispatchQueue.main.async {
+                completion(.failure(SkySyncActionError.sessionNotActivated))
+            }
+            return
+        }
+        
+        guard session.isReachable else {
+            DispatchQueue.main.async {
+                completion(.failure(SkySyncActionError.counterpartNotReachable))
+            }
+            return
+        }
+        
+        do {
+            let encoded = try JSONEncoder().encode(player)
+            let message: [String: Any] = [
+                SkyConstants.WatchSync.action: SkyConstants.WatchSync.manualOverwritePhoneProgress,
+                SkyConstants.WatchSync.gameData: encoded
+            ]
+            
+            session.sendMessage(message, replyHandler: { response in
+                let isSuccess = response[SkyConstants.WatchSync.overwriteResult] as? Bool ?? false
+                let message = response[SkyConstants.WatchSync.overwriteMessage] as? String
+                    ?? NSLocalizedString("watch_settings_overwrite_error_unknown", comment: "")
+                
+                DispatchQueue.main.async {
+                    if isSuccess {
+                        completion(.success(message))
+                    } else {
+                        completion(.failure(SkySyncActionError.operationFailed(message)))
+                    }
+                }
+            }, errorHandler: { error in
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            })
+        } catch {
+            DispatchQueue.main.async {
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    /// 手表端处理来自手机的覆盖请求，并在本地落地后立即回传结果。
+    private func handleManualOverwriteWatchProgress(_ message: [String: Any], replyHandler: (([String: Any]) -> Void)?) {
+        guard let gameData = message[SkyConstants.WatchSync.gameData] as? Data else {
+            replyHandler?([
+                SkyConstants.WatchSync.overwriteResult: false,
+                SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("settings_overwrite_error_decode", comment: "")
+            ])
+            return
+        }
+        
+        do {
+            let player = try JSONDecoder().decode(Player.self, from: gameData)
+            
+            Task { @MainActor in
+                do {
+                    try GameManager.shared.applyProgressOverrideFromPhone(player)
+                    GameManager.shared.offlineToastMessage = NSLocalizedString("settings_overwrite_watch_success_message", comment: "")
+                    replyHandler?([
+                        SkyConstants.WatchSync.overwriteResult: true,
+                        SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("settings_overwrite_watch_success_message", comment: "")
+                    ])
+                } catch {
+                    replyHandler?([
+                        SkyConstants.WatchSync.overwriteResult: false,
+                        SkyConstants.WatchSync.overwriteMessage: error.localizedDescription
+                    ])
+                }
+            }
+        } catch {
+            replyHandler?([
+                SkyConstants.WatchSync.overwriteResult: false,
+                SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("settings_overwrite_error_decode", comment: "")
+            ])
+        }
+    }
   
     private func handleLeaderboardDataMessage(_ message: [String: Any]) {
         guard let data = message[SkyConstants.WatchSync.leaderboardData] as? Data else {
@@ -268,6 +374,54 @@ extension SkySyncManager {
 // MARK: - iOS: Receiving & Sending Logic
 #if os(iOS)
 extension SkySyncManager {
+    
+    /// iPhone 端主动发起“手机覆盖手表”请求。
+    /// 与手表覆盖手机相同，只走即时消息，不做离线排队。
+    func requestWatchProgressOverwrite(player: Player, completion: @escaping (Result<String, Error>) -> Void) {
+        guard activationState == .activated else {
+            DispatchQueue.main.async {
+                completion(.failure(SkySyncActionError.sessionNotActivated))
+            }
+            return
+        }
+        
+        guard session.isReachable else {
+            DispatchQueue.main.async {
+                completion(.failure(SkySyncActionError.counterpartNotReachable))
+            }
+            return
+        }
+        
+        do {
+            let encoded = try JSONEncoder().encode(player)
+            let message: [String: Any] = [
+                SkyConstants.WatchSync.action: SkyConstants.WatchSync.manualOverwriteWatchProgress,
+                SkyConstants.WatchSync.gameData: encoded
+            ]
+            
+            session.sendMessage(message, replyHandler: { response in
+                let isSuccess = response[SkyConstants.WatchSync.overwriteResult] as? Bool ?? false
+                let message = response[SkyConstants.WatchSync.overwriteMessage] as? String
+                    ?? NSLocalizedString("settings_overwrite_error_unknown", comment: "")
+                
+                DispatchQueue.main.async {
+                    if isSuccess {
+                        completion(.success(message))
+                    } else {
+                        completion(.failure(SkySyncActionError.operationFailed(message)))
+                    }
+                }
+            }, errorHandler: { error in
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            })
+        } catch {
+            DispatchQueue.main.async {
+                completion(.failure(error))
+            }
+        }
+    }
   
     private func handleSyncGameData(_ message: [String: Any]) {
       print("WatchSync (iPhone): handleSyncGameData.",message)
@@ -317,6 +471,43 @@ extension SkySyncManager {
         }
       } catch {
         print("WatchSync (iOS): Error decoding incoming GameData -> \(error.localizedDescription)")
+      }
+    }
+    
+    /// iPhone 端处理来自手表的覆盖请求，并将结果通过 replyHandler 立即回传。
+    private func handleManualOverwritePhoneProgress(_ message: [String: Any], replyHandler: (([String: Any]) -> Void)?) {
+      guard let gameData = message[SkyConstants.WatchSync.gameData] as? Data else {
+        replyHandler?([
+            SkyConstants.WatchSync.overwriteResult: false,
+            SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("watch_settings_overwrite_error_decode", comment: "")
+        ])
+        return
+      }
+      
+      do {
+        let player = try JSONDecoder().decode(Player.self, from: gameData)
+        
+        Task { @MainActor in
+          do {
+            try GameManager.shared.applyProgressOverrideFromWatch(player)
+            self.syncedData = GameManager.shared.player
+            GameManager.shared.offlineToastMessage = NSLocalizedString("watch_settings_overwrite_success_message", comment: "")
+            replyHandler?([
+                SkyConstants.WatchSync.overwriteResult: true,
+                SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("watch_settings_overwrite_success_message", comment: "")
+            ])
+          } catch {
+            replyHandler?([
+                SkyConstants.WatchSync.overwriteResult: false,
+                SkyConstants.WatchSync.overwriteMessage: error.localizedDescription
+            ])
+          }
+        }
+      } catch {
+        replyHandler?([
+            SkyConstants.WatchSync.overwriteResult: false,
+            SkyConstants.WatchSync.overwriteMessage: NSLocalizedString("watch_settings_overwrite_error_decode", comment: "")
+        ])
       }
     }
     

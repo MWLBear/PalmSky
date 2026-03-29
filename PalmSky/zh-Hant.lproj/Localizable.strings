@@ -33,6 +33,7 @@
 "tab_settings" = "設定";
 
 "settings_section_connection" = "連線狀態";
+"settings_section_data_override" = "資料同步";
 "settings_section_faq" = "常見問題";
 "settings_section_about" = "關於";
 
@@ -45,6 +46,17 @@
 "phone_service" = "手機連線服務";
 "watch_app_status" = "手錶 App 安裝狀態";
 "reachability_status" = "背景連線狀態";
+"settings_overwrite_watch" = "手機覆蓋手錶";
+"settings_overwrite_watch_alert_title" = "手機覆蓋手錶？";
+"settings_overwrite_watch_alert_message" = "將以當前手機修為覆蓋手錶本地進度。護身符與裝置設定不會同步。";
+"settings_overwrite_watch_confirm" = "確認覆蓋";
+"settings_overwrite_success_title" = "覆蓋完成";
+"settings_overwrite_failure_title" = "覆蓋失敗";
+"settings_overwrite_watch_success_message" = "手錶進度已按當前手機修為更新。";
+"settings_overwrite_error_decode" = "資料解析失敗，請稍後重試。";
+"settings_overwrite_error_unknown" = "覆蓋失敗，請稍後重試。";
+"sync_overwrite_error_unreachable" = "另一端目前不可達，請保持連線後重試。";
+"sync_overwrite_error_unknown" = "覆蓋失敗，請稍後重試。";
 
 "status_on" = "已開啟";
 "status_inactive" = "未啟用";
@@ -66,8 +78,8 @@
 "faq_missing_sounds_q" = "如何關閉手錶的聲音";
 "faq_missing_sounds_a" = "1. 打開「設定」App，進入「聲音與觸覺回饋」，將「提示音」調到最小，或開啟「靜音模式」。\n2. 按下側邊按鈕開啟 Apple Watch 的「控制中心」，點擊鈴鐺圖示可快速靜音，也可在控制中心關閉聲音。";
 
-"faq_missing_data_q" = "手錶的資料沒有同步到手機";
-"faq_missing_data_a" = "1. 請確認手錶與 iPhone 透過藍牙或同一 Wi-Fi 網路連線。\n2. 確認兩台裝置都安裝了最新版本的 App。\n3. 若問題仍存在，請嘗試重啟手錶與手機後再次打開 App。";
+"faq_missing_data_q" = "手機和手錶如何同步資料？";
+"faq_missing_data_a" = "可透過設定中的「資料同步」手動覆蓋進度。請在兩端都打開 App、並保持連線正常後發起覆蓋。\n注意：這不是即時自動同步，護身符與裝置設定仍然保持本地獨立，不會隨覆蓋同步。";
 
 "faq_missing_center_q" = "手錶的排行榜沒有資料";
 "faq_missing_center_a" = "1. 在 iPhone 上進入「設定 > Game Center」，確認你已登入。\n2. 請確認手錶與 iPhone 透過藍牙或同一 Wi-Fi 網路連線。\n3. 重新打開 App 並等待數秒。";
@@ -79,7 +91,7 @@
 "faq_leaderboard_source_q" = "排行榜顯示的是手機還是手錶的成績？";
 "faq_leaderboard_source_a" = "排行榜可以切換顯示。點擊排行榜頁面右上角的圖示（⌚️/📱）即可在手錶排行榜和手機排行榜之間切換查看。";
 "faq_data_loss_q" = "遊戲資料會遺失嗎？";
-"faq_data_loss_a" = "遊戲進度預設保存在目前裝置本機，並會透過 iCloud 做同平台的兜底備份。\n如果本地沒有存檔，重新安裝後可能會提示恢復雲端進度。\n注意：這不是即時雲端同步，手機與手錶的進度仍然彼此獨立。";
+"faq_data_loss_a" = "遊戲進度預設保存在目前裝置本機，並會透過 iCloud 做同平台兜底備份。\n如果本地沒有存檔，重新安裝後可能會提示恢復雲端進度。\n手機與手錶的進度仍然彼此獨立。";
 
 /* 产品名称 */
 "product_6755140397_name" = "掌上台球 - 手錶遊戲";
@@ -145,8 +157,22 @@
 "watch_settings_sleep_status_done" = "已生效";
 "watch_settings_sleep_status_waiting" = "待觸發";
 "watch_settings_sleep_status_unqualified" = "未達標";
-"watch_settings_sleep_status_unavailable" = "未授權/無資料";
+"watch_settings_sleep_status_unauthorized" = "未授權";
+"watch_settings_sleep_status_no_data" = "無資料";
 "watch_settings_sleep_footer" = "睡眠越安穩，今日首次有效閉關結算加成越高。";
+"watch_settings_section_data_override" = "資料同步";
+"watch_settings_data_override_footer" = "需手動發起覆蓋。請保持手機與手錶同時在前台開啟，並確保連線正常。";
+"watch_settings_overwrite_phone" = "手錶覆蓋手機";
+"watch_settings_overwrite_phone_alert_title" = "手錶覆蓋手機？";
+"watch_settings_overwrite_phone_alert_message" = "將以當前手錶修為覆蓋手機本地進度。護身符與裝置設定不會同步。";
+"watch_settings_overwrite_phone_confirm" = "確認覆蓋";
+"watch_settings_overwrite_success_title" = "覆蓋完成";
+"watch_settings_overwrite_failure_title" = "覆蓋失敗";
+"watch_settings_overwrite_success_message" = "手機進度已按當前手錶修為更新。";
+"watch_settings_overwrite_error_unreachable" = "手機目前不可達，請保持連線後重試。";
+"watch_settings_overwrite_error_decode" = "資料解析失敗，請稍後重試。";
+"watch_settings_overwrite_error_cloud_restore" = "目標端目前正在處理存檔恢復，請稍後再試。";
+"watch_settings_overwrite_error_unknown" = "覆蓋失敗，請稍後重試。";
 "watch_settings_tap_gain" = "點擊收益";
 "watch_settings_auto_gain" = "自動收益/秒";
 "watch_settings_break_success_rate" = "突破成功率";

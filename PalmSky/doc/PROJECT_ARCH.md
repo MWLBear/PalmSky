@@ -58,11 +58,41 @@
 - `MainView.swift`
   - 主修炼界面与场景切换入口。
 - `SettingsView.swift`
-  - 设置、睡眠、商店、统计与重置入口。
+  - 游戏内通用设置页。
+  - 同时承载手表端与 iPhone 游戏主界面内的设置入口。
+  - 负责睡眠、商店、统计、数据同步与重置等游戏内设置内容。
+- `PhoneSettingsView.swift`
+  - iPhone 外层 App 的独立设置页。
+  - 承载连接状态、FAQ、支持我们、隐私条款等外围设置内容。
+  - 不承担 `SettingsView.swift` 的游戏内通用设置职责。
 - `BreakthroughView.swift`
   - 突破流程界面。
 - `view/game/`
   - 小游戏与渡劫场景。
+
+### 双端设置入口链路
+
+- Apple Watch 端游戏内设置入口链路:
+  - `PalmSky Watch App/view/PalmSkyApp.swift`
+  - `RootPagerView`
+  - `SettingsView`
+- iPhone 端游戏内设置入口链路:
+  - `PalmSky/PalmSkyApp.swift`
+  - `PhoneMianView`
+  - `PhoneContentView`
+  - `BaguaContainerView`
+  - `RootPagerView`
+  - `SettingsView`
+- iPhone 端外围设置入口链路:
+  - `PalmSky/PalmSkyApp.swift`
+  - `PhoneMianView`
+  - `PhoneSettingsView`
+
+约定:
+
+- 凡是修仙主循环内的设置、数值展示、数据同步入口，统一归 `SettingsView`。
+- 凡是 iPhone 外层容器的连接状态、FAQ、支持与条款页面，统一归 `PhoneSettingsView`。
+- 后续新增设置入口时，必须先判断属于“游戏内设置”还是“外围设置”，避免重复加入口或加错页面。
 
 ## 3. 当前架构特征
 

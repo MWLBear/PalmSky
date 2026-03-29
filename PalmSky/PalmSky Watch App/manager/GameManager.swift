@@ -17,6 +17,17 @@ class GameManager: ObservableObject {
         case reminder
     }
     
+    enum ManualOverrideError: LocalizedError {
+        case awaitingCloudRestore
+        
+        var errorDescription: String? {
+            switch self {
+            case .awaitingCloudRestore:
+                return NSLocalizedString("watch_settings_overwrite_error_cloud_restore", comment: "")
+            }
+        }
+    }
+    
     @Published var player: Player
     @Published var showBreakButton: Bool = false
     @Published var currentEvent: GameEvent?
@@ -168,6 +179,60 @@ class GameManager: ObservableObject {
         cloudStore.removeObject(forKey: SkyConstants.UserDefaults.iCloudPlayerBackupKey)
     }
     
+    #if os(iOS)
+    /// iPhone 端专用：第一阶段仅支持用手表进度覆盖手机本地主存档，护身符与设置保持本地独立。
+    func applyProgressOverrideFromWatch(_ source: Player) throws {
+        guard !isAwaitingCloudRestoreChoice else {
+            throw ManualOverrideError.awaitingCloudRestore
+        }
+        
+        var merged = player
+        merged.level = source.level
+        merged.click = source.click
+        merged.currentQi = source.currentQi
+        merged.reincarnationCount = source.reincarnationCount
+        merged.totalFailures = source.totalFailures
+        merged.consecutiveBreakFailures = source.consecutiveBreakFailures
+        merged.tapBuff = source.tapBuff
+        merged.autoBuff = source.autoBuff
+        merged.debuff = source.debuff
+        merged.hasSeenCharmIntro = source.hasSeenCharmIntro
+        merged.charmPromptBuckets = source.charmPromptBuckets
+        merged.lastLogout = Date()
+        
+        player = merged
+        checkBreakCondition()
+        savePlayer(forceSyncToPhone: false)
+    }
+    #endif
+    
+    #if os(watchOS)
+    /// 手表端专用：使用手机进度覆盖手表本地主存档，护身符与设置保持手表本地独立。
+    func applyProgressOverrideFromPhone(_ source: Player) throws {
+        guard !isAwaitingCloudRestoreChoice else {
+            throw ManualOverrideError.awaitingCloudRestore
+        }
+        
+        var merged = player
+        merged.level = source.level
+        merged.click = source.click
+        merged.currentQi = source.currentQi
+        merged.reincarnationCount = source.reincarnationCount
+        merged.totalFailures = source.totalFailures
+        merged.consecutiveBreakFailures = source.consecutiveBreakFailures
+        merged.tapBuff = source.tapBuff
+        merged.autoBuff = source.autoBuff
+        merged.debuff = source.debuff
+        merged.hasSeenCharmIntro = source.hasSeenCharmIntro
+        merged.charmPromptBuckets = source.charmPromptBuckets
+        merged.lastLogout = Date()
+        
+        player = merged
+        checkBreakCondition()
+        savePlayer(forceSyncToPhone: false)
+    }
+    #endif
+    
     // MARK: - 睡眠闭关状态
     
     /// 今日睡眠闭关加成是否已经在离线收益里生效过
@@ -177,8 +242,13 @@ class GameManager: ObservableObject {
     
     /// 设置页展示用：睡眠奖励状态分为未达标 / 待触发 / 已生效
     var sleepBonusStatusText: String {
-        guard WatchHealthManager.shared.lastNightSleepHours > 0 else {
-            return NSLocalizedString("watch_settings_sleep_status_unavailable", comment: "")
+        switch WatchHealthManager.shared.sleepDataStatus {
+        case .unauthorized:
+            return NSLocalizedString("watch_settings_sleep_status_unauthorized", comment: "")
+        case .noData:
+            return NSLocalizedString("watch_settings_sleep_status_no_data", comment: "")
+        case .available:
+            break
         }
         if hasConsumedSleepBonusToday {
             return NSLocalizedString("watch_settings_sleep_status_done", comment: "")

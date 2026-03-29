@@ -10,32 +10,37 @@ struct PhoneSettingsView: View {
             question: NSLocalizedString("faq_data_independent_q", comment: ""),
             answer: NSLocalizedString("faq_data_independent_a", comment: "")
         ),
+        
+        SkyFAQItem(
+            question: NSLocalizedString("faq_missing_data_q", comment: ""),
+            answer: NSLocalizedString("faq_missing_data_a", comment: "")
+        ),
+        
+        SkyFAQItem(
+            question: NSLocalizedString("faq_data_loss_q", comment: ""),
+            answer: NSLocalizedString("faq_data_loss_a", comment: "")
+        ),
+      
+        
         SkyFAQItem(
             question: NSLocalizedString("faq_watch_unlock_q", comment: ""),
             answer: NSLocalizedString("faq_watch_unlock_a", comment: "")
         ),
     
         SkyFAQItem(
-            question: NSLocalizedString("faq_leaderboard_source_q", comment: ""),
-            answer: NSLocalizedString("faq_leaderboard_source_a", comment: "")
-        ),
-        SkyFAQItem(
-            question: NSLocalizedString("faq_data_loss_q", comment: ""),
-            answer: NSLocalizedString("faq_data_loss_a", comment: "")
-        ),
-        SkyFAQItem(
             question: NSLocalizedString("faq_missing_app_q", comment: ""),
             answer: NSLocalizedString("faq_missing_app_a", comment: "")
         ),
+      
+        SkyFAQItem(
+            question: NSLocalizedString("faq_leaderboard_source_q", comment: ""),
+            answer: NSLocalizedString("faq_leaderboard_source_a", comment: "")
+        ),
+        
         SkyFAQItem(
             question: NSLocalizedString("faq_missing_sounds_q", comment: ""),
             answer: NSLocalizedString("faq_missing_sounds_a", comment: "")
         ),
-        SkyFAQItem(
-            question: NSLocalizedString("faq_missing_data_q", comment: ""),
-            answer: NSLocalizedString("faq_missing_data_a", comment: "")
-        ),
-        
 //        SkyFAQItem(
 //            question: NSLocalizedString("faq_missing_center_q", comment: ""),
 //            answer: NSLocalizedString("faq_missing_center_a", comment: "")

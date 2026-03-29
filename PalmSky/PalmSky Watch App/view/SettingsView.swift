@@ -4,10 +4,18 @@ struct SettingsView: View {
     @EnvironmentObject var gameManager: GameManager
     @ObservedObject var purchaseManager = PurchaseManager.shared // ✨ 监听购买状态
     @ObservedObject var healthManager = WatchHealthManager.shared
+    @ObservedObject var syncManager = SkySyncManager.shared
     @Environment(\.dismiss) var dismiss
     @State private var showResetAlert = false
     @State private var showPaywall = false // ✨ 新增：控制付费墙显示
     @State private var showLeaderboard = false
+    @State private var showOverwritePhoneAlert = false
+    @State private var showOverwriteWatchAlert = false
+    @State private var showOverwriteResultAlert = false
+    @State private var overwriteResultTitle = ""
+    @State private var overwriteResultMessage = ""
+    @State private var isOverwritingPhone = false
+    @State private var isOverwritingWatch = false
     // ✨ 控制洞府宝库（消耗品商店）显示
     @State private var showConsumableShop = false
   
@@ -371,6 +379,65 @@ struct SettingsView: View {
                         .foregroundColor(themeColor)
                 }
                 
+                Section(
+                    header: Text(NSLocalizedString("watch_settings_section_data_override", comment: "")).foregroundColor(themeColor),
+                    footer: Text(NSLocalizedString("watch_settings_data_override_footer", comment: ""))
+                        .foregroundColor(.secondary)
+                ) {
+                    #if os(watchOS)
+                    Button {
+                        showOverwritePhoneAlert = true
+                        HapticManager.shared.playIfEnabled(.click)
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.triangle.branch")
+                                .foregroundColor(themeColor)
+                                .font(.title3)
+                            Text(NSLocalizedString("watch_settings_overwrite_phone", comment: ""))
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if isOverwritingPhone {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isOverwritingPhone)
+                    #elseif os(iOS)
+                    Button {
+                        showOverwriteWatchAlert = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.triangle.branch")
+                                .foregroundColor(themeColor)
+                                .font(.title3)
+                            Text(NSLocalizedString("settings_overwrite_watch", comment: ""))
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if isOverwritingWatch {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isOverwritingWatch)
+                    #endif
+                }
+                
                 // MARK: - Section 4: 危险操作
                 Section {
                   if gameManager.player.level >= GameConstants.MAX_LEVEL {
@@ -421,6 +488,35 @@ struct SettingsView: View {
             .sheet(isPresented: $showLeaderboard) {
               LeaderboardListView()
             }
+            #if os(watchOS)
+            .alert(NSLocalizedString("watch_settings_overwrite_phone_alert_title", comment: ""), isPresented: $showOverwritePhoneAlert) {
+                Button(NSLocalizedString("watch_settings_overwrite_phone_confirm", comment: ""), role: .destructive) {
+                    beginPhoneProgressOverwrite()
+                }
+                Button(NSLocalizedString("watch_common_cancel", comment: ""), role: .cancel) {}
+            } message: {
+                Text(NSLocalizedString("watch_settings_overwrite_phone_alert_message", comment: ""))
+            }
+            .alert(overwriteResultTitle, isPresented: $showOverwriteResultAlert) {
+                Button(NSLocalizedString("watch_common_ok", comment: ""), role: .cancel) {}
+            } message: {
+                Text(overwriteResultMessage)
+            }
+            #elseif os(iOS)
+            .alert(NSLocalizedString("settings_overwrite_watch_alert_title", comment: ""), isPresented: $showOverwriteWatchAlert) {
+                Button(NSLocalizedString("settings_overwrite_watch_confirm", comment: ""), role: .destructive) {
+                    beginWatchProgressOverwrite()
+                }
+                Button(NSLocalizedString("watch_common_cancel", comment: ""), role: .cancel) {}
+            } message: {
+                Text(NSLocalizedString("settings_overwrite_watch_alert_message", comment: ""))
+            }
+            .alert(overwriteResultTitle, isPresented: $showOverwriteResultAlert) {
+                Button(NSLocalizedString("watch_common_ok", comment: ""), role: .cancel) {}
+            } message: {
+                Text(overwriteResultMessage)
+            }
+            #endif
           
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden) // 移除默认背景
@@ -473,6 +569,50 @@ struct SettingsView: View {
     let _ = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     return "v\(version)"
   }
+
+    #if os(watchOS)
+    private func beginPhoneProgressOverwrite() {
+        guard !isOverwritingPhone else { return }
+        isOverwritingPhone = true
+        
+        syncManager.requestPhoneProgressOverwrite(player: gameManager.player) { result in
+            isOverwritingPhone = false
+            
+            switch result {
+            case .success(let message):
+                overwriteResultTitle = NSLocalizedString("watch_settings_overwrite_success_title", comment: "")
+                overwriteResultMessage = message
+                HapticManager.shared.playIfEnabled(.success)
+            case .failure(let error):
+                overwriteResultTitle = NSLocalizedString("watch_settings_overwrite_failure_title", comment: "")
+                overwriteResultMessage = error.localizedDescription
+                HapticManager.shared.playIfEnabled(.directionDown)
+            }
+            
+            showOverwriteResultAlert = true
+        }
+    }
+    #elseif os(iOS)
+    private func beginWatchProgressOverwrite() {
+        guard !isOverwritingWatch else { return }
+        isOverwritingWatch = true
+        
+        syncManager.requestWatchProgressOverwrite(player: gameManager.player) { result in
+            isOverwritingWatch = false
+            
+            switch result {
+            case .success(let message):
+                overwriteResultTitle = NSLocalizedString("settings_overwrite_success_title", comment: "")
+                overwriteResultMessage = message
+            case .failure(let error):
+                overwriteResultTitle = NSLocalizedString("settings_overwrite_failure_title", comment: "")
+                overwriteResultMessage = error.localizedDescription
+            }
+            
+            showOverwriteResultAlert = true
+        }
+    }
+    #endif
   
 }
 
